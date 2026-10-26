@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Constructor 3D simple</title>
+<style>
+:root{--bg:#f4f5f7;--bar:#ffffff;--tx:#1d2330;--bd:#d5d9e0;--ac:#2f6df6;--ac-tx:#ffffff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181e;--bar:#1f242d;--tx:#e8ebf0;--bd:#343b48;--ac:#5b8cff;--ac-tx:#0d1117}}
+:root[data-theme="dark"]{--bg:#15181e;--bar:#1f242d;--tx:#e8ebf0;--bd:#343b48;--ac:#5b8cff;--ac-tx:#0d1117}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+.bar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--bar);border-bottom:1px solid var(--bd);align-items:center}
+.bar .sep{width:1px;height:24px;background:var(--bd);margin:0 4px}
+button{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--ac)}
+button{display:inline-flex;align-items:center;gap:6px}
+button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+button svg .f{fill:currentColor;fill-opacity:.3}
+button.on{background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
+#wrap{flex:1;position:relative;min-height:0}
+canvas{display:block;width:100%;height:100%}
+#msg{position:absolute;left:50%;transform:translateX(-50%);top:10px;background:var(--bar);border:1px solid var(--bd);padding:6px 10px;border-radius:6px;max-width:50%;text-align:center;pointer-events:none;z-index:2}
+#dims{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;font-size:13px;max-width:min(96%,820px)}
+#dims[hidden]{display:none}
+#dims{max-height:calc(100% - 20px);overflow-y:auto}
+#dims input[type=number]{width:70px}
+#rrow{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 14px}
+#rrow[hidden]{display:none}
+#dims select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 4px;font:inherit}
+.bar{flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 10px;align-items:stretch}
+.grp{display:flex;flex-direction:column;gap:4px;padding:5px 6px 4px;border:1px solid var(--bd);border-radius:10px;flex:none}
+.grp .row{display:flex;gap:2px}
+.grp .lbl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;opacity:.55;text-align:center;white-space:nowrap}
+.bar button{flex-direction:column;gap:3px;min-width:56px;padding:6px 6px 5px;font-size:11px;line-height:1.1;background:transparent;border:1px solid transparent;border-radius:8px;white-space:nowrap}
+.bar button svg{width:22px;height:22px}
+.bar button:hover:not(:disabled){background:rgba(127,127,127,.18);border-color:transparent}
+.bar button.on,.bar button.on:hover:not(:disabled){background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
+.bar button:disabled{opacity:.35;cursor:default}
+.bar [data-op]:not(:disabled) svg{color:var(--ac)}
+.bar #del:not(:disabled):hover{color:#e5484d}
+#splitp{position:absolute;right:10px;top:10px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:13px;max-width:210px}
+#splitp[hidden]{display:none}
+#splitp .row{display:flex;gap:6px}
+#splitp small{opacity:.7;line-height:1.3}
+#splitp button.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
+#toolp{position:absolute;left:10px;top:10px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:13px;max-width:240px}
+#toolp[hidden]{display:none}
+#toolp .row,#toolp .arow{display:flex;gap:6px;align-items:center;justify-content:space-between}
+#toolp .arow span{width:14px;font-weight:600}
+#toolp small{opacity:.7;line-height:1.3}
+#toolp button{padding:4px 8px}
+.bar #psave{position:relative}
+#psave.dirty::after{content:'';position:absolute;top:3px;right:8px;width:8px;height:8px;border-radius:50%;background:#f5a623}
+#dlg{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:5}
+#dlg[hidden]{display:none}
+#dlg .box{background:var(--bar);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;max-width:340px;display:flex;flex-direction:column;gap:10px}
+#dlg p{margin:0;line-height:1.4;opacity:.85}
+#dlg .row{display:flex;gap:8px;flex-wrap:wrap}
+#dlg button.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
+#bedp{position:absolute;left:10px;top:10px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:13px;max-width:250px}
+#bedp[hidden]{display:none}
+#bedp .row,#bedp label{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#bedp input,#bedp select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;font:inherit;width:110px}
+#bedp button{padding:4px 8px}
+#bedp small{opacity:.7;line-height:1.3}
+.bar #bedbtn.warn{color:#e5484d}
+#dims label{display:flex;align-items:center;gap:6px;justify-content:flex-start}
+#dims input[type=number]{width:80px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;font:inherit}
+</style>
+</head>
+<body>
+<div class="bar">
+  <button data-add="box" title="Agregar cubo"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Cubo</button><button data-add="sphere" title="Agregar esfera"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/></svg>Esfera</button><button data-add="cylinder" title="Agregar cilindro"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/></svg>Cilindro</button><button data-add="cone" title="Agregar cono"><svg viewBox="0 0 24 24"><path d="M12 3L5 18M12 3l7 15"/><ellipse cx="12" cy="18" rx="7" ry="3"/></svg>Cono</button><button data-add="torus" title="Agregar toroide"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="6"/><ellipse cx="12" cy="12" rx="3.5" ry="1.8"/></svg>Toroide</button>
+  <span class="sep"></span>
+  <button data-mode="translate" class="on" title="Mover"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>Mover</button><button data-mode="rotate" title="Rotar"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg>Rotar</button><button data-mode="scale" title="Escalar"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>Escalar</button><button id="snap" title="Snap: mover de a 1 mm, rotar de a 15°, escalar de a 0,1"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 12h16M12 4v16"/></svg>Snap</button><button id="multi" title="Selección múltiple: cada clic suma o saca un objeto (también Shift o Ctrl + clic)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="10" rx="1"/><rect x="10" y="10" width="10" height="10" rx="1"/></svg>Multi</button>
+  <span class="sep"></span>
+  <button data-op="union" title="Unir los dos objetos seleccionados"><svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="12" r="6"/><circle class="f" cx="15" cy="12" r="6"/></svg>Unir</button><button data-op="subtract" title="Restar: el objeto seleccionado se resta a los que toca"><svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6" stroke-dasharray="2 2.5"/></svg>Restar</button><button data-op="intersect" title="Quedarse solo con la parte en común"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/><path class="f" d="M12 6.8A6 6 0 0 1 12 17.2A6 6 0 0 1 12 6.8z"/></svg>Intersectar</button><button id="dividir" title="Dividir la pieza seleccionada con un plano"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M2 12h20" stroke-dasharray="2 2"/></svg>Dividir</button>
+  <span class="sep"></span>
+  <button id="undo" title="Deshacer (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Deshacer</button><button id="redo" title="Rehacer (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Rehacer</button><span class="sep"></span><button id="ghost" title="Modo transparente: los objetos no seleccionados se ven semitransparentes"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Transparente</button><button id="bedbtn" title="Tamaño de la cama de impresión"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v4l9 4 9-4V8M3 12"/></svg>Cama</button><span class="sep"></span><button id="alinear" title="Alinear, centrar y reflejar (espejo)"><svg viewBox="0 0 24 24"><path d="M4 4v16M8 7h12M8 12h8M8 17h10"/></svg>Alinear</button><button id="ground" title="Apoyar la pieza seleccionada sobre la base"><svg viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="10" rx="1"/><path d="M3 19h18M12 16v1"/></svg>Apoyar</button><button id="dup" title="Duplicar"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button><button id="del" title="Borrar"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Borrar</button><span class="sep"></span><button id="pnew" title="Empezar un proyecto nuevo (se puede deshacer)"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M12 11v6M9 14h6"/></svg>Nuevo</button><button id="psave" title="Guardar el proyecto en un archivo"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg>Guardar</button><button id="popen" title="Abrir un proyecto guardado"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>Abrir</button><input id="pfile" type="file" accept=".json" hidden><button id="imp" title="Importar un archivo STL"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar STL</button><input id="file" type="file" accept=".stl" hidden><button id="stl" title="Exportar a STL"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Exportar STL</button>
+</div>
+<div id="wrap"><canvas id="c"></canvas><div id="splitp" hidden><b>Dividir pieza</b><div class="row"><button data-ax="x">X</button><button data-ax="y" class="on">Y</button><button data-ax="z">Z</button></div><small>Mové o rotá el plano con los botones Mover / Rotar de la barra. Después tocá Dividir.</small><div class="row"><button id="sapply" class="pri">Dividir</button><button id="scancel">Cancelar</button></div></div><div id="bedp" hidden><div class="row"><b>Cama de impresión</b><button id="bclose" title="Cerrar">✕</button></div><label>Medida <select id="bpre"><option value="180x180">180 × 180 mm</option><option value="200x200">200 × 200 mm</option><option value="220x220">220 × 220 mm</option><option value="235x235">235 × 235 mm</option><option value="250x210">250 × 210 mm</option><option value="256x256">256 × 256 mm</option><option value="300x300">300 × 300 mm</option><option value="custom">Personalizada</option></select></label><label>Ancho (X) <input id="bw" type="number" min="10" step="1"></label><label>Fondo (Z) <input id="bd" type="number" min="10" step="1"></label><small>El borde se pone rojo si alguna pieza sobresale de la cama.</small></div><div id="dlg" hidden><div class="box"><b>Tenés cambios sin guardar en un archivo</b><p>Si refrescás, la escena se recupera del autoguardado de este navegador, pero conviene tener una copia en un archivo, sobre todo con piezas muy pesadas.</p><div class="row"><button id="dsave" class="pri">Guardar y refrescar</button><button id="dgo">Refrescar igual</button><button id="dcancel">Cancelar</button></div></div></div><div id="toolp" hidden><div class="row"><b>Alinear y espejo</b><button id="tclose" title="Cerrar">✕</button></div><small>Alinear al último objeto seleccionado (Shift+clic para elegir varios)</small><div class="arow"><span>X</span><button data-al="x:min">Mín</button><button data-al="x:mid">Centro</button><button data-al="x:max">Máx</button></div><div class="arow"><span>Y</span><button data-al="y:min">Mín</button><button data-al="y:mid">Centro</button><button data-al="y:max">Máx</button></div><div class="arow"><span>Z</span><button data-al="z:min">Mín</button><button data-al="z:mid">Centro</button><button data-al="z:max">Máx</button></div><button id="tcenter">Centrar en el origen (X y Z)</button><small>Espejo (refleja la pieza seleccionada)</small><div class="row"><button data-mir="x">Espejo X</button><button data-mir="y">Espejo Y</button><button data-mir="z">Espejo Z</button></div></div><div id="dims" hidden><b>Medidas (mm)</b><label>Ancho X <input id="dx" type="number" step="0.1" min="0.01"></label><label>Alto Y <input id="dy" type="number" step="0.1" min="0.01"></label><label>Prof. Z <input id="dz" type="number" step="0.1" min="0.01"></label><label><span>Proporcional</span><input id="dlock" type="checkbox"></label><b>Posición (mm)</b><label>X <input id="px" type="number" step="0.1"></label><label>Y <input id="py" type="number" step="0.1"></label><label>Z <input id="pz" type="number" step="0.1"></label><b>Rotación (°)</b><label>X <input id="rx" type="number" step="1"></label><label>Y <input id="ry" type="number" step="1"></label><label>Z <input id="rz" type="number" step="1"></label><div id="rrow" hidden><b>Bordes (mm)</b><label>Radio <input id="rad" type="number" step="0.1" min="0" value="0"></label><label>Tipo <select id="rtype"><option value="soft">Redondeado</option><option value="chamfer">Chaflán</option></select></label></div></div><div id="msg">Agregá una forma. Shift+clic para seleccionar dos y combinarlas (Restar: primero − segundo).</div></div>
+
+<script type="importmap">
+{"imports":{
+"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+"three-mesh-bvh":"https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.3/build/index.module.js",
+"three-bvh-csg":"https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.16/build/index.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {TransformControls} from 'three/addons/controls/TransformControls.js';
+import {STLExporter} from 'three/addons/exporters/STLExporter.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {STLLoader} from 'three/addons/loaders/STLLoader.js';
+import {Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION} from 'three-bvh-csg';
+
+const $=s=>document.querySelector(s), msg=t=>$('#msg').textContent=t;
+const canvas=$('#c'), wrap=$('#wrap');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(devicePixelRatio);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(50,1,0.1,1000); cam.position.set(60,50,80);
+scene.add(new THREE.HemisphereLight(0xffffff,0x555566,1.1));
+const dl=new THREE.DirectionalLight(0xffffff,1.4); dl.position.set(5,10,7); scene.add(dl);
+const grid=new THREE.GridHelper(20,20,0x888888,0xbbbbbb); grid.material.transparent=true; grid.material.opacity=0.25; grid.material.depthWrite=false; grid.scale.setScalar(10); scene.add(grid);
+
+const orbit=new OrbitControls(cam,canvas); orbit.enableDamping=true;
+const tc=new TransformControls(cam,canvas); scene.add(tc);
+tc.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);
+tc.addEventListener('objectChange',()=>updateDims());
+tc.addEventListener('mouseUp',()=>{const o=sel[sel.length-1]; if(o&&o.userData.p&&tc.mode==='scale'){rebuild(o);updateDims();} commit();});
+
+const objs=[]; let sel=[];
+const colors=[0x4f8cff,0xff7a59,0x4cc38a,0xf5c542,0xb07cff];
+let ci=0;
+const shapes={
+  box:()=>new THREE.BoxGeometry(25,25,25),
+  sphere:()=>new THREE.SphereGeometry(12.5,32,24),
+  cylinder:()=>new THREE.CylinderGeometry(12.5,12.5,25,48),
+  cone:()=>new THREE.ConeGeometry(12.5,25,48),
+  torus:()=>new THREE.TorusGeometry(8.75,3.75,16,48)
+};
+const mat=()=>new THREE.MeshStandardMaterial({color:colors[ci++%colors.length],roughness:0.55,metalness:0.05});
+
+function addMesh(geo,m=mat()){
+  const mesh=new THREE.Mesh(geo,m); scene.add(mesh); objs.push(mesh); select([mesh]); return mesh;
+}
+function select(list){
+  sel.forEach(o=>o.material.emissive.setHex(0));
+  sel=list;
+  sel.forEach(o=>o.material.emissive.setHex(0x2c4a8f));
+  if(sel.length) tc.attach(sel[sel.length-1]); else tc.detach();
+  updateDims();
+}
+
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+  const t=b.dataset.add, P={box:{t:'box',w:25,h:25,d:25,r:0,soft:true},cylinder:{t:'cyl',w:25,h:25,d:25,r:0,soft:true}}[t]; const m=addMesh(P?buildGeo(P):shapes[t]()); if(P){m.userData.p={...P};updateDims();} m.geometry.computeBoundingBox(); const hb=m.geometry.boundingBox, hs=hb.getSize(new THREE.Vector3()), R=Math.max(20,Math.min(bed.w,bed.d)/2-hs.x/2-5);
+  let best=null;
+  for(let i=0;i<30;i++){
+    const x=(Math.random()*2-1)*R, z=(Math.random()*2-1)*R;
+    const free=objs.every(o=>{if(o===m)return true; const b=new THREE.Box3().setFromObject(o); return x+hs.x/2<b.min.x||x-hs.x/2>b.max.x||z+hs.z/2<b.min.z||z-hs.z/2>b.max.z;});
+    if(free){best=[x,z];break;} if(!best)best=[x,z];
+  }
+  m.position.set(best[0],-hb.min.y,best[1]); commit();
+});
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
+  scaleUI=b.dataset.mode==='scale'; tc.setMode(scaleUI?'translate':b.dataset.mode); tc.enabled=!scaleUI; if(scaleUI)msg('Escalar: arrastrá los puntos de las esquinas (proporcional) o los de las caras (un solo eje).');
+  document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+['x','y','z'].forEach(k=>$('#p'+k).addEventListener('input',e=>{const o=sel[sel.length-1],v=parseFloat(e.target.value);if(!o||isNaN(v))return;o.position[k]=v;}));
+const hist=[], redoSt=[]; let cur=[];
+const snap=()=>objs.map(o=>({g:o.geometry,c:o.material.color.getHex(),p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone(),u:o.userData.p?{...o.userData.p}:null}));
+const key=s=>JSON.stringify(s.map(d=>[d.g.uuid,d.c,d.p.toArray(),d.q.toArray(),d.s.toArray()]));
+function commit(){const n=snap(); if(key(n)===key(cur))return; hist.push(cur); if(hist.length>60)hist.shift(); cur=n; redoSt.length=0; refreshBtns(); scheduleSave(); markDirty(true);}
+function restore(st){
+  objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach();
+  st.forEach(d=>{const m=new THREE.Mesh(d.g,new THREE.MeshStandardMaterial({color:d.c,roughness:0.55,metalness:0.05}));
+    m.position.copy(d.p); m.quaternion.copy(d.q); m.scale.copy(d.s); if(d.u)m.userData.p={...d.u}; scene.add(m); objs.push(m);});
+  updateDims();
+}
+function refreshBtns(){
+  const set=(s,off)=>{const b=document.querySelector(s); if(b)b.disabled=off;};
+  set('#undo',!hist.length); set('#redo',!redoSt.length);
+  set('[data-op="union"]',sel.length!==2); set('[data-op="intersect"]',sel.length!==2); set('[data-op="subtract"]',!sel.length);
+  set('#dup',!sel.length); set('#dividir',!sel.length); set('#ground',!sel.length); set('#alinear',!sel.length); set('#del',!sel.length); set('#stl',!objs.length);
+}
+let ghostOn=false;
+function applyGhost(){
+  objs.forEach(o=>{
+    const g=ghostOn&&sel.length>0&&!sel.includes(o), m=o.material;
+    if(m.transparent!==g){m.transparent=g;m.needsUpdate=true;}
+    m.opacity=g?0.25:1; m.depthWrite=!g;
+  });
+}
+$('#ghost').onclick=()=>{ghostOn=!ghostOn;$('#ghost').classList.toggle('on',ghostOn);applyGhost();msg(ghostOn?'Modo transparente: los objetos no seleccionados se ven semitransparentes.':'Modo transparente desactivado.');};
+let splitting=null; const tp=new TransformControls(cam,canvas); scene.add(tp);
+tp.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);
+function setAxis(ax){
+  if(!splitting)return;
+  const pl=splitting.plane, c=new THREE.Box3().setFromObject(splitting.obj).getCenter(new THREE.Vector3());
+  pl.position.copy(c); pl.rotation.set(ax==='y'?-Math.PI/2:0, ax==='x'?Math.PI/2:0, 0);
+  document.querySelectorAll('[data-ax]').forEach(b=>b.classList.toggle('on',b.dataset.ax===ax));
+}
+function startSplit(){
+  const o=sel[sel.length-1]; if(!o){msg('Seleccioná la pieza que querés dividir.');return;}
+  const sz=new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3()), L=Math.max(sz.x,sz.y,sz.z);
+  const pl=new THREE.Mesh(new THREE.PlaneGeometry(L*1.6,L*1.6),new THREE.MeshBasicMaterial({color:0xff5a5f,transparent:true,opacity:0.3,side:THREE.DoubleSide,depthWrite:false}));
+  pl.add(new THREE.LineSegments(new THREE.EdgesGeometry(pl.geometry),new THREE.LineBasicMaterial({color:0xff5a5f})));
+  scene.add(pl); splitting={obj:o,plane:pl,L};
+  tc.detach(); $('#dims').style.display='none'; $('#splitp').hidden=false; $('#dividir').classList.add('on');
+  setAxis('y'); tp.setMode('translate'); tp.attach(pl);
+  msg('Mové o rotá el plano (botones Mover / Rotar) y tocá Dividir en el panel.');
+}
+function endSplit(){
+  if(!splitting)return;
+  tp.detach(); scene.remove(splitting.plane); splitting.plane.geometry.dispose(); splitting=null;
+  $('#splitp').hidden=true; $('#dims').style.display=''; $('#dividir').classList.remove('on');
+  if(sel.length&&objs.includes(sel[sel.length-1])) tc.attach(sel[sel.length-1]);
+}
+function applySplit(){
+  if(!splitting)return;
+  const {obj:o,plane:pl,L}=splitting;
+  pl.updateMatrixWorld(true);
+  const N=new THREE.Vector3(0,0,1).applyQuaternion(pl.quaternion), S=L*6;
+  const mk=(geo,pos,q,sc)=>{const b=new Brush(geo); b.position.copy(pos); b.quaternion.copy(q); b.scale.copy(sc); b.updateMatrixWorld(true); return b;};
+  const A=mk(o.geometry.clone(),o.position,o.quaternion,o.scale);
+  const B=mk(new THREE.BoxGeometry(S,S,S),pl.position.clone().addScaledVector(N,S/2),pl.quaternion,new THREE.Vector3(1,1,1));
+  const out=[SUBTRACTION,INTERSECTION].map(op=>{const r=ev.evaluate(A,B,op); r.updateMatrixWorld(true); return r;});
+  if(out.some(r=>!r.geometry.attributes.position||r.geometry.attributes.position.count===0)){msg('El plano no corta la pieza. Movélo hasta que la atraviese.');return;}
+  const meshes=out.map((r,i)=>{const m=new THREE.Mesh(r.geometry.clone(),i?mat():o.material.clone()); m.material.emissive.setHex(0); r.matrix.decompose(m.position,m.quaternion,m.scale); recenter(m); return m;});
+  endSplit();
+  scene.remove(o); objs.splice(objs.indexOf(o),1);
+  meshes.forEach(m=>{scene.add(m); objs.push(m);});
+  select([meshes[1]]); commit();
+  msg('Pieza dividida en 2. Podés mover cada parte por separado.');
+}
+$('#dividir').onclick=()=>splitting?endSplit():startSplit();
+$('#sapply').onclick=applySplit; $('#scancel').onclick=endSplit;
+document.querySelectorAll('[data-ax]').forEach(b=>b.onclick=()=>setAxis(b.dataset.ax));
+document.querySelector('.bar').addEventListener('click',e=>{
+  if(!splitting||e.target.closest('#dividir'))return;
+  const mb=e.target.closest('[data-mode]');
+  if(mb){tp.setMode(mb.dataset.mode==='rotate'?'rotate':'translate');return;}
+  endSplit();
+},true);
+$('#ground').onclick=()=>{
+  if(!sel.length)return;
+  sel.forEach(o=>{o.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(o,true); o.position.y-=b.min.y;});
+  updateDims(); commit(); msg('Pieza apoyada sobre la base.');
+};
+$('#snap').onclick=()=>{
+  const on=$('#snap').classList.toggle('on');
+  [tc,tp].forEach(c=>{c.setTranslationSnap(on?1:null); c.setRotationSnap(on?THREE.MathUtils.degToRad(15):null); c.setScaleSnap(on?0.1:null);});
+  msg(on?'Snap activado: mover de a 1 mm, rotar de a 15°, escalar de a 0,1.':'Snap desactivado.');
+};
+const bbox=o=>{o.updateMatrixWorld(true); return new THREE.Box3().setFromObject(o,true);};
+$('#alinear').onclick=()=>{$('#toolp').hidden=!$('#toolp').hidden;};
+$('#tclose').onclick=()=>{$('#toolp').hidden=true;};
+document.querySelectorAll('[data-al]').forEach(b=>b.onclick=()=>{
+  if(sel.length<2){msg('Seleccioná 2 o más objetos (Shift+clic). Se alinean al último que elegiste.');return;}
+  const [k,m]=b.dataset.al.split(':'), rb=bbox(sel[sel.length-1]);
+  const val=bb=>m==='min'?bb.min[k]:m==='max'?bb.max[k]:(bb.min[k]+bb.max[k])/2;
+  sel.slice(0,-1).forEach(o=>{o.position[k]+=val(rb)-val(bbox(o));});
+  updateDims(); commit(); msg('Objetos alineados.');
+});
+$('#tcenter').onclick=()=>{
+  if(!sel.length){msg('Seleccioná algo para centrar.');return;}
+  const bb=new THREE.Box3(); sel.forEach(o=>bb.union(bbox(o)));
+  const c=bb.getCenter(new THREE.Vector3());
+  sel.forEach(o=>{o.position.x-=c.x; o.position.z-=c.z;});
+  updateDims(); commit(); msg('Centrado en el origen.');
+};
+function flipWinding(g){
+  if(g.index){const a=g.index.array; for(let i=0;i<a.length;i+=3){const t=a[i+1];a[i+1]=a[i+2];a[i+2]=t;} g.index.needsUpdate=true;}
+  else for(const nm in g.attributes){const at=g.attributes[nm], s=at.itemSize, a=at.array; for(let i=0;i+2<at.count;i+=3){for(let c=0;c<s;c++){const i1=(i+1)*s+c, i2=(i+2)*s+c, t=a[i1]; a[i1]=a[i2]; a[i2]=t;}} at.needsUpdate=true;}
+}
+document.querySelectorAll('[data-mir]').forEach(b=>b.onclick=()=>{
+  if(!sel.length){msg('Seleccioná una pieza para reflejarla.');return;}
+  const ax={x:new THREE.Vector3(1,0,0),y:new THREE.Vector3(0,1,0),z:new THREE.Vector3(0,0,1)}[b.dataset.mir];
+  sel.forEach(o=>{
+    const n=ax.clone().applyQuaternion(o.quaternion.clone().invert()).normalize();
+    const g=o.geometry.clone(); g.computeBoundingBox();
+    const c=g.boundingBox.getCenter(new THREE.Vector3());
+    g.translate(-c.x,-c.y,-c.z);
+    g.applyMatrix4(new THREE.Matrix4().set(1-2*n.x*n.x,-2*n.x*n.y,-2*n.x*n.z,0, -2*n.x*n.y,1-2*n.y*n.y,-2*n.y*n.z,0, -2*n.x*n.z,-2*n.y*n.z,1-2*n.z*n.z,0, 0,0,0,1));
+    g.translate(c.x,c.y,c.z); flipWinding(g);
+    o.geometry=g;
+  });
+  updateDims(); commit(); msg('Pieza reflejada.');
+});
+
+async function saveFile(filename,data,note){
+  const dl=window.claude?await claude.use('downloads').catch(()=>null):null;
+  if(!dl){const a=document.createElement('a'); a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data])); a.download=filename; a.click(); return true;}
+  try{await dl.save({filename,data}); msg('Archivo guardado: '+filename+(note?'. '+note:'')); return true;}
+  catch(e){msg(e&&e.code==='declined'?'Descarga cancelada.':'No se pudo guardar el archivo.');}
+}
+function crc32(u){
+  const t=crc32.t||(crc32.t=Array.from({length:256},(_,n)=>{let c=n; for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1; return c>>>0;}));
+  let crc=-1; for(let i=0;i<u.length;i++)crc=t[(crc^u[i])&255]^(crc>>>8); return (crc^-1)>>>0;
+}
+function makeZip(name,data){
+  const nb=new TextEncoder().encode(name), crc=crc32(data), n=data.length;
+  const lh=new DataView(new ArrayBuffer(30));
+  lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(12,0x21,true); lh.setUint32(14,crc,true); lh.setUint32(18,n,true); lh.setUint32(22,n,true); lh.setUint16(26,nb.length,true);
+  const ch=new DataView(new ArrayBuffer(46));
+  ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(14,0x21,true); ch.setUint32(16,crc,true); ch.setUint32(20,n,true); ch.setUint32(24,n,true); ch.setUint16(28,nb.length,true);
+  const ed=new DataView(new ArrayBuffer(22));
+  ed.setUint32(0,0x06054b50,true); ed.setUint16(8,1,true); ed.setUint16(10,1,true); ed.setUint32(12,46+nb.length,true); ed.setUint32(16,30+nb.length+n,true);
+  return new Blob([lh,nb,data,ch,nb,ed]);
+}
+function saveStl(dv){
+  const u=new Uint8Array(dv.buffer,dv.byteOffset,dv.byteLength);
+  if(!window.claude){saveFile('modelo.stl',new Blob([u],{type:'model/stl'})); return;}
+  saveFile('modelo.zip',makeZip('modelo.stl',u),'Descomprimí el ZIP para abrir modelo.stl en tu laminador.');
+}
+
+const b64=ta=>{const u=new Uint8Array(ta.buffer,ta.byteOffset,ta.byteLength); let s=''; for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s);};
+const unb64=(s,C)=>{const bin=atob(s), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i); return new C(u.buffer);};
+$('#psave').onclick=()=>{
+  if(!objs.length){msg('No hay nada para guardar.');return;}
+  const data={app:'constructor3d',v:1,objs:objs.map(o=>{const g=o.geometry, a=g.attributes;
+    return {p:o.userData.p||null,c:o.material.color.getHex(),pos:o.position.toArray(),q:o.quaternion.toArray(),s:o.scale.toArray(),
+      g:o.userData.p?null:{pos:b64(a.position.array),nor:a.normal?b64(a.normal.array):null,idx:g.index?{t:g.index.array instanceof Uint16Array?16:32,d:b64(g.index.array)}:null}};})};
+  saveFile('proyecto3d.json',JSON.stringify(data),'Para seguir después, usá el botón Abrir.');
+};
+$('#popen').onclick=()=>$('#pfile').click();
+$('#pfile').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{
+    const d=JSON.parse(await f.text()); if(d.app!=='constructor3d')throw new Error('formato');
+    objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach();
+    d.objs.forEach(it=>{
+      let geo;
+      if(it.p){geo=buildGeo(it.p);} else {
+        geo=new THREE.BufferGeometry(); const pos=unb64(it.g.pos,Float32Array);
+        geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+        if(it.g.nor)geo.setAttribute('normal',new THREE.BufferAttribute(unb64(it.g.nor,Float32Array),3)); else geo.computeVertexNormals();
+        geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(pos.length/3*2),2));
+        if(it.g.idx)geo.setIndex(new THREE.BufferAttribute(unb64(it.g.idx.d,it.g.idx.t===16?Uint16Array:Uint32Array),1));
+      }
+      const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:it.c,roughness:0.55,metalness:0.05}));
+      m.position.fromArray(it.pos); m.quaternion.fromArray(it.q); m.scale.fromArray(it.s);
+      if(it.p)m.userData.p={...it.p};
+      scene.add(m); objs.push(m);
+    });
+    updateDims(); commit(); msg('Proyecto abierto: '+f.name+'.');
+  }catch(err){restore(cur); msg('No se pudo abrir ese archivo de proyecto.');}
+  e.target.value='';
+});
+function recenter(m){
+  m.geometry.computeBoundingBox();
+  const c=m.geometry.boundingBox.getCenter(new THREE.Vector3());
+  m.geometry.translate(-c.x,-c.y,-c.z);
+  m.position.add(c.multiply(m.scale).applyQuaternion(m.quaternion));
+  m.geometry.computeBoundingBox();
+}
+
+let scaleUI=false, sdrag=null; const sgCache={g:null,min:null,max:null};
+const sg=new THREE.Group(); sg.visible=false; scene.add(sg);
+const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0x2f6df6,depthTest:false,transparent:true}));
+edges.renderOrder=998; sg.add(edges);
+const sh=[];
+[-1,0,1].forEach(x=>[-1,0,1].forEach(y=>[-1,0,1].forEach(z=>{
+  const nz=(x!==0)+(y!==0)+(z!==0); if(nz===0||nz===2)return;
+  const face=nz===1;
+  const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:face?0xff8a3d:0x2f6df6,depthTest:false,transparent:true}));
+  m.renderOrder=999; m.visible=false; m.userData={s:new THREE.Vector3(x,y,z),face}; scene.add(m); sh.push(m);
+})));
+function updateScaleUI(){
+  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting);
+  sg.visible=on; sh.forEach(h=>h.visible=on);
+  if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
+  if(!on)return;
+  if(sgCache.g!==o.geometry){o.geometry.computeBoundingBox(); sgCache.g=o.geometry; sgCache.min=o.geometry.boundingBox.min.clone(); sgCache.max=o.geometry.boundingBox.max.clone();}
+  const mn=sgCache.min, mx=sgCache.max, c=mn.clone().add(mx).multiplyScalar(0.5);
+  sg.position.copy(o.position); sg.quaternion.copy(o.quaternion); sg.scale.copy(o.scale);
+  edges.position.copy(c); edges.scale.copy(mx.clone().sub(mn));
+  sh.forEach(h=>{
+    const s=h.userData.s, lp=new THREE.Vector3(s.x>0?mx.x:s.x<0?mn.x:c.x, s.y>0?mx.y:s.y<0?mn.y:c.y, s.z>0?mx.z:s.z<0?mn.z:c.z);
+    h.position.copy(lp.multiply(o.scale).applyQuaternion(o.quaternion).add(o.position));
+    h.scale.setScalar(cam.position.distanceTo(h.position)*(h.userData.face?0.011:0.015));
+  });
+}
+const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
+const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
+canvas.addEventListener('pointerdown',e=>{
+  const o=sel[sel.length-1]; if(e.button!==0||!scaleUI||!o||splitting||!sgCache.min)return;
+  setRay(e);
+  const hit=ray2.intersectObjects(sh.filter(h=>h.visible),false)[0]; if(!hit)return;
+  e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
+  const s=hit.object.userData.s, g=sgCache, c=g.min.clone().add(g.max).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
+  ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.max[k]:s[k]<0?g.min[k]:c[k]; a[k]=s[k]>0?g.min[k]:s[k]<0?g.max[k]:c[k];});
+  const hw=h.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
+  const A=a.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
+  sdrag={o,s,h,a,A,s0:o.scale.clone(),q:o.quaternion.clone(),p0:o.position.clone(),
+    plane:new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()).negate(),hw)};
+},true);
+canvas.addEventListener('pointermove',e=>{
+  if(!sdrag)return; setRay(e);
+  const P=new THREE.Vector3(); if(!ray2.ray.intersectPlane(sdrag.plane,P))return;
+  const {o,s,h,a,A,s0,q,p0}=sdrag;
+  const pl=P.sub(p0).applyQuaternion(q.clone().invert()).divide(s0);
+  const w=k=>s0[k]*(pl[k]-a[k]), w0=k=>s0[k]*(h[k]-a[k]);
+  const ks=['x','y','z'].filter(k=>s[k]!==0&&Math.abs(w0(k))>1e-9);
+  if(!ks.length)return;
+  let f={x:1,y:1,z:1};
+  if(ks.length===1){f[ks[0]]=w(ks[0])/w0(ks[0]);}
+  else{let n=0,d=0; ks.forEach(k=>{n+=w(k)*w0(k); d+=w0(k)*w0(k);}); const u=n/d; f={x:u,y:u,z:u};}
+  if($('#snap').classList.contains('on')){
+    const k=ks.reduce((m,kk)=>Math.abs(w0(kk))>Math.abs(w0(m))?kk:m,ks[0]);
+    const size0=Math.abs(w0(k)), r=Math.max(1,Math.round(size0*Math.max(0.001,f[k])))/size0;
+    if(ks.length===1)f[k]=r; else f={x:r,y:r,z:r};
+  }
+  ['x','y','z'].forEach(k=>{f[k]=Math.max(0.001,f[k]);});
+  const sn=new THREE.Vector3(s0.x*f.x,s0.y*f.y,s0.z*f.z);
+  o.scale.copy(sn);
+  o.position.copy(A).sub(a.clone().multiply(sn).applyQuaternion(q));
+  updateDims();
+});
+const endScale=()=>{
+  if(!sdrag)return; const o=sdrag.o; sdrag=null; orbit.enabled=true;
+  if(o.userData.p)rebuild(o);
+  updateDims(); commit();
+};
+canvas.addEventListener('pointerup',endScale); canvas.addEventListener('pointercancel',endScale);
+
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('constructor3d',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});
+async function idbSet(v){try{const db=await idb(); await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,'auto'); t.oncomplete=res; t.onerror=()=>rej(t.error);}); db.close();}catch(e){}}
+async function idbGet(){try{const db=await idb(); const v=await new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get('auto'); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);}); db.close(); return v;}catch(e){return null;}}
+function projectData(){
+  return {app:'constructor3d',v:1,objs:objs.map(o=>{const g=o.geometry, a=g.attributes;
+    return {p:o.userData.p||null,c:o.material.color.getHex(),pos:o.position.toArray(),q:o.quaternion.toArray(),s:o.scale.toArray(),
+      g:o.userData.p?null:{pos:b64(a.position.array),nor:a.normal?b64(a.normal.array):null,idx:g.index?{t:g.index.array instanceof Uint16Array?16:32,d:b64(g.index.array)}:null}};})};
+}
+function loadProject(d){
+  if(!d||d.app!=='constructor3d')throw new Error('formato');
+  objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach();
+  d.objs.forEach(it=>{
+    let geo;
+    if(it.p){geo=buildGeo(it.p);} else {
+      geo=new THREE.BufferGeometry(); const pos=unb64(it.g.pos,Float32Array);
+      geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+      if(it.g.nor)geo.setAttribute('normal',new THREE.BufferAttribute(unb64(it.g.nor,Float32Array),3)); else geo.computeVertexNormals();
+      geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(pos.length/3*2),2));
+      if(it.g.idx)geo.setIndex(new THREE.BufferAttribute(unb64(it.g.idx.d,it.g.idx.t===16?Uint16Array:Uint32Array),1));
+    }
+    const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:it.c,roughness:0.55,metalness:0.05}));
+    m.position.fromArray(it.pos); m.quaternion.fromArray(it.q); m.scale.fromArray(it.s);
+    if(it.p)m.userData.p={...it.p};
+    scene.add(m); objs.push(m);
+  });
+  updateDims();
+}
+let saveT=null, warnedHeavy=false;
+function scheduleSave(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{
+    let n=0; objs.forEach(o=>{if(!o.userData.p)n+=o.geometry.attributes.position.count;});
+    if(n>900000){idbSet(null); if(!warnedHeavy){warnedHeavy=true; msg('La escena es muy pesada para el autoguardado. Usá Guardar para no perder el trabajo.');} return;}
+    try{idbSet(JSON.stringify(projectData()));}catch(e){}
+  },400);
+}
+$('#pnew').onclick=()=>{
+  objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach(); updateDims(); commit();
+  msg('Proyecto nuevo. Ctrl+Z para volver atrás.');
+};
+let dirty=false;
+function markDirty(v){
+  dirty=v; const b=$('#psave'); if(!b)return;
+  b.classList.toggle('dirty',v);
+  b.title=v?'Guardar el proyecto en un archivo (hay cambios sin guardar)':'Guardar el proyecto en un archivo';
+}
+async function saveProject(){
+  if(!objs.length){msg('No hay nada para guardar.');return false;}
+  const ok=await saveFile('proyecto3d.json',JSON.stringify(projectData()),'Para seguir después, usá el botón Abrir.');
+  if(ok)markDirty(false);
+  return !!ok;
+}
+$('#psave').onclick=saveProject;
+addEventListener('beforeunload',e=>{if(dirty&&objs.length){e.preventDefault(); e.returnValue='';}});
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey, k=e.key.toLowerCase();
+  if(mod&&k==='s'){e.preventDefault(); saveProject(); return;}
+  if((e.key==='F5'||(mod&&k==='r'))&&dirty&&objs.length){e.preventDefault(); $('#dlg').hidden=false;}
+});
+$('#dcancel').onclick=()=>{$('#dlg').hidden=true;};
+$('#dgo').onclick=()=>{dirty=false; location.reload();};
+$('#dsave').onclick=async()=>{if(await saveProject()){$('#dlg').hidden=true; location.reload();}};
+const bed={w:220,d:220}; let bedGrid=null, bedOutline=null, bedOut=-1;
+function loadBed(){try{const s=JSON.parse(localStorage.getItem('c3d_bed')||'null'); if(s&&s.w>=10&&s.d>=10){bed.w=s.w; bed.d=s.d;}}catch(e){}}
+function buildBed(){
+  grid.visible=false;
+  [bedGrid,bedOutline].forEach(m=>{if(m){scene.remove(m); m.geometry.dispose(); m.material.dispose();}});
+  const w=bed.w, d=bed.d, p=[];
+  for(let k=Math.ceil(-w/20);k<=Math.floor(w/20);k++)p.push(k*10,0,-d/2,k*10,0,d/2);
+  for(let k=Math.ceil(-d/20);k<=Math.floor(d/20);k++)p.push(-w/2,0,k*10,w/2,0,k*10);
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+  bedGrid=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x888888,transparent:true,opacity:0.28,depthWrite:false}));
+  const og=new THREE.BufferGeometry(); og.setAttribute('position',new THREE.Float32BufferAttribute([-w/2,0.02,-d/2, w/2,0.02,-d/2, w/2,0.02,d/2, -w/2,0.02,d/2],3));
+  bedOutline=new THREE.LineLoop(og,new THREE.LineBasicMaterial({color:0x2f6df6,transparent:true,opacity:0.9}));
+  scene.add(bedGrid,bedOutline); bedOut=-1;
+}
+function checkBed(){
+  if(!bedOutline)return;
+  const hx=bed.w/2+0.01, hz=bed.d/2+0.01; let out=0;
+  objs.forEach(o=>{const b=new THREE.Box3().setFromObject(o); if(b.min.x<-hx||b.max.x>hx||b.min.z<-hz||b.max.z>hz)out++;});
+  bedOutline.material.color.setHex(out?0xe5484d:0x2f6df6);
+  $('#bedbtn').classList.toggle('warn',out>0);
+  if(out!==bedOut){
+    if(bedOut!==-1||out>0)msg(out?(out+' pieza(s) sobresalen de la cama ('+bed.w+' × '+bed.d+' mm).'):'Todas las piezas entran en la cama.');
+    bedOut=out;
+  }
+}
+function syncBedUI(){
+  $('#bw').value=bed.w; $('#bd').value=bed.d;
+  const k=bed.w+'x'+bed.d; $('#bpre').value=[...$('#bpre').options].some(op=>op.value===k)?k:'custom';
+}
+function setBed(w,d){
+  if(!(w>=10&&d>=10))return;
+  bed.w=w; bed.d=d; buildBed();
+  try{localStorage.setItem('c3d_bed',JSON.stringify(bed));}catch(e){}
+  syncBedUI(); checkBed();
+}
+$('#bedbtn').onclick=()=>{$('#toolp').hidden=true; $('#bedp').hidden=!$('#bedp').hidden; syncBedUI();};
+$('#bclose').onclick=()=>{$('#bedp').hidden=true;};
+$('#bpre').addEventListener('change',e=>{if(e.target.value==='custom')return; const [w,d]=e.target.value.split('x').map(Number); setBed(w,d);});
+['#bw','#bd'].forEach(s=>$(s).addEventListener('change',()=>setBed(parseFloat($('#bw').value),parseFloat($('#bd').value))));
+function undo(){if(!hist.length){msg('No hay nada para deshacer.');return;} redoSt.push(cur); cur=hist.pop(); restore(cur); msg('Deshecho.');}
+function redoAct(){if(!redoSt.length){msg('No hay nada para rehacer.');return;} hist.push(cur); cur=redoSt.pop(); restore(cur); msg('Rehecho.');}
+$('#undo').onclick=undo; $('#redo').onclick=redoAct;
+$('#dims').addEventListener('change',()=>commit());
+
+$('#imp').onclick=()=>$('#file').click();
+$('#file').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  try{
+    const geo=new STLLoader().parse(await f.arrayBuffer());
+    geo.rotateX(-Math.PI/2);
+    geo.computeBoundingBox();
+    const bb=geo.boundingBox, c=new THREE.Vector3(); bb.getCenter(c);
+    geo.translate(-c.x,-bb.min.y,-c.z);
+    const n=geo.attributes.position.count;
+    geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(n*2),2));
+    geo.setIndex(Array.from({length:n},(_,i)=>i));
+    geo.computeBoundingBox();
+    const sz=new THREE.Vector3(); geo.boundingBox.getSize(sz);
+    const m=addMesh(geo); recenter(m); updateDims();
+    const L=Math.max(sz.x,sz.y,sz.z);
+    if(L>40){orbit.target.set(0,sz.y/2,0); cam.position.set(L*1.4,L*1.1,L*1.6); cam.far=Math.max(1000,L*20); cam.updateProjectionMatrix(); grid.scale.setScalar(Math.max(10,Math.ceil(L/10)));}
+    commit();
+    msg('Importado: '+f.name+' ('+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm). Peso: '+(n/3|0)+' triángulos.');
+  }catch(err){msg('No se pudo leer ese archivo STL.');}
+  e.target.value='';
+});
+
+function buildGeo(p){
+  const {w,h,d}=p;
+  if(p.t==='box'){
+    const r=Math.min(p.r,Math.min(w,h,d)/2*0.999);
+    return r>0.001?new RoundedBoxGeometry(w,h,d,p.soft?4:1,r):new THREE.BoxGeometry(w,h,d);
+  }
+  const R=w/2,H=h/2,r=Math.min(p.r,R*0.98,H*0.98);
+  if(r<=0.001) return new THREE.CylinderGeometry(R,R,h,48);
+  const n=p.soft?6:1, V=THREE.Vector2, pts=[new V(0,-H)];
+  for(let i=0;i<=n;i++){const a=-Math.PI/2+(Math.PI/2)*i/n; pts.push(new V(R-r+Math.cos(a)*r,-H+r+Math.sin(a)*r));}
+  for(let i=0;i<=n;i++){const a=(Math.PI/2)*i/n; pts.push(new V(R-r+Math.cos(a)*r,H-r+Math.sin(a)*r));}
+  pts.push(new V(0,H));
+  return new THREE.LatheGeometry(pts,48);
+}
+function rebuild(o,patch){
+  const p=o.userData.p; if(!p)return;
+  o.geometry.computeBoundingBox();
+  const s=new THREE.Vector3(); o.geometry.boundingBox.getSize(s); s.multiply(o.scale);
+  Object.assign(p,{w:s.x,h:s.y,d:s.z},patch||{});
+  if(p.t==='cyl')p.d=p.w;
+  o.geometry.dispose(); o.geometry=buildGeo(p); o.scale.set(1,1,1);
+}
+function applyRound(){
+  const o=sel[sel.length-1]; if(!o||!o.userData.p)return;
+  rebuild(o,{r:Math.max(0,parseFloat($('#rad').value)||0),soft:$('#rtype').value==='soft'});
+  updateDims();
+}
+$('#rad').addEventListener('input',applyRound);
+$('#rtype').addEventListener('change',applyRound);
+['x','y','z'].forEach(k=>$('#r'+k).addEventListener('input',e=>{const o=sel[sel.length-1],v=parseFloat(e.target.value); if(!o||isNaN(v))return; o.rotation[k]=THREE.MathUtils.degToRad(v); updateDims();}));
+function updateDims(){
+  refreshBtns();
+  applyGhost();
+  checkBed();
+  const box=$('#dims'), o=sel[sel.length-1];
+  if(!o){box.hidden=true;return;}
+  box.hidden=false;
+  o.geometry.computeBoundingBox();
+  const s=new THREE.Vector3(); o.geometry.boundingBox.getSize(s); s.multiply(o.scale);
+  ['x','y','z'].forEach(k=>{const inp=$('#d'+k); if(document.activeElement!==inp) inp.value=+s[k].toFixed(3);});
+  ['x','y','z'].forEach(k=>{const inp=$('#p'+k); if(document.activeElement!==inp) inp.value=+o.position[k].toFixed(3);});
+  ['x','y','z'].forEach(k=>{const inp=$('#r'+k); if(document.activeElement!==inp) inp.value=+THREE.MathUtils.radToDeg(o.rotation[k]).toFixed(2);});
+  const rp=o.userData.p; $('#rrow').hidden=!rp;
+  if(rp){ if(document.activeElement!==$('#rad')) $('#rad').value=+rp.r.toFixed(3); $('#rtype').value=rp.soft?'soft':'chamfer'; }
+}
+['x','y','z'].forEach(k=>$('#d'+k).addEventListener('input',e=>{
+  const o=sel[sel.length-1], v=parseFloat(e.target.value);
+  if(!o||!(v>0))return;
+  const g=new THREE.Vector3(); o.geometry.computeBoundingBox(); o.geometry.boundingBox.getSize(g);
+  if(g[k]<1e-9)return;
+  if($('#dlock').checked) o.scale.multiplyScalar(v/(g[k]*o.scale[k])); else if(o.userData.p&&o.userData.p.t==='cyl'&&k!=='y'){o.scale.x=o.scale.z=v/g[k];} else o.scale[k]=v/g[k];
+  rebuild(o);
+  updateDims();
+}));
+
+const ev=new Evaluator();
+const ops={union:ADDITION,subtract:SUBTRACTION,intersect:INTERSECTION};
+document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{
+  const op=b.dataset.op, results=[];
+  let pairs=[];
+  if(op==='subtract'){
+    if(!sel.length){msg('Seleccioná el objeto que querés restar (el que corta).');return;}
+    const cut=sel[sel.length-1];
+    let targets=sel.slice(0,-1);
+    if(!targets.length){
+      const cb=new THREE.Box3().setFromObject(cut);
+      targets=objs.filter(o=>o!==cut&&new THREE.Box3().setFromObject(o).intersectsBox(cb));
+    }
+    if(!targets.length){msg('El objeto seleccionado no toca a ningún otro. Acercalo al que querés recortar.');return;}
+    pairs=targets.map(t=>[t,cut]);
+  } else {
+    if(sel.length!==2){msg('Seleccioná exactamente 2 objetos (clic + Shift+clic).');return;}
+    pairs=[[sel[0],sel[1]]];
+  }
+  const doPair=(a,c)=>{
+  const mk=o=>{const br=new Brush(o.geometry.clone(),o.material);br.position.copy(o.position);br.quaternion.copy(o.quaternion);br.scale.copy(o.scale);br.updateMatrixWorld(true);return br;};
+  const res=ev.evaluate(mk(a),mk(c),ops[b.dataset.op]);
+  res.updateMatrixWorld(true);
+  const geo=res.geometry.clone();
+  const mesh=new THREE.Mesh(geo,a.material.clone());
+  res.matrix.decompose(mesh.position,mesh.quaternion,mesh.scale); recenter(mesh);
+  scene.remove(a);objs.splice(objs.indexOf(a),1);
+  scene.add(mesh); objs.push(mesh); results.push(mesh);
+  };
+  pairs.forEach(([a,c])=>doPair(a,c));
+  [...new Set(pairs.map(p=>p[1]))].forEach(o=>{scene.remove(o);const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);});
+  sel=[]; tc.detach(); select(results.slice(-1)); commit();
+  msg('Listo. Resultado: '+b.textContent.trim()+'.');
+});
+
+$('#dup').onclick=()=>{ if(!sel.length)return; const o=sel[sel.length-1];
+  const m=addMesh(o.geometry.clone(),o.material.clone()); m.position.copy(o.position).add(new THREE.Vector3(10,0,10)); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale); if(o.userData.p){m.userData.p={...o.userData.p};updateDims();} commit();};
+$('#del').onclick=()=>{ sel.forEach(o=>{scene.remove(o);objs.splice(objs.indexOf(o),1);}); sel=[]; tc.detach(); updateDims(); commit(); };
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||splitting)return;
+  const k=e.key.toLowerCase();
+  if(e.key==='Delete')$('#del').click();
+  else if((e.ctrlKey||e.metaKey)&&k==='z'){e.preventDefault(); e.shiftKey?redoAct():undo();}
+  else if((e.ctrlKey||e.metaKey)&&k==='y'){e.preventDefault(); redoAct();}
+  else if((e.ctrlKey||e.metaKey)&&k==='d'){e.preventDefault(); $('#dup').click();}
+  else if((e.ctrlKey||e.metaKey)&&k==='c'){ if(sel.length){e.preventDefault(); copySel();} }
+  else if((e.ctrlKey||e.metaKey)&&k==='v'){ if(clip.length){e.preventDefault(); pasteSel();} }
+  else if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
+    const mode={m:'translate',r:'rotate',e:'scale'}[k];
+    if(mode){const b=document.querySelector('[data-mode="'+mode+'"]'); if(b)b.click();}
+    else{const sh={1:'box',2:'sphere',3:'cylinder',4:'cone',5:'torus'}[e.key]; if(sh){const b=document.querySelector('[data-add="'+sh+'"]'); if(b)b.click();}}
+  }
+});
+let clip=[], pasteN=0;
+function copySel(){
+  clip=sel.map(o=>({g:o.geometry,c:o.material.color.getHex(),p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone(),u:o.userData.p?{...o.userData.p}:null}));
+  pasteN=0; msg(clip.length===1?'1 objeto copiado.':clip.length+' objetos copiados.');
+}
+function pasteSel(){
+  pasteN++; const off=new THREE.Vector3(10*pasteN,0,10*pasteN), made=[];
+  clip.forEach(d=>{
+    const m=new THREE.Mesh(d.g.clone(),new THREE.MeshStandardMaterial({color:d.c,roughness:0.55,metalness:0.05}));
+    m.position.copy(d.p).add(off); m.quaternion.copy(d.q); m.scale.copy(d.s); if(d.u)m.userData.p={...d.u};
+    scene.add(m); objs.push(m); made.push(m);
+  });
+  select(made); commit(); msg(made.length===1?'Objeto pegado.':made.length+' objetos pegados.');
+}
+
+$('#stl').onclick=()=>{
+  if(!objs.length){msg('No hay nada para exportar.');return;}
+  tc.detach();
+  const g=new THREE.Group(); objs.forEach(o=>g.add(o.clone())); g.rotation.x=Math.PI/2; g.updateMatrixWorld(true);
+  const data=new STLExporter().parse(g,{binary:true});
+  saveStl(data);
+  if(sel.length)tc.attach(sel[sel.length-1]);
+  
+};
+
+// selección por clic (ignora arrastres)
+const ray=new THREE.Raycaster(), p=new THREE.Vector2(); let down=null; let multi=false;
+$('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi); msg(multi?'Selección múltiple activada: cada clic suma o saca un objeto.':'Selección múltiple desactivada.');};
+canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+canvas.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4||tc.dragging||splitting)return;
+  const r=canvas.getBoundingClientRect();
+  p.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(p,cam);
+  const hit=ray.intersectObjects(objs,false)[0];
+  if(!hit){if(!multi)select([]);return;}
+  const o=hit.object;
+  const add=e.shiftKey||e.ctrlKey||e.metaKey||multi;
+  if(add) select(sel.includes(o)?sel.filter(x=>x!==o):[...sel,o]); else select([o]);
+  msg(sel.length===1?'1 objeto seleccionado.':sel.length+' objetos seleccionados.');
+});
+
+function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(wrap); resize();
+renderer.setAnimationLoop(()=>{orbit.update();updateScaleUI();renderer.render(scene,cam);});
+{const P0={t:'box',w:25,h:25,d:25,r:0,soft:true}; const m0=addMesh(buildGeo(P0)); m0.userData.p={...P0}; m0.position.y=12.5; updateDims(); cur=snap();}
+loadBed(); buildBed(); checkBed();
+idbGet().then(s=>{
+  if(!s)return;
+  try{loadProject(JSON.parse(s)); hist.length=0; redoSt.length=0; cur=snap(); refreshBtns(); msg('Se recuperó tu trabajo anterior (autoguardado en este navegador).');}
+  catch(e){restore(cur);}
+});
+(()=>{
+  const bar=document.querySelector('.bar'), names=['Formas','Transformar','Combinar y dividir','Historial','Vista','Editar','Archivo'];
+  let g=[]; const groups=[];
+  [...bar.children].forEach(el=>{ if(el.classList.contains('sep')){groups.push(g);g=[];el.remove();} else g.push(el); });
+  groups.push(g);
+  groups.forEach((els,i)=>{
+    const d=document.createElement('div'); d.className='grp';
+    const row=document.createElement('div'); row.className='row';
+    els.forEach(e=>row.appendChild(e));
+    const l=document.createElement('span'); l.className='lbl'; l.textContent=names[i]||'';
+    d.append(row,l); bar.appendChild(d);  });
+})();
+msg('Para restar: seleccioná el objeto que corta y tocá Restar. Para unir o intersectar: Shift+clic en dos objetos.');
+</script>
+</body>
+</html>
