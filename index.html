@@ -70,6 +70,22 @@ canvas{display:block;width:100%;height:100%}
 #bedp button{padding:4px 8px}
 #bedp small{opacity:.7;line-height:1.3}
 .bar #bedbtn.warn{color:#e5484d}
+#chkp{position:absolute;right:10px;top:10px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:13px;width:260px;max-height:calc(100% - 20px);overflow-y:auto;z-index:3}
+#chkp[hidden]{display:none}
+#chkp .row{display:flex;gap:6px;align-items:center;justify-content:space-between}
+#chkp ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+#chkp li{display:flex;gap:6px;line-height:1.3}
+#chkp li::before{content:'✓';color:#30a46c;font-weight:700;flex:none;width:12px}
+#chkp li.bad::before{content:'✕';color:#e5484d}
+#chkp li.info::before{content:'·';color:inherit;opacity:.6}
+#chkp .verdict{font-weight:600}
+#chkp .verdict.bad{color:#e5484d}
+#chkp .verdict.good{color:#30a46c}
+#chkp small{opacity:.7;line-height:1.3}
+#chkp button{padding:4px 8px}
+#chkp button.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
+#chkp button[hidden]{display:none}
+#chkp .obj{border-top:1px solid var(--bd);padding-top:6px;display:flex;flex-direction:column;gap:4px}
 #dims label{display:flex;align-items:center;gap:6px;justify-content:flex-start}
 #dims input[type=number]{width:80px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;font:inherit}
 </style>
@@ -82,16 +98,17 @@ canvas{display:block;width:100%;height:100%}
   <span class="sep"></span>
   <button data-op="union" title="Unir los dos objetos seleccionados"><svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="12" r="6"/><circle class="f" cx="15" cy="12" r="6"/></svg>Unir</button><button data-op="subtract" title="Restar: el objeto seleccionado se resta a los que toca"><svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6" stroke-dasharray="2 2.5"/></svg>Restar</button><button data-op="intersect" title="Quedarse solo con la parte en común"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/><path class="f" d="M12 6.8A6 6 0 0 1 12 17.2A6 6 0 0 1 12 6.8z"/></svg>Intersectar</button><button id="dividir" title="Dividir la pieza seleccionada con un plano"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M2 12h20" stroke-dasharray="2 2"/></svg>Dividir</button>
   <span class="sep"></span>
-  <button id="undo" title="Deshacer (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Deshacer</button><button id="redo" title="Rehacer (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Rehacer</button><span class="sep"></span><button id="ghost" title="Modo transparente: los objetos no seleccionados se ven semitransparentes"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Transparente</button><button id="bedbtn" title="Tamaño de la cama de impresión"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v4l9 4 9-4V8M3 12"/></svg>Cama</button><span class="sep"></span><button id="alinear" title="Alinear, centrar y reflejar (espejo)"><svg viewBox="0 0 24 24"><path d="M4 4v16M8 7h12M8 12h8M8 17h10"/></svg>Alinear</button><button id="ground" title="Apoyar la pieza seleccionada sobre la base"><svg viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="10" rx="1"/><path d="M3 19h18M12 16v1"/></svg>Apoyar</button><button id="dup" title="Duplicar"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button><button id="del" title="Borrar"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Borrar</button><span class="sep"></span><button id="pnew" title="Empezar un proyecto nuevo (se puede deshacer)"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M12 11v6M9 14h6"/></svg>Nuevo</button><button id="psave" title="Guardar el proyecto en un archivo"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg>Guardar</button><button id="popen" title="Abrir un proyecto guardado"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>Abrir</button><input id="pfile" type="file" accept=".json" hidden><button id="imp" title="Importar un archivo STL"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar STL</button><input id="file" type="file" accept=".stl" hidden><button id="stl" title="Exportar a STL"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Exportar STL</button>
+  <button id="undo" title="Deshacer (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Deshacer</button><button id="redo" title="Rehacer (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Rehacer</button><span class="sep"></span><button id="ghost" title="Modo transparente: los objetos no seleccionados se ven semitransparentes"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Transparente</button><button id="bedbtn" title="Tamaño de la cama de impresión"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v4l9 4 9-4V8M3 12"/></svg>Cama</button><span class="sep"></span><button id="alinear" title="Alinear, centrar y reflejar (espejo)"><svg viewBox="0 0 24 24"><path d="M4 4v16M8 7h12M8 12h8M8 17h10"/></svg>Alinear</button><button id="ground" title="Apoyar la pieza seleccionada sobre la base"><svg viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="10" rx="1"/><path d="M3 19h18M12 16v1"/></svg>Apoyar</button><button id="dup" title="Duplicar"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button><button id="del" title="Borrar"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Borrar</button><span class="sep"></span><button id="pnew" title="Empezar un proyecto nuevo (se puede deshacer)"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M12 11v6M9 14h6"/></svg>Nuevo</button><button id="psave" title="Guardar el proyecto en un archivo"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg>Guardar</button><button id="popen" title="Abrir un proyecto guardado"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>Abrir</button><input id="pfile" type="file" accept=".json" hidden><button id="imp" title="Importar un archivo STL"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar STL</button><input id="file" type="file" accept=".stl" hidden><button id="chk" title="Revisar la malla para imprimir: huecos, caras invertidas y errores. Si hay problemas, se pueden reparar"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Revisar</button><button id="stl" title="Exportar a STL"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Exportar STL</button>
 </div>
-<div id="wrap"><canvas id="c"></canvas><div id="splitp" hidden><b>Dividir pieza</b><div class="row"><button data-ax="x">X</button><button data-ax="y" class="on">Y</button><button data-ax="z">Z</button></div><small>Mové o rotá el plano con los botones Mover / Rotar de la barra. Después tocá Dividir.</small><div class="row"><button id="sapply" class="pri">Dividir</button><button id="scancel">Cancelar</button></div></div><div id="bedp" hidden><div class="row"><b>Cama de impresión</b><button id="bclose" title="Cerrar">✕</button></div><label>Medida <select id="bpre"><option value="180x180">180 × 180 mm</option><option value="200x200">200 × 200 mm</option><option value="220x220">220 × 220 mm</option><option value="235x235">235 × 235 mm</option><option value="250x210">250 × 210 mm</option><option value="256x256">256 × 256 mm</option><option value="300x300">300 × 300 mm</option><option value="custom">Personalizada</option></select></label><label>Ancho (X) <input id="bw" type="number" min="10" step="1"></label><label>Fondo (Z) <input id="bd" type="number" min="10" step="1"></label><small>El borde se pone rojo si alguna pieza sobresale de la cama.</small></div><div id="busy" hidden></div><div id="dlg" hidden><div class="box"><b>Tenés cambios sin guardar en un archivo</b><p>Si refrescás, la escena se recupera del autoguardado de este navegador, pero conviene tener una copia en un archivo, sobre todo con piezas muy pesadas.</p><div class="row"><button id="dsave" class="pri">Guardar y refrescar</button><button id="dgo">Refrescar igual</button><button id="dcancel">Cancelar</button></div></div></div><div id="toolp" hidden><div class="row"><b>Alinear y espejo</b><button id="tclose" title="Cerrar">✕</button></div><small>Alinear al último objeto seleccionado (Shift+clic para elegir varios)</small><div class="arow"><span>X</span><button data-al="x:min">Mín</button><button data-al="x:mid">Centro</button><button data-al="x:max">Máx</button></div><div class="arow"><span>Y</span><button data-al="y:min">Mín</button><button data-al="y:mid">Centro</button><button data-al="y:max">Máx</button></div><div class="arow"><span>Z</span><button data-al="z:min">Mín</button><button data-al="z:mid">Centro</button><button data-al="z:max">Máx</button></div><button id="tcenter">Centrar en el origen (X y Z)</button><small>Espejo (refleja la pieza seleccionada)</small><div class="row"><button data-mir="x">Espejo X</button><button data-mir="y">Espejo Y</button><button data-mir="z">Espejo Z</button></div></div><div id="dims" hidden><b>Medidas (mm)</b><label>Ancho X <input id="dx" type="number" step="0.1" min="0.01"></label><label>Alto Y <input id="dy" type="number" step="0.1" min="0.01"></label><label>Prof. Z <input id="dz" type="number" step="0.1" min="0.01"></label><label><span>Proporcional</span><input id="dlock" type="checkbox"></label><b>Posición (mm)</b><label>X <input id="px" type="number" step="0.1"></label><label>Y <input id="py" type="number" step="0.1"></label><label>Z <input id="pz" type="number" step="0.1"></label><b>Rotación (°)</b><label>X <input id="rx" type="number" step="1"></label><label>Y <input id="ry" type="number" step="1"></label><label>Z <input id="rz" type="number" step="1"></label><div id="rrow" hidden><b>Bordes (mm)</b><label>Radio <input id="rad" type="number" step="0.1" min="0" value="0"></label><label>Tipo <select id="rtype"><option value="soft">Redondeado</option><option value="chamfer">Chaflán</option></select></label></div></div><div id="msg">Agregá una forma. Shift+clic para seleccionar dos y combinarlas (Restar: primero − segundo).</div></div>
+<div id="wrap"><canvas id="c"></canvas><div id="splitp" hidden><b>Dividir pieza</b><div class="row"><button data-ax="x">X</button><button data-ax="y" class="on">Y</button><button data-ax="z">Z</button></div><small>Mové o rotá el plano con los botones Mover / Rotar de la barra. Después tocá Dividir.</small><div class="row"><button id="sapply" class="pri">Dividir</button><button id="scancel">Cancelar</button></div></div><div id="bedp" hidden><div class="row"><b>Cama de impresión</b><button id="bclose" title="Cerrar">✕</button></div><label>Medida <select id="bpre"><option value="180x180">180 × 180 mm</option><option value="200x200">200 × 200 mm</option><option value="220x220">220 × 220 mm</option><option value="235x235">235 × 235 mm</option><option value="250x210">250 × 210 mm</option><option value="256x256">256 × 256 mm</option><option value="300x300">300 × 300 mm</option><option value="custom">Personalizada</option></select></label><label>Ancho (X) <input id="bw" type="number" min="10" step="1"></label><label>Fondo (Z) <input id="bd" type="number" min="10" step="1"></label><small>El borde se pone rojo si alguna pieza sobresale de la cama.</small></div><div id="chkp" hidden><div class="row"><b>Revisión de malla</b><button id="cclose" title="Cerrar">✕</button></div><div id="cres"></div><div class="row"><button id="cfix" class="pri" hidden>Reparar</button><button id="cshow" hidden>Ver bordes abiertos</button><button id="cagain">Revisar de nuevo</button></div><small>Revisa la pieza seleccionada, o todas si no hay ninguna seleccionada. No detecta dos piezas que se atraviesan entre sí: para eso, unilas con Unir.</small></div><div id="busy" hidden></div><div id="dlg" hidden><div class="box"><b>Tenés cambios sin guardar en un archivo</b><p>Si refrescás, la escena se recupera del autoguardado de este navegador, pero conviene tener una copia en un archivo, sobre todo con piezas muy pesadas.</p><div class="row"><button id="dsave" class="pri">Guardar y refrescar</button><button id="dgo">Refrescar igual</button><button id="dcancel">Cancelar</button></div></div></div><div id="toolp" hidden><div class="row"><b>Alinear y espejo</b><button id="tclose" title="Cerrar">✕</button></div><small>Alinear al último objeto seleccionado (Shift+clic para elegir varios)</small><div class="arow"><span>X</span><button data-al="x:min">Mín</button><button data-al="x:mid">Centro</button><button data-al="x:max">Máx</button></div><div class="arow"><span>Y</span><button data-al="y:min">Mín</button><button data-al="y:mid">Centro</button><button data-al="y:max">Máx</button></div><div class="arow"><span>Z</span><button data-al="z:min">Mín</button><button data-al="z:mid">Centro</button><button data-al="z:max">Máx</button></div><button id="tcenter">Centrar en el origen (X y Z)</button><small>Espejo (refleja la pieza seleccionada)</small><div class="row"><button data-mir="x">Espejo X</button><button data-mir="y">Espejo Y</button><button data-mir="z">Espejo Z</button></div></div><div id="dims" hidden><b>Medidas (mm)</b><label>Ancho X <input id="dx" type="number" step="0.1" min="0.01"></label><label>Alto Y <input id="dy" type="number" step="0.1" min="0.01"></label><label>Prof. Z <input id="dz" type="number" step="0.1" min="0.01"></label><label><span>Proporcional</span><input id="dlock" type="checkbox"></label><b>Posición (mm)</b><label>X <input id="px" type="number" step="0.1"></label><label>Y <input id="py" type="number" step="0.1"></label><label>Z <input id="pz" type="number" step="0.1"></label><b>Rotación (°)</b><label>X <input id="rx" type="number" step="1"></label><label>Y <input id="ry" type="number" step="1"></label><label>Z <input id="rz" type="number" step="1"></label><div id="rrow" hidden><b>Bordes (mm)</b><label>Radio <input id="rad" type="number" step="0.1" min="0" value="0"></label><label>Tipo <select id="rtype"><option value="soft">Redondeado</option><option value="chamfer">Chaflán</option></select></label></div></div><div id="msg">Agregá una forma. Shift+clic para seleccionar dos y combinarlas (Restar: primero − segundo).</div></div>
 
 <script type="importmap">
 {"imports":{
 "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
 "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
 "three-mesh-bvh":"https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.3/build/index.module.js",
-"three-bvh-csg":"https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.16/build/index.module.js"}}
+"three-bvh-csg":"https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.16/build/index.module.js",
+"manifold-3d":"https://cdn.jsdelivr.net/npm/manifold-3d@3.5.4/manifold.js"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
@@ -101,6 +118,7 @@ import {STLExporter} from 'three/addons/exporters/STLExporter.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {STLLoader} from 'three/addons/loaders/STLLoader.js';
 import {Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION} from 'three-bvh-csg';
+import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 
 const $=s=>document.querySelector(s), msg=t=>$('#msg').textContent=t;
 const canvas=$('#c'), wrap=$('#wrap');
@@ -171,7 +189,7 @@ function refreshBtns(){
   const set=(s,off)=>{const b=document.querySelector(s); if(b)b.disabled=off;};
   set('#undo',!hist.length); set('#redo',!redoSt.length);
   set('[data-op="union"]',sel.length!==2); set('[data-op="intersect"]',sel.length!==2); set('[data-op="subtract"]',!sel.length);
-  set('#dup',!sel.length); set('#dividir',!sel.length); set('#ground',!sel.length); set('#alinear',!sel.length); set('#del',!sel.length); set('#stl',!objs.length);
+  set('#dup',!sel.length); set('#dividir',!sel.length); set('#ground',!sel.length); set('#alinear',!sel.length); set('#del',!sel.length); set('#stl',!objs.length); set('#chk',!objs.length);
 }
 let ghostOn=false;
 function applyGhost(){
@@ -196,6 +214,7 @@ function startSplit(){
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(L*1.6,L*1.6),new THREE.MeshBasicMaterial({color:0xff5a5f,transparent:true,opacity:0.3,side:THREE.DoubleSide,depthWrite:false}));
   pl.add(new THREE.LineSegments(new THREE.EdgesGeometry(pl.geometry),new THREE.LineBasicMaterial({color:0xff5a5f})));
   scene.add(pl); splitting={obj:o,plane:pl,L};
+  $('#chkp').hidden=true; clearOpenLines();
   tc.detach(); $('#dims').style.display='none'; $('#splitp').hidden=false; $('#dividir').classList.add('on');
   setAxis('y'); tp.setMode('translate'); tp.attach(pl);
   msg('Mové o rotá el plano (botones Mover / Rotar) y tocá Dividir en el panel.');
@@ -215,17 +234,32 @@ async function applySplit(){
   try{
   pl.updateMatrixWorld(true);
   const N=new THREE.Vector3(0,0,1).applyQuaternion(pl.quaternion), S=L*6;
+  let meshes=null, fallback=false;
+  await loadManifold();
+  let A=null; if(MF){try{A=toManifold(o);}catch(e){A=null;}}
+  if(A){
+    // Manifold: corte exacto por el plano, las dos mitades salen cerradas
+    let parts=[];
+    try{
+      parts=A.splitByPlane([N.x,N.y,N.z],N.dot(pl.position));
+      if(parts.some(p=>p.isEmpty())){msg('El plano no corta la pieza. Movélo hasta que la atraviese.');return;}
+      const geos=[fromManifold(parts[1]),fromManifold(parts[0])];
+      meshes=geos.map((g,i)=>{const m=new THREE.Mesh(g,i?mat():o.material.clone()); m.material.emissive.setHex(0); recenter(m); return m;});
+    }finally{A.delete(); parts.forEach(p=>p.delete());}
+  } else {
+  fallback=true;
   const mk=(geo,pos,q,sc)=>{const b=new Brush(geo); b.position.copy(pos); b.quaternion.copy(q); b.scale.copy(sc); b.updateMatrixWorld(true); return b;};
   const A=mk(o.geometry.clone(),o.position,o.quaternion,o.scale);
   const B=mk(new THREE.BoxGeometry(S,S,S),pl.position.clone().addScaledVector(N,S/2),pl.quaternion,new THREE.Vector3(1,1,1));
   const out=[SUBTRACTION,INTERSECTION].map(op=>{const r=ev.evaluate(A,B,op); r.updateMatrixWorld(true); return r;});
   if(out.some(r=>!r.geometry.attributes.position||r.geometry.attributes.position.count===0)){msg('El plano no corta la pieza. Movélo hasta que la atraviese.');return;}
-  const meshes=out.map((r,i)=>{const m=new THREE.Mesh(r.geometry.clone(),i?mat():o.material.clone()); m.material.emissive.setHex(0); r.matrix.decompose(m.position,m.quaternion,m.scale); recenter(m); return m;});
+  meshes=out.map((r,i)=>{const m=new THREE.Mesh(r.geometry.clone(),i?mat():o.material.clone()); m.material.emissive.setHex(0); r.matrix.decompose(m.position,m.quaternion,m.scale); recenter(m); return m;});
+  }
   endSplit();
   scene.remove(o); objs.splice(objs.indexOf(o),1);
   meshes.forEach(m=>{scene.add(m); objs.push(m);});
   select([meshes[1]]); commit();
-  msg('Pieza dividida en 2. Podés mover cada parte por separado.');
+  msg('Pieza dividida en 2. Podés mover cada parte por separado.'+(fallback?' Ojo: la pieza no estaba cerrada y las mitades pueden tener huecos. Tocá Revisar para repararlas.':''));
   }catch(err){console.error(err); msg('No se pudo dividir esta pieza.');}
   finally{busyOff();}
 }
@@ -551,7 +585,9 @@ $('#file').addEventListener('change',async e=>{
     const L=Math.max(sz.x,sz.y,sz.z);
     if(L>40){orbit.target.set(0,sz.y/2,0); cam.position.set(L*1.4,L*1.1,L*1.6); cam.far=Math.max(1000,L*20); cam.updateProjectionMatrix(); grid.scale.setScalar(Math.max(10,Math.ceil(L/10)));}
     commit();
-    msg('Importado: '+f.name+' ('+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm). Peso: '+(n/3|0)+' triángulos.');
+    let note='';
+    if(n/3<=1500000){try{const a=analyzeMesh(geo); if(!a.ok)note=' La malla tiene problemas para imprimir: tocá Revisar para verlos y repararlos.';}catch(e){}}
+    msg('Importado: '+f.name+' ('+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm). Peso: '+(n/3|0)+' triángulos.'+note);
   }catch(err){msg('No se pudo leer ese archivo STL.');}
   busyOff();
   e.target.value='';
@@ -631,28 +667,255 @@ document.querySelectorAll('[data-op]').forEach(b=>b.onclick=async()=>{
     if(sel.length!==2){msg('Seleccioná exactamente 2 objetos (clic + Shift+clic).');return;}
     pairs=[[sel[0],sel[1]]];
   }
+  let fallback=false;
   const doPair=(a,c)=>{
+  let mesh;
+  const geo=mfBool(a,c,op);
+  if(geo){ mesh=new THREE.Mesh(geo,a.material.clone()); recenter(mesh); }
+  else {
+  // alguna pieza no está cerrada: Manifold no la acepta, se usa el motor anterior
+  fallback=true;
   const mk=o=>{const br=new Brush(o.geometry.clone(),o.material);br.position.copy(o.position);br.quaternion.copy(o.quaternion);br.scale.copy(o.scale);br.updateMatrixWorld(true);return br;};
   const res=ev.evaluate(mk(a),mk(c),ops[b.dataset.op]);
   res.updateMatrixWorld(true);
-  const geo=res.geometry.clone();
-  const mesh=new THREE.Mesh(geo,a.material.clone());
+  mesh=new THREE.Mesh(res.geometry.clone(),a.material.clone());
   res.matrix.decompose(mesh.position,mesh.quaternion,mesh.scale); recenter(mesh);
+  }
   scene.remove(a);objs.splice(objs.indexOf(a),1);
-  scene.add(mesh); objs.push(mesh); results.push(mesh);
+  if(mesh.geometry.attributes.position.count){scene.add(mesh); objs.push(mesh); results.push(mesh);}
   };
   await busyOn('Procesando: '+b.textContent.trim().toLowerCase()+'…');
   let ok=false;
   try{
+    await loadManifold();
     pairs.forEach(([a,c])=>doPair(a,c));
+    if(!results.length)throw new Error('vacio');
     [...new Set(pairs.map(p=>p[1]))].forEach(o=>{scene.remove(o);const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);});
     ok=true;
-  }catch(err){console.error(err); restore(cur); msg('No se pudo completar la operación con estas piezas.');}
+  }catch(err){if(err.message!=='vacio')console.error(err); restore(cur); msg(err.message==='vacio'?'El resultado queda vacío: las piezas no se tocan o el corte las borra enteras.':'No se pudo completar la operación con estas piezas.');}
   finally{busyOff();}
   if(!ok)return;
   sel=[]; tc.detach(); select(results.slice(-1)); commit();
-  msg('Listo. Resultado: '+b.textContent.trim()+'.');
+  msg('Listo. Resultado: '+b.textContent.trim()+'.'+(fallback?' Ojo: alguna pieza no estaba cerrada y el resultado puede tener huecos. Tocá Revisar para repararla.':''));
 });
+
+// ===== Motor de operaciones: Manifold (resultados siempre cerrados) =====
+let MF=null, mfLoading=null;
+function loadManifold(){
+  if(!mfLoading) mfLoading=import('manifold-3d').then(async mod=>{const w=await mod.default(); w.setup(); MF=w; return w;})
+    .catch(e=>{console.warn('Manifold no cargó, se usa el motor anterior',e); mfLoading=null; return null;});
+  return mfLoading;
+}
+loadManifold();
+// geometría con su posición, rotación y escala aplicadas, con los vértices soldados
+function toManifold(o){
+  o.updateMatrixWorld(true);
+  const g=o.geometry, pos=g.attributes.position, idx=g.index, n=idx?idx.count:pos.count, M=o.matrixWorld, e=M.elements, f=Math.fround;
+  const map=new Map(), vp=[], tv=new Uint32Array(n);
+  for(let i=0;i<n;i++){
+    const j=idx?idx.getX(i):i, x0=pos.getX(j), y0=pos.getY(j), z0=pos.getZ(j);
+    const x=f(e[0]*x0+e[4]*y0+e[8]*z0+e[12]), y=f(e[1]*x0+e[5]*y0+e[9]*z0+e[13]), z=f(e[2]*x0+e[6]*y0+e[10]*z0+e[14]);
+    const key=x+','+y+','+z; let id=map.get(key);
+    if(id===undefined){id=vp.length/3; map.set(key,id); vp.push(x,y,z);} tv[i]=id;
+  }
+  const flip=M.determinant()<0, out=[];
+  for(let i=0;i+2<n;i+=3){const a=tv[i],b=tv[i+1],c=tv[i+2]; if(a!==b&&b!==c&&a!==c){if(flip)out.push(a,c,b); else out.push(a,b,c);}}
+  const mesh=new MF.Mesh({numProp:3,vertProperties:new Float32Array(vp),triVerts:new Uint32Array(out)});
+  mesh.merge();
+  return new MF.Manifold(mesh);
+}
+function geoFromIndexed(vp,tv){
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(vp,3));
+  geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(vp.length/3*2),2));
+  geo.setIndex(new THREE.BufferAttribute(tv,1));
+  return toCreasedNormals(geo,THREE.MathUtils.degToRad(30));
+}
+function fromManifold(m){
+  const g=m.getMesh(), np=g.numProp, src=g.vertProperties, n=src.length/np, vp=new Float32Array(n*3);
+  for(let i=0;i<n;i++){vp[i*3]=src[i*np]; vp[i*3+1]=src[i*np+1]; vp[i*3+2]=src[i*np+2];}
+  return geoFromIndexed(vp,g.triVerts.slice());
+}
+function mfBool(a,c,op){
+  if(!MF)return null;
+  let A=null,C=null,R=null;
+  try{A=toManifold(a); C=toManifold(c);}catch(e){A&&A.delete(); return null;}
+  try{
+    R=op==='union'?A.add(C):op==='subtract'?A.subtract(C):A.intersect(C);
+    return fromManifold(R);
+  }finally{[A,C,R].forEach(x=>x&&x.delete());}
+}
+
+// ===== Revisión y reparación de mallas (sin servidor) =====
+// Suelda vértices por posición, cuenta bordes abiertos, aristas con más de 2 caras,
+// caras invertidas y piezas sueltas; repara lo que se puede reparar en forma segura.
+function weldGeo(geo,eps){
+  const pos=geo.attributes.position, idx=geo.index, n=idx?idx.count:pos.count;
+  const map=new Map(), vp=[], tv=new Uint32Array(n), q=1/eps;
+  for(let i=0;i<n;i++){
+    const j=idx?idx.getX(i):i, x=pos.getX(j), y=pos.getY(j), z=pos.getZ(j);
+    const key=Math.round(x*q)+','+Math.round(y*q)+','+Math.round(z*q);
+    let id=map.get(key); if(id===undefined){id=vp.length/3; map.set(key,id); vp.push(x,y,z);} tv[i]=id;
+  }
+  return {vp:new Float64Array(vp),tv};
+}
+function triArea2(vp,a,b,c){
+  const ux=vp[b*3]-vp[a*3],uy=vp[b*3+1]-vp[a*3+1],uz=vp[b*3+2]-vp[a*3+2];
+  const vx=vp[c*3]-vp[a*3],vy=vp[c*3+1]-vp[a*3+1],vz=vp[c*3+2]-vp[a*3+2];
+  const cx=uy*vz-uz*vy, cy=uz*vx-ux*vz, cz=ux*vy-uy*vx; return Math.sqrt(cx*cx+cy*cy+cz*cz);
+}
+function cleanTris(vp,tv,stats){
+  const out=[], seen=new Set(); let deg=0, dup=0;
+  for(let i=0;i<tv.length;i+=3){
+    const a=tv[i],b=tv[i+1],c=tv[i+2];
+    if(a===b||b===c||a===c||triArea2(vp,a,b,c)<1e-12){deg++;continue;}
+    const k=[a,b,c].sort((x,y)=>x-y).join(',');
+    if(seen.has(k)){dup++;continue;} seen.add(k); out.push(a,b,c);
+  }
+  if(stats){stats.degenerate=deg; stats.duplicate=dup;}
+  return out;
+}
+const ekey=(a,b)=>a<b?a*4294967296+b:b*4294967296+a;
+function edgeInfo(t){
+  // por arista sin dirección: lista de caras y cuántas veces aparece en cada sentido
+  const E=new Map();
+  for(let f=0;f<t.length/3;f++)for(let j=0;j<3;j++){
+    const a=t[f*3+j], b=t[f*3+(j+1)%3], k=ekey(a,b);
+    let e=E.get(k); if(!e){e={a:Math.min(a,b),b:Math.max(a,b),faces:[],fw:0,bw:0}; E.set(k,e);}
+    e.faces.push(f); if(a<b)e.fw++; else e.bw++;
+  }
+  return E;
+}
+function shellsOf(t,E){
+  const nf=t.length/3, comp=new Int32Array(nf).fill(-1); let nc=0;
+  for(let s=0;s<nf;s++){ if(comp[s]>=0)continue; const st=[s]; comp[s]=nc;
+    while(st.length){const f=st.pop(); for(let j=0;j<3;j++){const e=E.get(ekey(t[f*3+j],t[f*3+(j+1)%3])); for(const g of e.faces)if(comp[g]<0){comp[g]=nc; st.push(g);}}}
+    nc++; }
+  return {comp,nc};
+}
+function signedVol(vp,t,comp,nc){
+  const v=new Float64Array(nc);
+  for(let f=0;f<t.length/3;f++){const a=t[f*3]*3,b=t[f*3+1]*3,c=t[f*3+2]*3;
+    v[comp[f]]+=(vp[a]*(vp[b+1]*vp[c+2]-vp[b+2]*vp[c+1])-vp[a+1]*(vp[b]*vp[c+2]-vp[b+2]*vp[c])+vp[a+2]*(vp[b]*vp[c+1]-vp[b+1]*vp[c]))/6;}
+  return v;
+}
+function analyzeMesh(geo){
+  const st={}, {vp,tv}=weldGeo(geo,1e-4), t=cleanTris(vp,tv,st), E=edgeInfo(t);
+  let open=0, nonMan=0, flip=0; const openSeg=[];
+  E.forEach(e=>{const n=e.faces.length;
+    if(n===1){open++; openSeg.push(vp[e.a*3],vp[e.a*3+1],vp[e.a*3+2],vp[e.b*3],vp[e.b*3+1],vp[e.b*3+2]);}
+    else if(n>2)nonMan++;
+    else if(e.fw!==1)flip++;});
+  const {comp,nc}=shellsOf(t,E), vol=signedVol(vp,t,comp,nc);
+  let inverted=0, total=0; vol.forEach(x=>{total+=x; if(x<0)inverted++;});
+  return {tris:tv.length/3, degenerate:st.degenerate, duplicate:st.duplicate, open, nonManifold:nonMan, flipped:flip,
+    shells:nc, inverted:flip?0:inverted, volume:Math.abs(total), openSeg:new Float32Array(openSeg),
+    ok:!open&&!nonMan&&!flip&&!st.degenerate&&!st.duplicate&&!inverted};
+}
+function repairMesh(geo){
+  const {vp:vp0,tv}=weldGeo(geo,1e-3), log={};
+  let t=cleanTris(vp0,tv,log); const vp=Array.from(vp0);
+  // las aristas con más de 2 caras (dos partes que se tocan en una línea) no se tocan:
+  // borrar caras ahí deformaría la pieza. Se informan para que se corrijan a mano.
+  let E=edgeInfo(t);
+  // 2) orientar las caras de forma coherente dentro de cada pieza
+  const nf=t.length/3, done=new Uint8Array(nf); let flipped=0;
+  const has=(f,a,b)=>{for(let j=0;j<3;j++)if(t[f*3+j]===a&&t[f*3+(j+1)%3]===b)return true; return false;};
+  const flipF=f=>{const x=t[f*3+1]; t[f*3+1]=t[f*3+2]; t[f*3+2]=x;};
+  for(let s=0;s<nf;s++){ if(done[s])continue; done[s]=1; const q=[s];
+    while(q.length){const f=q.pop(); for(let j=0;j<3;j++){const a=t[f*3+j], b=t[f*3+(j+1)%3], e=E.get(ekey(a,b));
+      if(e.faces.length!==2)continue; const g=e.faces[0]===f?e.faces[1]:e.faces[0]; if(done[g])continue;
+      if(has(g,a,b)){flipF(g); flipped++;} done[g]=1; q.push(g);}}}
+  log.flipped=flipped;
+  // 3) cerrar huecos: recorrer los bordes abiertos y taparlos con un abanico desde el centro
+  E=edgeInfo(t); const nxt=new Map();
+  for(let f=0;f<t.length/3;f++)for(let j=0;j<3;j++){const a=t[f*3+j], b=t[f*3+(j+1)%3];
+    if(E.get(ekey(a,b)).faces.length===1){ if(!nxt.has(b))nxt.set(b,[]); nxt.get(b).push(a); }}
+  let holes=0, added=0;
+  for(const start of [...nxt.keys()]){
+    while(nxt.has(start)&&nxt.get(start).length){
+      const loop=[start]; let cur=start, guard=0;
+      while(guard++<200000){const l=nxt.get(cur); if(!l||!l.length)break; const nx=l.pop(); if(!l.length)nxt.delete(cur); if(nx===start)break; loop.push(nx); cur=nx;}
+      if(loop.length<3)continue;
+      holes++;
+      if(loop.length===3){t.push(loop[0],loop[1],loop[2]); added++; continue;}
+      let cx=0,cy=0,cz=0; loop.forEach(v=>{cx+=vp[v*3];cy+=vp[v*3+1];cz+=vp[v*3+2];});
+      const c=vp.length/3; vp.push(cx/loop.length,cy/loop.length,cz/loop.length);
+      for(let i=0;i<loop.length;i++){t.push(loop[i],loop[(i+1)%loop.length],c); added++;}
+    }
+  }
+  log.holes=holes; log.addedTris=added;
+  // 4) que cada pieza apunte hacia afuera (volumen positivo)
+  E=edgeInfo(t); const {comp,nc}=shellsOf(t,E), vol=signedVol(vp,t,comp,nc); let inv=0;
+  for(let f=0;f<t.length/3;f++)if(vol[comp[f]]<0)flipF(f);
+  vol.forEach(x=>{if(x<0)inv++;}); log.inverted=inv;
+  return {vp:new Float32Array(vp),tv:new Uint32Array(t),log};
+}
+let chkData=[], openLinesOn=false;
+function clearOpenLines(){objs.forEach(o=>{if(o.userData.openLn){o.remove(o.userData.openLn); o.userData.openLn.geometry.dispose(); delete o.userData.openLn;}}); openLinesOn=false; $('#cshow').classList.remove('on');}
+function showOpenLines(){
+  chkData.forEach(({o,a})=>{ if(!a.openSeg.length||o.userData.openLn)return;
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(a.openSeg,3));
+    const ln=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xff2d2d,depthTest:false,transparent:true}));
+    ln.renderOrder=997; o.add(ln); o.userData.openLn=ln; });
+  openLinesOn=true; $('#cshow').classList.add('on');
+}
+const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1}), pl=(n,a,b)=>fmt(n)+' '+(n===1?a:b);
+function renderCheck(){
+  const many=chkData.length>1; let anyBad=false, anyOpen=false;
+  $('#cres').innerHTML=chkData.map(({o,a},i)=>{
+    anyBad=anyBad||!a.ok; anyOpen=anyOpen||a.open>0;
+    const li=(bad,t)=>'<li class="'+(bad?'bad':'')+'">'+t+'</li>', info=t=>'<li class="info">'+t+'</li>';
+    const sc=Math.abs(o.scale.x*o.scale.y*o.scale.z), cm3=a.volume*sc/1000;
+    const sw='<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#'+o.material.color.getHexString()+'"></span>';
+    return '<div class="obj">'+(many?'<div class="row"><span>'+sw+' Pieza '+(i+1)+'</span></div>':'')+
+      '<div class="verdict '+(a.ok?'good':'bad')+'">'+(a.ok?'Lista para el laminador':'Tiene problemas para imprimir')+'</div><ul>'+
+      li(a.open>0,a.open?pl(a.open,'borde abierto (hueco)','bordes abiertos (huecos)'):'Cerrada, sin huecos')+
+      li(a.flipped>0||a.inverted>0,a.flipped?'Caras dadas vuelta en algunas zonas':a.inverted?'La pieza está al revés (adentro hacia afuera)':'Todas las caras miran hacia afuera')+
+      li(a.nonManifold>0,a.nonManifold?pl(a.nonManifold,'arista','aristas')+' donde dos partes se tocan con espesor cero (no se repara solo)':'Sin uniones de espesor cero')+
+      li(a.degenerate+a.duplicate>0,(a.degenerate+a.duplicate)?pl(a.degenerate+a.duplicate,'cara repetida o sin superficie','caras repetidas o sin superficie'):'Sin caras repetidas ni vacías')+
+      (a.shells>1?info(a.shells+' partes separadas dentro del objeto'):'')+
+      info(fmt(a.tris)+' triángulos')+
+      (a.ok?info('Volumen: '+fmt(cm3)+' cm³ (≈ '+fmt(cm3*1.24)+' g en PLA macizo)'):'')+
+      '</ul></div>';
+  }).join('');
+  $('#cfix').hidden=!chkData.some(({a})=>a.open||a.flipped||a.inverted||a.degenerate||a.duplicate); $('#cshow').hidden=!anyOpen;
+}
+async function runCheck(quiet){
+  const list=sel.length?sel.slice():objs.slice();
+  if(!list.length){msg('No hay piezas para revisar.');return;}
+  clearOpenLines(); $('#bedp').hidden=true; $('#toolp').hidden=true; $('#chkp').hidden=false;
+  await busyOn('Revisando la malla…');
+  try{ chkData=list.map(o=>({o,a:analyzeMesh(o.geometry)})); renderCheck(); }
+  catch(err){console.error(err); msg('No se pudo revisar esta malla.');}
+  finally{busyOff();}
+  if(!quiet){const bad=chkData.filter(d=>!d.a.ok).length; msg(bad?(bad===1&&chkData.length===1?'La pieza tiene problemas. Tocá Reparar.':bad+' pieza(s) con problemas. Tocá Reparar.'):(chkData.length===1?'La pieza está lista para imprimir.':'Todas las piezas están listas para imprimir.'));}
+}
+async function runRepair(){
+  const list=chkData.filter(d=>!d.a.ok&&objs.includes(d.o)); if(!list.length)return;
+  clearOpenLines();
+  await busyOn('Reparando la malla…');
+  const tot={holes:0,flipped:0,removed:0,inverted:0}; let fixed=0;
+  try{
+    list.forEach(({o})=>{
+      const r=repairMesh(o.geometry);
+      tot.holes+=r.log.holes; tot.flipped+=r.log.flipped; tot.inverted+=r.log.inverted; tot.removed+=r.log.degenerate+r.log.duplicate;
+      o.geometry=geoFromIndexed(r.vp,r.tv); delete o.userData.p; sgCache.g=null;
+    });
+    commit();
+    chkData=chkData.map(({o})=>({o,a:analyzeMesh(o.geometry)})); renderCheck();
+    fixed=list.filter(({o})=>chkData.find(d=>d.o===o).a.ok).length;
+  }catch(err){console.error(err); restore(cur); msg('No se pudo reparar esta malla.'); busyOff(); return;}
+  busyOff(); updateDims();
+  const parts=[]; if(tot.holes)parts.push(pl(tot.holes,'hueco tapado','huecos tapados')); if(tot.flipped)parts.push(pl(tot.flipped,'cara dada vuelta','caras dadas vuelta')); if(tot.inverted)parts.push(pl(tot.inverted,'pieza puesta al derecho','piezas puestas al derecho')); if(tot.removed)parts.push(pl(tot.removed,'cara sobrante borrada','caras sobrantes borradas'));
+  const nm=chkData.some(d=>d.a.nonManifold>0);
+  msg((fixed===list.length?'Reparado':'Reparado en parte')+(parts.length?': '+parts.join(', '):'')+'.'+(nm?' Quedan partes que se tocan en una línea: separalas un poco o hacé que se superpongan más y volvé a unir.':'')+' Ctrl+Z para deshacer.');
+}
+$('#chk').onclick=()=>runCheck();
+$('#cagain').onclick=()=>runCheck();
+$('#cfix').onclick=runRepair;
+$('#cshow').onclick=()=>openLinesOn?clearOpenLines():showOpenLines();
+$('#cclose').onclick=()=>{$('#chkp').hidden=true; clearOpenLines();};
 
 $('#dup').onclick=()=>{ if(!sel.length)return; const o=sel[sel.length-1];
   const m=addMesh(o.geometry.clone(),o.material.clone()); m.position.copy(o.position).add(new THREE.Vector3(10,0,10)); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale); if(o.userData.p){m.userData.p={...o.userData.p};updateDims();} commit();};
