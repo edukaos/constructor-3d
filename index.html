@@ -54,6 +54,11 @@ canvas{display:block;width:100%;height:100%}
 #psave.dirty::after{content:'';position:absolute;top:3px;right:8px;width:8px;height:8px;border-radius:50%;background:#f5a623}
 #dlg{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:5}
 #dlg[hidden]{display:none}
+#busy{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);color:#fff;font-size:15px;font-weight:600;letter-spacing:.02em;cursor:progress}
+#busy[hidden]{display:none}
+#busy::before{content:'';width:18px;height:18px;margin-right:12px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:c3dspin .8s linear infinite}
+@keyframes c3dspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#busy::before{animation:none}}
 #dlg .box{background:var(--bar);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;max-width:340px;display:flex;flex-direction:column;gap:10px}
 #dlg p{margin:0;line-height:1.4;opacity:.85}
 #dlg .row{display:flex;gap:8px;flex-wrap:wrap}
@@ -79,7 +84,7 @@ canvas{display:block;width:100%;height:100%}
   <span class="sep"></span>
   <button id="undo" title="Deshacer (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Deshacer</button><button id="redo" title="Rehacer (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>Rehacer</button><span class="sep"></span><button id="ghost" title="Modo transparente: los objetos no seleccionados se ven semitransparentes"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Transparente</button><button id="bedbtn" title="Tamaño de la cama de impresión"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v4l9 4 9-4V8M3 12"/></svg>Cama</button><span class="sep"></span><button id="alinear" title="Alinear, centrar y reflejar (espejo)"><svg viewBox="0 0 24 24"><path d="M4 4v16M8 7h12M8 12h8M8 17h10"/></svg>Alinear</button><button id="ground" title="Apoyar la pieza seleccionada sobre la base"><svg viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="10" rx="1"/><path d="M3 19h18M12 16v1"/></svg>Apoyar</button><button id="dup" title="Duplicar"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Duplicar</button><button id="del" title="Borrar"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Borrar</button><span class="sep"></span><button id="pnew" title="Empezar un proyecto nuevo (se puede deshacer)"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M12 11v6M9 14h6"/></svg>Nuevo</button><button id="psave" title="Guardar el proyecto en un archivo"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg>Guardar</button><button id="popen" title="Abrir un proyecto guardado"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg>Abrir</button><input id="pfile" type="file" accept=".json" hidden><button id="imp" title="Importar un archivo STL"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar STL</button><input id="file" type="file" accept=".stl" hidden><button id="stl" title="Exportar a STL"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Exportar STL</button>
 </div>
-<div id="wrap"><canvas id="c"></canvas><div id="splitp" hidden><b>Dividir pieza</b><div class="row"><button data-ax="x">X</button><button data-ax="y" class="on">Y</button><button data-ax="z">Z</button></div><small>Mové o rotá el plano con los botones Mover / Rotar de la barra. Después tocá Dividir.</small><div class="row"><button id="sapply" class="pri">Dividir</button><button id="scancel">Cancelar</button></div></div><div id="bedp" hidden><div class="row"><b>Cama de impresión</b><button id="bclose" title="Cerrar">✕</button></div><label>Medida <select id="bpre"><option value="180x180">180 × 180 mm</option><option value="200x200">200 × 200 mm</option><option value="220x220">220 × 220 mm</option><option value="235x235">235 × 235 mm</option><option value="250x210">250 × 210 mm</option><option value="256x256">256 × 256 mm</option><option value="300x300">300 × 300 mm</option><option value="custom">Personalizada</option></select></label><label>Ancho (X) <input id="bw" type="number" min="10" step="1"></label><label>Fondo (Z) <input id="bd" type="number" min="10" step="1"></label><small>El borde se pone rojo si alguna pieza sobresale de la cama.</small></div><div id="dlg" hidden><div class="box"><b>Tenés cambios sin guardar en un archivo</b><p>Si refrescás, la escena se recupera del autoguardado de este navegador, pero conviene tener una copia en un archivo, sobre todo con piezas muy pesadas.</p><div class="row"><button id="dsave" class="pri">Guardar y refrescar</button><button id="dgo">Refrescar igual</button><button id="dcancel">Cancelar</button></div></div></div><div id="toolp" hidden><div class="row"><b>Alinear y espejo</b><button id="tclose" title="Cerrar">✕</button></div><small>Alinear al último objeto seleccionado (Shift+clic para elegir varios)</small><div class="arow"><span>X</span><button data-al="x:min">Mín</button><button data-al="x:mid">Centro</button><button data-al="x:max">Máx</button></div><div class="arow"><span>Y</span><button data-al="y:min">Mín</button><button data-al="y:mid">Centro</button><button data-al="y:max">Máx</button></div><div class="arow"><span>Z</span><button data-al="z:min">Mín</button><button data-al="z:mid">Centro</button><button data-al="z:max">Máx</button></div><button id="tcenter">Centrar en el origen (X y Z)</button><small>Espejo (refleja la pieza seleccionada)</small><div class="row"><button data-mir="x">Espejo X</button><button data-mir="y">Espejo Y</button><button data-mir="z">Espejo Z</button></div></div><div id="dims" hidden><b>Medidas (mm)</b><label>Ancho X <input id="dx" type="number" step="0.1" min="0.01"></label><label>Alto Y <input id="dy" type="number" step="0.1" min="0.01"></label><label>Prof. Z <input id="dz" type="number" step="0.1" min="0.01"></label><label><span>Proporcional</span><input id="dlock" type="checkbox"></label><b>Posición (mm)</b><label>X <input id="px" type="number" step="0.1"></label><label>Y <input id="py" type="number" step="0.1"></label><label>Z <input id="pz" type="number" step="0.1"></label><b>Rotación (°)</b><label>X <input id="rx" type="number" step="1"></label><label>Y <input id="ry" type="number" step="1"></label><label>Z <input id="rz" type="number" step="1"></label><div id="rrow" hidden><b>Bordes (mm)</b><label>Radio <input id="rad" type="number" step="0.1" min="0" value="0"></label><label>Tipo <select id="rtype"><option value="soft">Redondeado</option><option value="chamfer">Chaflán</option></select></label></div></div><div id="msg">Agregá una forma. Shift+clic para seleccionar dos y combinarlas (Restar: primero − segundo).</div></div>
+<div id="wrap"><canvas id="c"></canvas><div id="splitp" hidden><b>Dividir pieza</b><div class="row"><button data-ax="x">X</button><button data-ax="y" class="on">Y</button><button data-ax="z">Z</button></div><small>Mové o rotá el plano con los botones Mover / Rotar de la barra. Después tocá Dividir.</small><div class="row"><button id="sapply" class="pri">Dividir</button><button id="scancel">Cancelar</button></div></div><div id="bedp" hidden><div class="row"><b>Cama de impresión</b><button id="bclose" title="Cerrar">✕</button></div><label>Medida <select id="bpre"><option value="180x180">180 × 180 mm</option><option value="200x200">200 × 200 mm</option><option value="220x220">220 × 220 mm</option><option value="235x235">235 × 235 mm</option><option value="250x210">250 × 210 mm</option><option value="256x256">256 × 256 mm</option><option value="300x300">300 × 300 mm</option><option value="custom">Personalizada</option></select></label><label>Ancho (X) <input id="bw" type="number" min="10" step="1"></label><label>Fondo (Z) <input id="bd" type="number" min="10" step="1"></label><small>El borde se pone rojo si alguna pieza sobresale de la cama.</small></div><div id="busy" hidden></div><div id="dlg" hidden><div class="box"><b>Tenés cambios sin guardar en un archivo</b><p>Si refrescás, la escena se recupera del autoguardado de este navegador, pero conviene tener una copia en un archivo, sobre todo con piezas muy pesadas.</p><div class="row"><button id="dsave" class="pri">Guardar y refrescar</button><button id="dgo">Refrescar igual</button><button id="dcancel">Cancelar</button></div></div></div><div id="toolp" hidden><div class="row"><b>Alinear y espejo</b><button id="tclose" title="Cerrar">✕</button></div><small>Alinear al último objeto seleccionado (Shift+clic para elegir varios)</small><div class="arow"><span>X</span><button data-al="x:min">Mín</button><button data-al="x:mid">Centro</button><button data-al="x:max">Máx</button></div><div class="arow"><span>Y</span><button data-al="y:min">Mín</button><button data-al="y:mid">Centro</button><button data-al="y:max">Máx</button></div><div class="arow"><span>Z</span><button data-al="z:min">Mín</button><button data-al="z:mid">Centro</button><button data-al="z:max">Máx</button></div><button id="tcenter">Centrar en el origen (X y Z)</button><small>Espejo (refleja la pieza seleccionada)</small><div class="row"><button data-mir="x">Espejo X</button><button data-mir="y">Espejo Y</button><button data-mir="z">Espejo Z</button></div></div><div id="dims" hidden><b>Medidas (mm)</b><label>Ancho X <input id="dx" type="number" step="0.1" min="0.01"></label><label>Alto Y <input id="dy" type="number" step="0.1" min="0.01"></label><label>Prof. Z <input id="dz" type="number" step="0.1" min="0.01"></label><label><span>Proporcional</span><input id="dlock" type="checkbox"></label><b>Posición (mm)</b><label>X <input id="px" type="number" step="0.1"></label><label>Y <input id="py" type="number" step="0.1"></label><label>Z <input id="pz" type="number" step="0.1"></label><b>Rotación (°)</b><label>X <input id="rx" type="number" step="1"></label><label>Y <input id="ry" type="number" step="1"></label><label>Z <input id="rz" type="number" step="1"></label><div id="rrow" hidden><b>Bordes (mm)</b><label>Radio <input id="rad" type="number" step="0.1" min="0" value="0"></label><label>Tipo <select id="rtype"><option value="soft">Redondeado</option><option value="chamfer">Chaflán</option></select></label></div></div><div id="msg">Agregá una forma. Shift+clic para seleccionar dos y combinarlas (Restar: primero − segundo).</div></div>
 
 <script type="importmap">
 {"imports":{
@@ -201,9 +206,13 @@ function endSplit(){
   $('#splitp').hidden=true; $('#dims').style.display=''; $('#dividir').classList.remove('on');
   if(sel.length&&objs.includes(sel[sel.length-1])) tc.attach(sel[sel.length-1]);
 }
-function applySplit(){
+async function busyOn(t){const b=$('#busy'); b.textContent=t; b.hidden=false; await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,30)));}
+function busyOff(){$('#busy').hidden=true;}
+async function applySplit(){
   if(!splitting)return;
   const {obj:o,plane:pl,L}=splitting;
+  await busyOn('Dividiendo la pieza…');
+  try{
   pl.updateMatrixWorld(true);
   const N=new THREE.Vector3(0,0,1).applyQuaternion(pl.quaternion), S=L*6;
   const mk=(geo,pos,q,sc)=>{const b=new Brush(geo); b.position.copy(pos); b.quaternion.copy(q); b.scale.copy(sc); b.updateMatrixWorld(true); return b;};
@@ -217,6 +226,8 @@ function applySplit(){
   meshes.forEach(m=>{scene.add(m); objs.push(m);});
   select([meshes[1]]); commit();
   msg('Pieza dividida en 2. Podés mover cada parte por separado.');
+  }catch(err){console.error(err); msg('No se pudo dividir esta pieza.');}
+  finally{busyOff();}
 }
 $('#dividir').onclick=()=>splitting?endSplit():startSplit();
 $('#sapply').onclick=applySplit; $('#scancel').onclick=endSplit;
@@ -377,20 +388,26 @@ canvas.addEventListener('pointerdown',e=>{
   ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.max[k]:s[k]<0?g.min[k]:c[k]; a[k]=s[k]>0?g.min[k]:s[k]<0?g.max[k]:c[k];});
   const hw=h.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
   const A=a.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
+  const r=canvas.getBoundingClientRect(), scr=V=>{const v=V.clone().project(cam); return new THREE.Vector2(r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height);};
+  const v0=scr(hw).sub(scr(A)); let len=v0.length();
+  if(len<80){ if(len>1e-3)v0.multiplyScalar(80/len); else v0.set(56,-56); len=80; }
   sdrag={o,s,h,a,A,s0:o.scale.clone(),q:o.quaternion.clone(),p0:o.position.clone(),
-    plane:new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()).negate(),hw)};
+    P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len};
 },true);
 canvas.addEventListener('pointermove',e=>{
-  if(!sdrag)return; setRay(e);
-  const P=new THREE.Vector3(); if(!ray2.ray.intersectPlane(sdrag.plane,P))return;
+  if(!sdrag)return;
   const {o,s,h,a,A,s0,q,p0}=sdrag;
-  const pl=P.sub(p0).applyQuaternion(q.clone().invert()).divide(s0);
-  const w=k=>s0[k]*(pl[k]-a[k]), w0=k=>s0[k]*(h[k]-a[k]);
+  const w0=k=>s0[k]*(h[k]-a[k]);
   const ks=['x','y','z'].filter(k=>s[k]!==0&&Math.abs(w0(k))>1e-9);
   if(!ks.length)return;
+  // el factor sale del movimiento del mouse en pantalla, a lo largo de la línea punto fijo → punto agarrado:
+  // así se siente igual desde cualquier ángulo de cámara
+  // curva: lineal cerca del punto de partida (el punto sigue al mouse) y progresiva hacia los extremos,
+  // para que un objeto muy chico pueda hacerse muy grande sin arrastres enormes, y nunca llegue a 0 ni se invierta
+  const x=new THREE.Vector2(e.clientX,e.clientY).sub(sdrag.P0).dot(sdrag.dir)/Math.max(40,sdrag.len);
+  const u=x>=1?2*Math.exp((x-1)/2):x>=-0.5?1+x:0.5*Math.exp((x+0.5)/0.5);
   let f={x:1,y:1,z:1};
-  if(ks.length===1){f[ks[0]]=w(ks[0])/w0(ks[0]);}
-  else{let n=0,d=0; ks.forEach(k=>{n+=w(k)*w0(k); d+=w0(k)*w0(k);}); const u=n/d; f={x:u,y:u,z:u};}
+  if(ks.length===1){f[ks[0]]=u;} else {f={x:u,y:u,z:u};}
   if($('#snap').classList.contains('on')){
     const k=ks.reduce((m,kk)=>Math.abs(w0(kk))>Math.abs(w0(m))?kk:m,ks[0]);
     const size0=Math.abs(w0(k)), r=Math.max(1,Math.round(size0*Math.max(0.001,f[k])))/size0;
@@ -519,6 +536,7 @@ $('#imp').onclick=()=>$('#file').click();
 $('#file').addEventListener('change',async e=>{
   const f=e.target.files[0]; if(!f)return;
   try{
+    await busyOn('Importando '+f.name+'…');
     const geo=new STLLoader().parse(await f.arrayBuffer());
     geo.rotateX(-Math.PI/2);
     geo.computeBoundingBox();
@@ -535,6 +553,7 @@ $('#file').addEventListener('change',async e=>{
     commit();
     msg('Importado: '+f.name+' ('+sz.x.toFixed(1)+' × '+sz.y.toFixed(1)+' × '+sz.z.toFixed(1)+' mm). Peso: '+(n/3|0)+' triángulos.');
   }catch(err){msg('No se pudo leer ese archivo STL.');}
+  busyOff();
   e.target.value='';
 });
 
@@ -595,7 +614,7 @@ function updateDims(){
 
 const ev=new Evaluator();
 const ops={union:ADDITION,subtract:SUBTRACTION,intersect:INTERSECTION};
-document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('[data-op]').forEach(b=>b.onclick=async()=>{
   const op=b.dataset.op, results=[];
   let pairs=[];
   if(op==='subtract'){
@@ -622,8 +641,15 @@ document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{
   scene.remove(a);objs.splice(objs.indexOf(a),1);
   scene.add(mesh); objs.push(mesh); results.push(mesh);
   };
-  pairs.forEach(([a,c])=>doPair(a,c));
-  [...new Set(pairs.map(p=>p[1]))].forEach(o=>{scene.remove(o);const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);});
+  await busyOn('Procesando: '+b.textContent.trim().toLowerCase()+'…');
+  let ok=false;
+  try{
+    pairs.forEach(([a,c])=>doPair(a,c));
+    [...new Set(pairs.map(p=>p[1]))].forEach(o=>{scene.remove(o);const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);});
+    ok=true;
+  }catch(err){console.error(err); restore(cur); msg('No se pudo completar la operación con estas piezas.');}
+  finally{busyOff();}
+  if(!ok)return;
   sel=[]; tc.detach(); select(results.slice(-1)); commit();
   msg('Listo. Resultado: '+b.textContent.trim()+'.');
 });
@@ -644,6 +670,12 @@ addEventListener('keydown',e=>{
     const mode={m:'translate',r:'rotate',e:'scale'}[k];
     if(mode){const b=document.querySelector('[data-mode="'+mode+'"]'); if(b)b.click();}
     else{const sh={1:'box',2:'sphere',3:'cylinder',4:'cone',5:'torus'}[e.key]; if(sh){const b=document.querySelector('[data-add="'+sh+'"]'); if(b)b.click();}}
+  }
+});
+// Enter o Esc en un campo numérico lo suelta, así los atajos de teclado vuelven a funcionar
+addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key==='Escape')&&(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')){
+    e.target.dispatchEvent(new Event('change',{bubbles:true})); e.target.blur();
   }
 });
 let clip=[], pasteN=0;
