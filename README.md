@@ -19,7 +19,7 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 - **Revisar malla:** detecta huecos, caras dadas vuelta, caras repetidas y uniones de espesor cero, muestra los bordes abiertos y calcula volumen y peso aproximado en PLA. Reparar tapa huecos, da vuelta las caras y borra las sobrantes.
 - **Importar STL. Exportar** a STL (todo junto o una pieza por archivo) o a 3MF con nombres, colores y posición en la cama. Las piezas ocultas y los agujeros no se exportan.
 - Guardar y abrir proyecto (JSON), autoguardado en el navegador, deshacer y rehacer.
-- La barra se pliega en menús cuando la pantalla es angosta.
+- Herramientas separadas por función: Archivo, Historial, Vista y Cámara arriba; Crear a la izquierda; Transformar, Combinar y Editar a la derecha. En pantallas angostas la barra de arriba se pliega en menús y las columnas pasan a franjas.
 
 ## Atajos
 1–5 formas · T texto · M mover · R rotar · E escalar · F encuadrar · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar a la selección · Shift + arrastrar en vacío para un rectángulo · Esc cancela · ? muestra la ayuda.
