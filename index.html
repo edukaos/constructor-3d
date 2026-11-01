@@ -160,14 +160,9 @@ function select(list){
 }
 
 document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.add, P={box:{t:'box',w:25,h:25,d:25,r:0,soft:true},cylinder:{t:'cyl',w:25,h:25,d:25,r:0,soft:true}}[t]; const m=addMesh(P?buildGeo(P):shapes[t]()); if(P){m.userData.p={...P};updateDims();} m.geometry.computeBoundingBox(); const hb=m.geometry.boundingBox, hs=hb.getSize(new THREE.Vector3()), R=Math.max(20,Math.min(bed.w,bed.d)/2-hs.x/2-5);
-  let best=null;
-  for(let i=0;i<30;i++){
-    const x=(Math.random()*2-1)*R, z=(Math.random()*2-1)*R;
-    const free=objs.every(o=>{if(o===m)return true; const b=new THREE.Box3().setFromObject(o); return x+hs.x/2<b.min.x||x-hs.x/2>b.max.x||z+hs.z/2<b.min.z||z-hs.z/2>b.max.z;});
-    if(free){best=[x,z];break;} if(!best)best=[x,z];
-  }
-  m.position.set(best[0],-hb.min.y,best[1]); commit();
+  const t=b.dataset.add, P={box:{t:'box',w:25,h:25,d:25,r:0,soft:true},cylinder:{t:'cyl',w:25,h:25,d:25,r:0,soft:true}}[t]; const m=addMesh(P?buildGeo(P):shapes[t]()); if(P){m.userData.p={...P};updateDims();} m.geometry.computeBoundingBox(); const hb=m.geometry.boundingBox;
+  // aparece en el centro de la cama, apoyada sobre la base
+  m.position.set(0,-hb.min.y,0); updateDims(); commit();
 });
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
   scaleUI=b.dataset.mode==='scale'; tc.setMode(scaleUI?'translate':b.dataset.mode); tc.enabled=!scaleUI; if(scaleUI)msg('Escalar: arrastrá los puntos de las esquinas (proporcional) o los de las caras (un solo eje).');
