@@ -27,3 +27,6 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend.
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de respaldo para mallas que no están cerradas) y las tipografías se cargan desde jsDelivr, así que hace falta conexión.
+
+## Instalar como app
+Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
