@@ -30,3 +30,12 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 
 ## Instalar como app
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
+
+## Novedades
+- **SVG a 3D**: importa un SVG con áreas rellenas y le da espesor y ancho en mm.
+- **Vaciar**: deja una pieza hueca con paredes del grosor elegido (opcional: abierta arriba).
+- **Cortar para la cama**: divide una pieza grande en partes que entren, con espigas y agujeros de encastre.
+- **Colores**: paleta rápida junto al selector de color.
+- **Importar OBJ y 3MF** además de STL.
+- **Regla** sobre la cama (en mm) e **imán** configurable de 1, 5 o 10 mm (panel Cama).
+- **Ejemplos**: llavero, caja con tapa y soporte en L.
