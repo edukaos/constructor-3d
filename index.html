@@ -560,6 +560,8 @@ function recenter(m){
   m.geometry.computeBoundingBox();
 }
 
+// al tocar el visor se suelta el campo numérico que tenía el foco, así el panel de medidas siempre se actualiza
+canvas.addEventListener('pointerdown',()=>{const a=document.activeElement; if(a&&a!==document.body&&a.closest&&a.closest('#dims'))a.blur();},true);
 let scaleUI=false, sdrag=null; const sgCache={g:null,min:null,max:null};
 const sg=new THREE.Group(); sg.visible=false; scene.add(sg);
 const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0x7c6cff,depthTest:false,transparent:true}));
