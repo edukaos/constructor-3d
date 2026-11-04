@@ -1,5 +1,5 @@
 // Service worker: guarda la app y las librerías para que funcione sin conexión.
-const CACHE = 'c3d-v1';
+const CACHE = 'c3d-v2';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
   if (!mine && url.hostname !== 'cdn.jsdelivr.net') return;
   if (mine) {
     // La app: red primero (siempre la última versión), caché si no hay conexión.
-    e.respondWith(fetch(req).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return r; })
+    e.respondWith(fetch(req, {cache:'no-store'}).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return r; })
       .catch(() => caches.match(req).then(m => m || caches.match('index.html'))));
   } else {
     // Librerías con versión fija: caché primero.
