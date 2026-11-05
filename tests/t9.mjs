@@ -1,0 +1,10 @@
+import {open,check,summary} from './lib.mjs';
+const {browser,page,errs}=await open();
+await page.click('#bedbtn');
+const op=()=>page.evaluate(()=>{let m=null; document.querySelectorAll('canvas'); return null;});
+await page.fill('#gridop','0'); await page.dispatchEvent('#gridop','input');
+check('Slider guarda en localStorage',(await page.evaluate(()=>localStorage.getItem('c3d_grid')))==='0');
+await page.fill('#gridop','100'); await page.dispatchEvent('#gridop','input');
+await page.fill('#gridop','30'); await page.dispatchEvent('#gridop','input');
+await page.screenshot({path:'/tmp/g.png'});
+check('Sin errores',errs.length===0,errs.join('|')); summary(); await browser.close();

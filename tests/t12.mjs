@@ -1,0 +1,25 @@
+import {open,check,summary,exportStl,msg} from './lib.mjs';
+const {browser,page,errs}=await open();
+await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click();
+await page.click('[data-add=cylinder]'); await page.waitForTimeout(400);
+await page.click('#fuzzbtn'); await page.waitForTimeout(1500);
+const info=()=>page.textContent('#fuzzinfo');
+console.log('inicial',await info());
+const setv=(id,v)=>page.evaluate(([id,v])=>{const i=document.querySelector(id); i.value=v; i.dispatchEvent(new Event('input',{bubbles:true}));},[id,v]);
+check('Vista previa activa al abrir',/mil triángulos/.test(await info()),await info());
+let t=Date.now(); await setv('#fuzza',2); await page.waitForTimeout(150); console.log('intensidad ms',Date.now()-t);
+t=Date.now(); await setv('#fuzzs',1.5); await page.waitForTimeout(400); const i1=await info(); console.log('grano 1.5',i1);
+await page.screenshot({path:'/tmp/H1.png'});
+t=Date.now(); await setv('#fuzzs',0.5); await page.waitForTimeout(1500); const i2=await info(); console.log('grano 0.5',i2);
+const n1=parseInt(i1), n2=parseInt(i2); check('Más fino = más triángulos',n2>n1,i1+' → '+i2);
+await setv('#fuzzs',1.2); await page.waitForTimeout(500);
+await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:60000}); await page.waitForTimeout(400);
+console.log(await msg(page));
+check('Aplicado',/Textura aplicada/.test(await msg(page)));
+const a=await exportStl(page); console.log(a.tris,a.openEdges); check('Sólido cerrado',a.openEdges===0&&a.tris>5000);
+await page.keyboard.press('Escape');
+// cierre sin aplicar restaura visibilidad
+await page.click('#fuzzbtn'); await page.waitForTimeout(1200); await page.keyboard.press('Escape'); await page.waitForTimeout(400);
+const vis=await page.evaluate(()=>document.querySelector('#fuzzp').hidden); check('Panel cerrado con Esc',vis);
+const b=await exportStl(page); check('Pieza original sigue visible/exportable',b.tris===a.tris,b.tris+' vs '+a.tris);
+check('Sin errores',errs.length===0,JSON.stringify(errs)); summary(); await browser.close();

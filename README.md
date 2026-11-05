@@ -40,4 +40,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Regla** sobre la cama (en mm) e **imán** configurable de 1, 5 o 10 mm (panel Cama).
 - **Ejemplos**: llavero, caja con tapa y soporte en L.
 - **Aspecto** (botón en Vista): calidad Simple / Mejor / Máxima, material (plástico, mate, brillante, arcilla) y aristas marcadas. Mejor suma luces, reflejos y sombra en el piso; Máxima agrega oclusión ambiental. Con piezas muy pesadas se simplifica solo.
-- **Textura** (columna izquierda, con vista previa en vivo al mover los deslizadores): piel rugosa tipo fuzzy skin (aleatoria u ondulada) con intensidad y separación de puntos en mm; puede dejar lisas la tapa y la base. Es un paso final: la pieza queda con decenas de miles de triángulos.
+- **Textura** (columna izquierda, con vista previa en vivo): fuzzy skin (rugosa u ondulada), líneas horizontales o verticales, puntos y tejido; tamaño del grano e intensidad con deslizadores; puede dejar lisas la tapa y la base.
+- **Vistas y zoom** a un clic (botones a la izquierda del visor), **Duplicar / Borrar** rápidos sobre el visor, secciones plegables en la columna izquierda.
+- **Exportar**: STL, ZIP por pieza, 3MF e **imagen PNG** con fondo transparente; los archivos llevan las medidas en el nombre y avisa si el modelo flota o no entra en la cama.
+- **Pruebas**: carpeta `tests/`.
