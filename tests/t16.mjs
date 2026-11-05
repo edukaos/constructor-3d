@@ -1,0 +1,16 @@
+import {open,check,summary,exportStl} from './lib.mjs';
+const {browser,page,errs}=await open();
+await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click();
+await page.click('[data-add=box]'); await page.waitForTimeout(400);
+await page.click('#shellbtn'); await page.waitForFunction(()=>/Ahorrás/.test(document.querySelector('#shellinfo').textContent),null,{timeout:20000});
+check('Vista previa muestra % de ahorro',true);
+await page.fill('#shellt','4'); await page.waitForFunction(()=>/4 mm/.test(document.querySelector('#shellinfo').textContent),null,{timeout:10000});
+check('Cambiar grosor actualiza la vista',true);
+await page.fill('#shellt','30'); await page.waitForTimeout(800); const bad=await page.textContent('#shellinfo'); check('Grosor excesivo avisa en el panel',/demasiado grande|No se pudo/.test(bad),bad);
+await page.fill('#shellt','3'); await page.waitForTimeout(800);
+await page.click('#shellp [data-close]'); await page.waitForTimeout(400);
+let st=await exportStl(page); check('Cerrar sin aplicar deja la pieza maciza',Math.abs(st.vol-15625)<50,st.vol); await page.keyboard.press('Escape');
+await page.click('#shellbtn'); await page.waitForFunction(()=>/Ahorrás/.test(document.querySelector('#shellinfo').textContent),null,{timeout:20000});
+await page.click('#shellgo'); await page.waitForTimeout(1200);
+st=await exportStl(page); check('Aplicar deja la pieza hueca',st.vol<9000&&st.vol>3000&&st.openEdges===0,st.vol+' '+st.openEdges);
+check('Sin errores',errs.length===0,JSON.stringify(errs)); summary(); await browser.close();
