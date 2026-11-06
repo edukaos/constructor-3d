@@ -43,4 +43,5 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Textura** (columna izquierda, con vista previa en vivo): fuzzy skin (rugosa u ondulada), líneas horizontales o verticales, puntos y tejido; tamaño del grano e intensidad con deslizadores; puede dejar lisas la tapa y la base.
 - **Vistas y zoom** a un clic (botones a la izquierda del visor), **Duplicar / Borrar** rápidos sobre el visor, secciones plegables en la columna izquierda.
 - **Exportar**: STL, ZIP por pieza, 3MF e **imagen PNG** con fondo transparente; los archivos llevan las medidas en el nombre y avisa si el modelo flota o no entra en la cama.
+- **IA 3D (Tripo)** (botón en la columna derecha): crea modelos a partir de texto o de una foto con tu propia clave de API de Tripo (se guarda solo en tu navegador); el resultado se importa a la mesa escalado a los mm que elijas y apoyado en la cama.
 - **Pruebas**: carpeta `tests/`.
