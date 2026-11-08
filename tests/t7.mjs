@@ -1,10 +1,10 @@
 import {open,check,msg,saveProj,summary} from './lib.mjs';
-const {browser,page,errs}=await open(''+new URL('../index.html',import.meta.url).pathname+'',{w:1280,h:800});
+const {browser,page,errs}=await open('/home/claude/constructor-3d/index.html',{w:1280,h:800});
 const cnt=async()=> (await saveProj(page)).objs.length;
 // disposición
 const box=async s=>page.$eval(s,e=>{const r=e.getBoundingClientRect();return {x:r.x,w:r.width,y:r.y,h:r.height};});
 const L=await box('#lrail'), R=await box('#rrail'), W=await box('#wrap'), T=await box('#topbar');
-check('Transformar/Combinar/Editar a la IZQUIERDA',L.x<W.x&&/Transformar/.test(await page.textContent('#lrail'))&&/Editar/.test(await page.textContent('#lrail')));
+check('Transformar/Combinar/Editar a la IZQUIERDA',L.x+L.w<=W.x+W.w/2&&R.x>=W.x+W.w/2&&L.x<R.x&&/Transformar/.test(await page.textContent('#lrail'))&&/Editar/.test(await page.textContent('#lrail')));
 check('Crear a la DERECHA',R.x>W.x&&/Formas básicas/.test(await page.textContent('#rrail')));
 const heads=await page.$$eval('#topbar .grp',g=>g.map(x=>x.getBoundingClientRect()));
 const left=heads[0].left, right=heads.at(-1).right;

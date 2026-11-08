@@ -206,7 +206,7 @@ canvas{display:block;width:100%;height:100%}
 #dims.compact .xg{display:none}
 @media (max-width:520px){#dims{grid-template-columns:auto repeat(3,minmax(0,1fr))}#dims label.lk{grid-column:2/-1}}
 /* ===== Estilo oscuro con acento violeta (solo visual) ===== */
-.brand{display:none;position:fixed;left:16px;top:14px;z-index:6;align-items:center;gap:9px;pointer-events:none}
+.brand{display:none;position:fixed;left:16px;top:14px;z-index:9;align-items:center;gap:9px;pointer-events:none}
 .brand svg{width:30px;height:30px}.brand b{font-size:15px;letter-spacing:.01em}
 @media (min-width:1180px){.brand{display:flex}body #topbar{padding-left:190px;padding-right:190px}}
 button:hover{border-color:var(--ac)}
@@ -276,6 +276,76 @@ select option:checked,select option:hover{background-color:var(--ac);color:var(-
 #shpcats button{padding:3px 9px;border-radius:999px;border:1px solid var(--bd);background:transparent;color:var(--tx);font:inherit;font-size:12px;cursor:pointer}
 #shpcats button.on{background:var(--ac);color:var(--ac-tx);border-color:var(--ac)}
 @media (max-width:760px){#shpgrid{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== Liquid glass =====
+   Escritorio: vidrio translúcido con desenfoque, brillo de borde y gotas.
+   Celulares / táctil: versión liviana, plana y sólida (sin desenfoque, brillos ni sombras). */
+:root{--glass:rgba(22,26,50,.55);--glass-hi:rgba(255,255,255,.07);--glass-bd:rgba(255,255,255,.15);--glass-sh:0 14px 44px rgba(2,4,20,.45);--glass-in:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(255,255,255,.035);--mut:#a3a9c8}
+:root[data-theme="light"]{--glass:rgba(255,255,255,.58);--glass-hi:rgba(255,255,255,.55);--glass-bd:rgba(255,255,255,.85);--glass-sh:0 14px 40px rgba(30,40,80,.16);--glass-in:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.4);--mut:#5d6580}
+@media (max-width:760px),(pointer:coarse){
+  .bar button.on,.bar button.on:hover:not(:disabled){background:var(--ac);box-shadow:none}
+  .pnl button.pri,#dlg button.pri,#splitp button.pri,#chkp button.pri{background:var(--ac);box-shadow:none}
+  #msg,#dims,.pnl,#listp,#splitp,#toolp,#bedp,#chkp,.grp.col.open .row{box-shadow:none}
+}
+@media (min-width:761px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+  body{background:radial-gradient(60% 55% at 8% 12%,rgba(107,92,255,.38),transparent 70%),radial-gradient(55% 50% at 94% 88%,rgba(36,190,205,.24),transparent 70%),radial-gradient(40% 40% at 88% 8%,rgba(255,110,160,.14),transparent 70%),#080a16}
+  :root[data-theme="light"] body{background:radial-gradient(60% 55% at 8% 12%,rgba(120,130,255,.35),transparent 70%),radial-gradient(55% 50% at 94% 88%,rgba(60,200,220,.3),transparent 70%),radial-gradient(40% 40% at 88% 8%,rgba(255,150,190,.25),transparent 70%),#e8ebf3}
+  #wrap{background:transparent}
+  #topbar,#lrail,#rrail,.pnl,#listp,#splitp,#toolp,#bedp,#chkp,#dims,#msg,.dimlbl,#mlabel,#quick button,#dlg .box,#help .box,.grp.col.open .row,#shpgrid button{
+    background:linear-gradient(160deg,var(--glass-hi),transparent 38%),var(--glass);
+    -webkit-backdrop-filter:blur(24px) saturate(1.7);backdrop-filter:blur(24px) saturate(1.7);
+    border:1px solid var(--glass-bd);box-shadow:var(--glass-in),var(--glass-sh)}
+  #msg,.dimlbl,#mlabel{box-shadow:var(--glass-in)}
+  #shpgrid button,#quick button{box-shadow:var(--glass-in);background:var(--glass-hi)}
+  #dlg,#help{background:rgba(6,8,22,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #topbar{border-width:1px;border-radius:20px}
+  #lrail,#rrail,#topbar{border-style:solid}
+  #lrail .grp,#rrail .grp,#topbar .grp,#topbar .grp:first-child{border-color:var(--glass-bd)}
+  #topbar .grp,#topbar .grp:first-child,#topbar .grp:last-child{border-left-color:var(--glass-bd)}
+  #topbar .grp:first-child{border-left-color:transparent}
+  /* controles */
+  .bar button{transition:background .18s,box-shadow .18s,transform .18s,color .18s}
+  .bar button:hover:not(:disabled){background:var(--glass-hi);box-shadow:var(--glass-in)}
+  .bar button.on,.bar button.on:hover:not(:disabled){background:linear-gradient(180deg,rgba(150,136,255,.95),rgba(100,82,242,.92));color:#fff;border-color:rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px rgba(107,92,255,.38)}
+  .grp.col.open .ghead,.bar .grp.col.open .ghead{background:var(--glass-hi)}
+  #rrail button{background:var(--glass-hi);border:1px solid var(--glass-bd);box-shadow:var(--glass-in)}
+  #rrail button:hover{background:rgba(124,108,255,.22);border-color:rgba(255,255,255,.3);transform:translateY(-1px)}
+  #rrail button svg{color:var(--ac)}
+  :root:not([data-theme="light"]) #rrail button svg{color:#b6adff}
+  #dims label.ax,.pnl input:not([type=checkbox]):not([type=range]),.pnl select,body .pnl select,body #dims select,body #bedp select,#dims input[type=color]{background-color:rgba(255,255,255,.07);border:1px solid var(--glass-bd);box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+  :root[data-theme="light"] #dims label.ax,:root[data-theme="light"] .pnl input:not([type=checkbox]):not([type=range]),:root[data-theme="light"] .pnl select{background-color:rgba(255,255,255,.65)}
+  .pnl button,#bedp button,#chkp button,#toolp button,#splitp button,#dlg button,#help button,#dims button{background:var(--glass-hi);border:1px solid var(--glass-bd);box-shadow:var(--glass-in);transition:background .18s,transform .18s}
+  .pnl button:hover,#bedp button:hover,#chkp button:hover,#toolp button:hover,#splitp button:hover,#dlg button:hover,#dims button:hover{background:rgba(124,108,255,.2);border-color:rgba(255,255,255,.3)}
+  .pnl button.pri,#dlg button.pri,#splitp button.pri,#chkp button.pri,#shpcats button.on{background:linear-gradient(180deg,rgba(150,136,255,.95),rgba(100,82,242,.92));color:#fff;border-color:rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px rgba(107,92,255,.35)}
+  #shpcats button{border-color:var(--glass-bd)}
+  #shpgrid button:hover{background:rgba(124,108,255,.2);border-color:rgba(255,255,255,.3)}
+  #lrows .li.on{background:rgba(124,108,255,.22);border-color:rgba(255,255,255,.28)}
+  #help kbd{background:var(--glass-hi);border-color:var(--glass-bd)}
+  #help td{border-top-color:var(--glass-bd)}
+  /* deslizadores en gota de vidrio */
+  .pnl input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:transparent;padding:0;border:none;box-shadow:none;cursor:pointer}
+  .pnl input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:rgba(127,127,160,.35);box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+  .pnl input[type=range]::-moz-range-track{height:5px;border-radius:5px;background:rgba(127,127,160,.35)}
+  .pnl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ff 55%,#aab0ee);border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(10,12,40,.45)}
+  .pnl input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ff 55%,#aab0ee);border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(10,12,40,.45)}
+  input[type=checkbox]{accent-color:var(--ac)}
+  .pnl::-webkit-scrollbar,#lrail::-webkit-scrollbar,#rrail::-webkit-scrollbar,#chkp::-webkit-scrollbar{width:8px}
+  .pnl::-webkit-scrollbar-thumb,#lrail::-webkit-scrollbar-thumb,#rrail::-webkit-scrollbar-thumb,#chkp::-webkit-scrollbar-thumb{background:rgba(160,165,210,.35);border-radius:8px;border:2px solid transparent;background-clip:content-box}
+}
+/* Pantalla ancha: el visor ocupa todo y la interfaz flota encima como vidrio */
+@media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+  #main{position:relative}
+  #wrap{position:absolute;inset:0}
+  #topbar{position:absolute;top:10px;left:10px;right:10px;z-index:8}
+  #lrail{position:absolute;left:10px;top:74px;bottom:auto;max-height:calc(100% - 84px);margin:0;z-index:4;overflow-y:auto}
+  #rrail{position:absolute;right:10px;top:74px;bottom:auto;max-height:calc(100% - 84px);margin:0;z-index:4;overflow-y:auto}
+  .pnl,#splitp,#toolp,#bedp,#chkp{right:296px;top:74px;max-height:calc(100% - 84px)}
+  #listp{left:226px;top:74px;max-height:calc(100% - 84px)}
+  #quick{left:226px;top:74px}
+  #dims{width:min(560px,calc(100% - 560px))}
+  #msg{top:74px}
+}
+@media (prefers-reduced-motion:reduce){.bar button,.pnl button{transition:none!important}#rrail button:hover{transform:none}}
 </style>
 </head>
 <body>
