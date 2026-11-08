@@ -1,5 +1,5 @@
 import {open,check,msg,saveProj,clickObj,summary,screenOf} from './lib.mjs';
-import * as THREE from ''+(process.env.C3D_LIBS||new URL('./node_modules/',import.meta.url).pathname)+'three/build/three.module.js';
+import * as THREE from '/tmp/claude-0/-home-claude/3b0abf3c-a756-5b2f-b56e-ad418e0e5272/scratchpad/libs/node_modules/three/build/three.module.js';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const blur=()=>page.evaluate(()=>document.activeElement&&document.activeElement.blur());
@@ -21,7 +21,7 @@ await page.keyboard.press('1'); await page.waitForTimeout(150);
 await page.fill('#px','0'); await page.fill('#pz','0'); await page.fill('#dx','2'); await page.fill('#dy','2'); await page.fill('#dz','2');
 await page.keyboard.press('Enter'); await page.waitForTimeout(200);
 let o=(await saveProj(page)).objs[0]; console.log('  cubito:',JSON.stringify(o.p&&[o.p.w,o.p.h,o.p.d]),o.pos.map(n=>+n.toFixed(1)));
-await clickObj(page,[0,o.pos[1],0]); await page.keyboard.press('e'); await page.waitForTimeout(300);
+await clickObj(page,[0,o.pos[1],0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
 let h=await screenOf(page,[o.pos[0]+1,o.pos[1]+1,o.pos[2]+1]);
 await drag(h,300,-250);
 let d=await dims(); check('Cubito 2 mm → grande: crece mucho sin voltearse',d[0]>15&&d[0]===d[1],'dims='+d.join(' x '));
@@ -34,7 +34,7 @@ d=await dims(); check('Arrastrar hacia adentro: nunca invierte (>0)',d[0]>0&&d[1
 // Cara (un solo eje)
 await page.click('#pnew'); await page.waitForTimeout(200);
 await page.keyboard.press('1'); await page.waitForTimeout(150); await page.fill('#px','0'); await page.fill('#pz','0'); await page.keyboard.press('Enter'); await page.waitForTimeout(150);
-await clickObj(page,[0,12.5,0]); await page.keyboard.press('e'); await page.waitForTimeout(300);
+await clickObj(page,[0,12.5,0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
 h=await screenOf(page,[12.5,12.5,0]);   // cara +X
 await drag(h,90,10);
 d=await dims(); check('Punto de cara: cambia un solo eje',d[0]>30&&near(d[1],25,0.01)&&near(d[2],25,0.01),'dims='+d.join(' x '));

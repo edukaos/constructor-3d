@@ -1,5 +1,5 @@
 import {open,check,msg,saveProj,clickObj,summary,screenOf,exportStl} from './lib.mjs';
-import * as THREE from ''+(process.env.C3D_LIBS||new URL('./node_modules/',import.meta.url).pathname)+'three/build/three.module.js';
+import * as THREE from '/tmp/claude-0/-home-claude/3b0abf3c-a756-5b2f-b56e-ad418e0e5272/scratchpad/libs/node_modules/three/build/three.module.js';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const cnt=async()=> (await saveProj(page)).objs.length;
@@ -12,7 +12,7 @@ function stlBuf(geo){const g=geo.index?geo.toNonIndexed():geo; const p=g.attribu
 // --- Escalar con la caja exterior (esquina)
 await page.click('#pnew'); await page.waitForTimeout(200);
 await page.keyboard.press('1'); await page.waitForTimeout(150); await set('px',0); await set('pz',0); await blur();
-await clickObj(page,[0,12.5,0]); await page.keyboard.press('e'); await page.waitForTimeout(300);
+await clickObj(page,[0,12.5,0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
 const h=await screenOf(page,[12.5,25,12.5]);
 await page.mouse.move(h.x,h.y); await page.mouse.down(); await page.mouse.move(h.x+40,h.y-40,{steps:6}); await page.mouse.move(h.x+90,h.y-90,{steps:6}); await page.mouse.up(); await page.waitForTimeout(300);
 const d=[await page.inputValue('#dx'),await page.inputValue('#dy'),await page.inputValue('#dz')].map(Number);
