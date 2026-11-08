@@ -39,7 +39,7 @@ check('Abrir proyecto',/Proyecto abierto/.test(await msg(page))&&await cnt()===b
 
 // --- Importar STL (caja 10x20x30 con Z arriba, lejos del origen)
 const bg=new THREE.BoxGeometry(10,20,30); bg.translate(100,100,100);
-await page.setInputFiles('#file',{name:'caja.stl',mimeType:'model/stl',buffer:stlBuf(bg)}); await page.waitForTimeout(700);
+await page.setInputFiles('#file',{name:'caja.stl',mimeType:'model/stl',buffer:stlBuf(bg)}); await page.waitForFunction(()=>/Importado: caja/.test(document.querySelector('#msg').textContent),null,{timeout:8000}).catch(()=>{}); await page.waitForTimeout(300);
 check('Importar STL',/Importado: caja\.stl/.test(await msg(page)),await msg(page));
 const imp=(await saveProj(page)).objs.at(-1);
 check('Importar STL: queda apoyado en la base (Z→Y)',imp&&near(imp.pos[1]+0,imp.pos[1],1)&&true);

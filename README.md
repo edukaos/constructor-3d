@@ -39,6 +39,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Importar OBJ y 3MF** además de STL.
 - **Regla** sobre la cama (en mm) e **imán** configurable de 1, 5 o 10 mm (panel Cama).
 - **Ejemplos**: llavero, caja con tapa y soporte en L.
+- **Iconos propios** en SVG duotono (trazo más relleno con degradado violeta/turquesa), todos sobre la misma cuadrícula de 24 px, y una escala de espaciado única (múltiplos de 4 px) para barras, rieles y paneles.
 - **Estilo liquid glass**: en escritorio el visor ocupa toda la pantalla y barras, paneles y diálogos flotan encima como vidrio translúcido (desenfoque, brillo de borde, deslizadores en gota), en modo oscuro y claro. En celulares y pantallas táctiles se usa una versión plana y liviana, sin desenfoque, brillos ni sombras.
 - **Aspecto** (botón en Vista): calidad Simple / Mejor / Máxima, material (plástico, mate, brillante, arcilla) y aristas marcadas. Mejor suma luces, reflejos y sombra en el piso; Máxima agrega oclusión ambiental. Con piezas muy pesadas se simplifica solo.
 - **Textura** (columna izquierda, con vista previa en vivo): fuzzy skin (rugosa u ondulada), líneas horizontales o verticales, puntos y tejido; tamaño del grano e intensidad con deslizadores; puede dejar lisas la tapa y la base.
