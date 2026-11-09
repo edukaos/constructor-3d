@@ -253,7 +253,7 @@ select option:checked,select option:hover{background-color:var(--ac);color:var(-
 #msg{font-size:12.5px;max-width:44%;padding:5px 10px;transition:opacity .5s}
 #msg.off{opacity:0}
 @media (min-width:761px){
- #lrail{scrollbar-width:thin}
+
  #lrail .grp .lbl{cursor:pointer;user-select:none;display:flex;justify-content:space-between}
  #lrail .grp .lbl::after{content:"▾";opacity:.6}
  #lrail .grp.fold .row{display:none}
@@ -329,8 +329,6 @@ select option:checked,select option:hover{background-color:var(--ac);color:var(-
   .pnl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6.5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ff 55%,#aab0ee);border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(10,12,40,.45)}
   .pnl input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ff 55%,#aab0ee);border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(10,12,40,.45)}
   input[type=checkbox]{accent-color:var(--ac)}
-  .pnl::-webkit-scrollbar,#lrail::-webkit-scrollbar,#rrail::-webkit-scrollbar,#chkp::-webkit-scrollbar{width:8px}
-  .pnl::-webkit-scrollbar-thumb,#lrail::-webkit-scrollbar-thumb,#rrail::-webkit-scrollbar-thumb,#chkp::-webkit-scrollbar-thumb{background:rgba(160,165,210,.35);border-radius:8px;border:2px solid transparent;background-clip:content-box}
 }
 /* Pantalla ancha: el visor ocupa todo y la interfaz flota encima como vidrio */
 @media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
@@ -430,6 +428,20 @@ button svg .t.sS{stroke:url(#sS)}
 @media (pointer:fine) and (min-width:761px){button svg{filter:drop-shadow(0 1.5px 1.5px rgba(5,5,30,.4))}}
 .bar button.on,.bar button.on:hover:not(:disabled){background:rgba(124,108,255,.3)!important;color:var(--tx)!important;border-color:rgba(170,160,255,.65)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)!important}
 .bar button:disabled svg{filter:grayscale(1) opacity(.5)}
+
+/* ===== Barra de scroll fina de vidrio: aparece al usarla ===== */
+#lrail,#rrail,.pnl,#chkp,#dims,#lrows,#help .box,#shpgrid,#dlg .box,.grp.col.open .row{scrollbar-gutter:auto}
+#lrail::-webkit-scrollbar,#rrail::-webkit-scrollbar,.pnl::-webkit-scrollbar,#chkp::-webkit-scrollbar,#dims::-webkit-scrollbar,#lrows::-webkit-scrollbar,#help .box::-webkit-scrollbar,#shpgrid::-webkit-scrollbar,#dlg .box::-webkit-scrollbar,.grp.col.open .row::-webkit-scrollbar{width:10px;height:10px;background:transparent}
+#lrail::-webkit-scrollbar-track,#rrail::-webkit-scrollbar-track,.pnl::-webkit-scrollbar-track,#chkp::-webkit-scrollbar-track,#dims::-webkit-scrollbar-track,#lrows::-webkit-scrollbar-track,#help .box::-webkit-scrollbar-track,#shpgrid::-webkit-scrollbar-track,#dlg .box::-webkit-scrollbar-track,.grp.col.open .row::-webkit-scrollbar-track{background:transparent;margin:10px 0}
+#lrail::-webkit-scrollbar-corner,#rrail::-webkit-scrollbar-corner,.pnl::-webkit-scrollbar-corner,#chkp::-webkit-scrollbar-corner,#dims::-webkit-scrollbar-corner,#lrows::-webkit-scrollbar-corner,#help .box::-webkit-scrollbar-corner,#shpgrid::-webkit-scrollbar-corner,#dlg .box::-webkit-scrollbar-corner,.grp.col.open .row::-webkit-scrollbar-corner{background:transparent}
+#lrail::-webkit-scrollbar-thumb,#rrail::-webkit-scrollbar-thumb,.pnl::-webkit-scrollbar-thumb,#chkp::-webkit-scrollbar-thumb,#dims::-webkit-scrollbar-thumb,#lrows::-webkit-scrollbar-thumb,#help .box::-webkit-scrollbar-thumb,#shpgrid::-webkit-scrollbar-thumb,#dlg .box::-webkit-scrollbar-thumb,.grp.col.open .row::-webkit-scrollbar-thumb{background:rgba(190,195,235,0);border:3px solid transparent;background-clip:padding-box;border-radius:10px;transition:background-color .25s}
+#lrail:hover::-webkit-scrollbar-thumb,#rrail:hover::-webkit-scrollbar-thumb,.pnl:hover::-webkit-scrollbar-thumb,#chkp:hover::-webkit-scrollbar-thumb,#dims:hover::-webkit-scrollbar-thumb,#lrows:hover::-webkit-scrollbar-thumb,#help .box:hover::-webkit-scrollbar-thumb,#shpgrid:hover::-webkit-scrollbar-thumb,#dlg .box:hover::-webkit-scrollbar-thumb,.grp.col.open .row:hover::-webkit-scrollbar-thumb,#lrail.scrolling::-webkit-scrollbar-thumb,#rrail.scrolling::-webkit-scrollbar-thumb,.pnl.scrolling::-webkit-scrollbar-thumb,#chkp.scrolling::-webkit-scrollbar-thumb,#dims.scrolling::-webkit-scrollbar-thumb,#lrows.scrolling::-webkit-scrollbar-thumb,#help .box.scrolling::-webkit-scrollbar-thumb,#shpgrid.scrolling::-webkit-scrollbar-thumb,#dlg .box.scrolling::-webkit-scrollbar-thumb,.grp.col.open .row.scrolling::-webkit-scrollbar-thumb{background-color:rgba(190,195,235,.38)}
+#lrail::-webkit-scrollbar-thumb:hover,#rrail::-webkit-scrollbar-thumb:hover,.pnl::-webkit-scrollbar-thumb:hover,#chkp::-webkit-scrollbar-thumb:hover,#dims::-webkit-scrollbar-thumb:hover,#lrows::-webkit-scrollbar-thumb:hover,#help .box::-webkit-scrollbar-thumb:hover,#shpgrid::-webkit-scrollbar-thumb:hover,#dlg .box::-webkit-scrollbar-thumb:hover,.grp.col.open .row::-webkit-scrollbar-thumb:hover,#lrail::-webkit-scrollbar-thumb:active,#rrail::-webkit-scrollbar-thumb:active,.pnl::-webkit-scrollbar-thumb:active,#chkp::-webkit-scrollbar-thumb:active,#dims::-webkit-scrollbar-thumb:active,#lrows::-webkit-scrollbar-thumb:active,#help .box::-webkit-scrollbar-thumb:active,#shpgrid::-webkit-scrollbar-thumb:active,#dlg .box::-webkit-scrollbar-thumb:active,.grp.col.open .row::-webkit-scrollbar-thumb:active{background-color:rgba(205,210,245,.7)}
+:root[data-theme="light"] #lrail::-webkit-scrollbar-thumb,:root[data-theme="light"] #rrail::-webkit-scrollbar-thumb,:root[data-theme="light"] .pnl::-webkit-scrollbar-thumb,:root[data-theme="light"] #chkp::-webkit-scrollbar-thumb,:root[data-theme="light"] #dims::-webkit-scrollbar-thumb,:root[data-theme="light"] #lrows::-webkit-scrollbar-thumb,:root[data-theme="light"] #help .box::-webkit-scrollbar-thumb,:root[data-theme="light"] #shpgrid::-webkit-scrollbar-thumb,:root[data-theme="light"] #dlg .box::-webkit-scrollbar-thumb,:root[data-theme="light"] .grp.col.open .row::-webkit-scrollbar-thumb{border-color:transparent}
+:root[data-theme="light"] #lrail:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #rrail:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] .pnl:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #chkp:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #dims:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #lrows:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #help .box:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #shpgrid:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #dlg .box:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] .grp.col.open .row:hover::-webkit-scrollbar-thumb,:root[data-theme="light"] #lrail.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #rrail.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] .pnl.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #chkp.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #dims.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #lrows.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #help .box.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #shpgrid.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] #dlg .box.scrolling::-webkit-scrollbar-thumb,:root[data-theme="light"] .grp.col.open .row.scrolling::-webkit-scrollbar-thumb{background-color:rgba(60,70,120,.32)}
+@supports (-moz-appearance:none){#lrail,#rrail,.pnl,#chkp,#dims,#lrows,#help .box,#shpgrid,#dlg .box,.grp.col.open .row{scrollbar-width:thin;scrollbar-color:rgba(190,195,235,.35) transparent}}
+#lrail,#rrail{padding-right:4px!important}
+@media (prefers-reduced-motion:reduce){#lrail::-webkit-scrollbar-thumb,#rrail::-webkit-scrollbar-thumb,.pnl::-webkit-scrollbar-thumb,#chkp::-webkit-scrollbar-thumb,#dims::-webkit-scrollbar-thumb,#lrows::-webkit-scrollbar-thumb,#help .box::-webkit-scrollbar-thumb,#shpgrid::-webkit-scrollbar-thumb,#dlg .box::-webkit-scrollbar-thumb,.grp.col.open .row::-webkit-scrollbar-thumb{transition:none}}
 </style>
 </head>
 <body>
@@ -2460,6 +2472,9 @@ idbGet().then(s=>{
   addEventListener('resize',fitBar); fitBar();
 })();
 msg('Agregá formas desde la barra. Para elegir varias piezas: Shift+clic o Shift+arrastrar en un espacio vacío. Atajos: tecla ?');
+
+// barra de scroll: se muestra mientras se desplaza
+document.addEventListener('scroll',e=>{const t=e.target; if(t&&t.classList){t.classList.add('scrolling'); clearTimeout(t._sb); t._sb=setTimeout(()=>t.classList.remove('scrolling'),900);}},true);
 </script>
 </body>
 </html>
