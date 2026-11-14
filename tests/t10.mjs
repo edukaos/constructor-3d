@@ -1,6 +1,6 @@
-import {open,check,summary,screenOf} from './lib.mjs';
+import {open,check,summary,screenOf,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
-await page.click('[data-add=box]'); await page.waitForTimeout(400);
+await clk(page,'[data-add=box]'); await page.waitForTimeout(400);
 await page.click('[data-mode=scale]'); await page.waitForTimeout(300);
 await page.click('#dx'); await page.fill('#dx','30'); await page.waitForTimeout(300);   // el foco queda en el campo
 const p=await screenOf(page,[15,25,12.5]);

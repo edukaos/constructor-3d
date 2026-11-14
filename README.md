@@ -19,10 +19,10 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 - **Revisar malla:** detecta huecos, caras dadas vuelta, caras repetidas y uniones de espesor cero, muestra los bordes abiertos y calcula volumen y peso aproximado en PLA. Reparar tapa huecos, da vuelta las caras y borra las sobrantes.
 - **Importar STL. Exportar** a STL (todo junto o una pieza por archivo) o a 3MF con nombres, colores y posición en la cama. Las piezas ocultas y los agujeros no se exportan.
 - Guardar y abrir proyecto (JSON), autoguardado en el navegador, deshacer y rehacer.
-- Herramientas separadas por función: Archivo, Historial, Vista, Cámara y Ayuda arriba, centrados y juntos; Transformar, Combinar y Editar a la izquierda; Crear a la derecha, con todas las formas a la vista. En pantallas angostas la barra de arriba se pliega en menús y las columnas pasan a franjas.
+- Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Agujero, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
 
 ## Atajos
-1–5 formas · T texto · M mover · R rotar · S escalar · F encuadrar · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar a la selección · Shift + arrastrar en vacío para un rectángulo · Esc cancela · ? muestra la ayuda.
+1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend.
@@ -48,4 +48,5 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Exportar**: STL, ZIP por pieza, 3MF e **imagen PNG** con fondo transparente; los archivos llevan las medidas en el nombre y avisa si el modelo flota o no entra en la cama.
 - **Biblioteca de formas** (columna derecha, "Más formas"): 24 piezas por categoría con buscador (cilindro y caja redondeados, esfera cuarta, prismas, estrella, corazón, escalera, arco, techo, arandela, perfiles L/U, cruz, llave, tuerca, engranaje, flecha, escuadra…).
 - **Redondear / chaflán** (columna izquierda, con vista previa): redondea o achaflana todas las aristas de la pieza, hacia afuera, hacia adentro o ambos. Las piezas complejas piden "Calcular vista previa" porque tarda varios segundos.
+- **Rediseño de la interfaz** (pantalla ancha): inspector con Piezas y Propiedades, barra de acciones de la selección, barra de vista, pie de estado, menú Agregar y buscador Ctrl K, sobre la base del artefacto "Rediseño Constructor 3D", conservando el estilo liquid glass, los íconos 3D y los atajos (S = Escalar).
 - **Pruebas**: carpeta `tests/`.

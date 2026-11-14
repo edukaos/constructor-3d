@@ -1,7 +1,7 @@
-import {open,check,summary,exportStl,msg} from './lib.mjs';
+import {open,check,summary,exportStl,msg,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
 await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click();
-await page.click('[data-add=cylinder]'); await page.waitForTimeout(400);
+await clk(page,'[data-add=cylinder]'); await page.waitForTimeout(400);
 await page.click('#fuzzbtn'); await page.waitForTimeout(1500);
 const info=()=>page.textContent('#fuzzinfo');
 console.log('inicial',await info());

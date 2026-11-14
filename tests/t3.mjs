@@ -1,4 +1,4 @@
-import {open,check,msg,saveProj,clickObj,summary,screenOf,exportStl} from './lib.mjs';
+import {open,check,msg,saveProj,clickObj,summary,screenOf,exportStl,clk} from './lib.mjs';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const cnt=async()=> (await saveProj(page)).objs.length;
@@ -69,7 +69,7 @@ check('Espejo X sin errores',errs.length===0,errs.join(';'));
 
 // --- Snap / transparente / multi
 await page.click('#snap'); check('Snap se activa',await page.$eval('#snap',b=>b.classList.contains('on')));
-await page.click('#ghost'); check('Transparente se activa',await page.$eval('#ghost',b=>b.classList.contains('on')));
+await clk(page,'#ghost'); check('Transparente se activa',await page.$eval('#ghost',b=>b.classList.contains('on')));
 await page.click('#multi'); check('Multi se activa',await page.$eval('#multi',b=>b.classList.contains('on')));
 
 console.log('errores:',errs);

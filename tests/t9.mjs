@@ -1,6 +1,6 @@
-import {open,check,summary} from './lib.mjs';
+import {open,check,summary,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
-await page.click('#bedbtn');
+await clk(page,'#bedbtn');
 const op=()=>page.evaluate(()=>{let m=null; document.querySelectorAll('canvas'); return null;});
 await page.fill('#gridop','0'); await page.dispatchEvent('#gridop','input');
 check('Slider guarda en localStorage',(await page.evaluate(()=>localStorage.getItem('c3d_grid')))==='0');

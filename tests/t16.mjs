@@ -1,7 +1,7 @@
-import {open,check,summary,exportStl} from './lib.mjs';
+import {open,check,summary,exportStl,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
 await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click();
-await page.click('[data-add=box]'); await page.waitForTimeout(400);
+await clk(page,'[data-add=box]'); await page.waitForTimeout(400);
 await page.click('#shellbtn'); await page.waitForFunction(()=>/Ahorrás/.test(document.querySelector('#shellinfo').textContent),null,{timeout:20000});
 check('Vista previa muestra % de ahorro',true);
 await page.fill('#shellt','4'); await page.waitForFunction(()=>/4 mm/.test(document.querySelector('#shellinfo').textContent),null,{timeout:10000});

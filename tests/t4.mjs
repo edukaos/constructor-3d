@@ -1,4 +1,4 @@
-import {open,check,msg,saveProj,clickObj,summary,screenOf,exportStl} from './lib.mjs';
+import {open,check,msg,saveProj,clickObj,summary,screenOf,exportStl,clk} from './lib.mjs';
 import * as THREE from '/tmp/claude-0/-home-claude/3b0abf3c-a756-5b2f-b56e-ad418e0e5272/scratchpad/libs/node_modules/three/build/three.module.js';
 import fs from 'fs';
 const {browser,page,errs}=await open();
@@ -48,7 +48,7 @@ await page.click('#pnew'); await page.waitForTimeout(200);
 
 // --- Aviso de cama
 await page.keyboard.press('1'); await page.waitForTimeout(150); await set('px',80); await set('pz',0); await blur();
-await page.click('#bedbtn'); await set('bw',100); await set('bd',100); await page.waitForTimeout(300);
+await clk(page,'#bedbtn'); await set('bw',100); await set('bd',100); await page.waitForTimeout(300);
 check('Cama 100×100: avisa pieza fuera',/sobresalen/.test(await msg(page)),await msg(page));
 check('Cama: borde/botón en rojo',await page.$eval('#bedbtn',b=>b.classList.contains('warn')));
 await set('bw',220); await set('bd',220); await page.click('#bclose');

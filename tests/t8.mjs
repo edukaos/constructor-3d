@@ -1,9 +1,9 @@
-import {open,check,msg,exportStl,summary} from './lib.mjs';
+import {open,check,msg,exportStl,summary,clk} from './lib.mjs';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const near=(a,b,tol)=>Math.abs(a-b)<=tol;
 async function reset(){ await page.evaluate(()=>{}); await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click(); await page.waitForTimeout(200);}
-async function fresh(shape){ await reset(); if(shape)await page.click(`[data-add=${shape}]`); await page.waitForTimeout(200);}
+async function fresh(shape){ await reset(); if(shape)await clk(page,`[data-add=${shape}]`); await page.waitForTimeout(200);}
 // --- Vaciar cubo
 await fresh('box');
 await page.click('#shellbtn'); await page.fill('#shellt','2'); await page.click('#shellgo'); await page.waitForTimeout(1500);
@@ -23,7 +23,7 @@ check('Grosor excesivo avisa',/demasiado grande|No se pudo/.test(await msg(page)
 fs.writeFileSync('/tmp/t.svg','<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10 10 H90 V90 H10Z M30 30 V70 H70 V30Z"/></svg>');
 await fresh(null); await page.click('#del').catch(()=>{});
 await fresh(null);
-await page.click('#svgbtn'); await page.setInputFiles('#svgfile','/tmp/t.svg'); await page.waitForTimeout(200); await page.fill('#svgw','40'); await page.fill('#svgd','3'); await page.click('#svgadd'); await page.waitForTimeout(1200);
+await clk(page,'#svgbtn'); await page.setInputFiles('#svgfile','/tmp/t.svg'); await page.waitForTimeout(200); await page.fill('#svgw','40'); await page.fill('#svgd','3'); await page.click('#svgadd'); await page.waitForTimeout(1200);
 console.log(await msg(page));
 // borrar el cubo inicial para medir solo SVG
 await page.evaluate(()=>{}); 
@@ -31,7 +31,7 @@ st=await exportStl(page); check('SVG agregado (vol total incluye cubo inicial)',
 check('SVG cerrado',st.openEdges===0);
 // --- Cortar
 await fresh('box');
-await page.click('#bedbtn'); await page.selectOption('#bpre','200x200'); await page.click('#bclose');
+await clk(page,'#bedbtn'); await page.selectOption('#bpre','200x200'); await page.click('#bclose');
 await page.click('#dmore').catch(()=>{});
 await page.fill('#dx','300'); await page.dispatchEvent('#dx','change'); await page.waitForTimeout(300);
 await page.click('#fitbtn'); await page.waitForTimeout(200);
@@ -57,9 +57,9 @@ console.log(await msg(page)); check('Importa 3MF',/Importado: r.3mf/.test(await 
 await page.click('#dmore').catch(()=>{}); 
 const before=await page.inputValue('#col'); await page.click('.pal button.sw:nth-child(6)'); const after=await page.inputValue('#col'); check('Paleta cambia color',before!==after&&after==='#e5484d',before+'→'+after);
 // --- Ejemplos
-for(const k of ['key','box','brk']){ await fresh(null); await page.click('#exbtn'); await page.click('#ex-'+k); await page.waitForTimeout(1500); st=await exportStl(page); check('Ejemplo '+k+' cerrado y con volumen',st.openEdges===0&&st.vol>1000,JSON.stringify({vol:Math.round(st.vol),open:st.openEdges,mn:st.mn.map(Math.round),mx:st.mx.map(Math.round)})); }
+for(const k of ['key','box','brk']){ await fresh(null); await clk(page,'#exbtn'); await page.click('#ex-'+k); await page.waitForTimeout(1500); st=await exportStl(page); check('Ejemplo '+k+' cerrado y con volumen',st.openEdges===0&&st.vol>1000,JSON.stringify({vol:Math.round(st.vol),open:st.openEdges,mn:st.mn.map(Math.round),mx:st.mx.map(Math.round)})); }
 // --- Regla / imán
-await page.click('#bedbtn'); await page.check('#rulerchk'); await page.selectOption('#snapstep','5'); await page.click('#snap'); await page.waitForTimeout(200);
+await clk(page,'#bedbtn'); await page.check('#rulerchk'); await page.selectOption('#snapstep','5'); await page.click('#snap'); await page.waitForTimeout(200);
 check('Regla y snap sin errores',errs.length===0,errs.join(' | ')); console.log(await msg(page));
 await page.screenshot({path:'/tmp/s8.png'});
 summary(); console.log(errs); await browser.close();

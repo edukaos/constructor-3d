@@ -1,8 +1,8 @@
-import {open,check,summary,exportStl,msg} from './lib.mjs';
+import {open,check,summary,exportStl,msg,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
 async function reset(){ await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click(); await page.waitForTimeout(200);}
 for(const kind of ['box','sphere','cylinder']){
- await reset(); await page.click('[data-add='+kind+']'); await page.waitForTimeout(400);
+ await reset(); await clk(page,'[data-add='+kind+']'); await page.waitForTimeout(400);
  const b=await exportStl(page); await page.keyboard.press('Escape');
  await page.click('#fuzzbtn'); await page.waitForTimeout(200);
  const t0=Date.now(); await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:90000}); await page.waitForTimeout(300);
@@ -16,6 +16,6 @@ for(const kind of ['box','sphere','cylinder']){
  check(kind+': base lisa (min Y igual)',Math.abs(a.mn[1]-b.mn[1])<0.01,a.mn[1]);
  if(kind==='sphere')await page.screenshot({path:'/tmp/f1.png'});
 }
-await reset(); await page.click('[data-add=cylinder]'); await page.waitForTimeout(300); await page.click('#fuzzbtn'); await page.selectOption('#fuzzm','smooth'); await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:90000}); await page.waitForTimeout(400); await page.screenshot({path:'/tmp/f2.png'});
+await reset(); await clk(page,'[data-add=cylinder]'); await page.waitForTimeout(300); await page.click('#fuzzbtn'); await page.selectOption('#fuzzm','smooth'); await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:90000}); await page.waitForTimeout(400); await page.screenshot({path:'/tmp/f2.png'});
 check('Sin errores',errs.length===0,JSON.stringify(errs));
 summary(); await browser.close();
