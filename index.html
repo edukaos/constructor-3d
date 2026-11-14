@@ -1486,6 +1486,18 @@ function fromManifold(m){
   for(let i=0;i<n;i++){vp[i*3]=src[i*np]; vp[i*3+1]=src[i*np+1]; vp[i*3+2]=src[i*np+2];}
   return geoFromIndexed(vp,g.triVerts.slice());
 }
+// Igual que toManifold, pero si la pieza no es una malla cerrada intenta repararla (soldar vértices, quitar caras
+// repetidas, orientar y tapar huecos chicos) y vuelve a probar. Si no se puede, avisa con un mensaje claro.
+function toManifoldAuto(o){
+  try{return toManifold(o);}catch(e1){
+    try{
+      const r=repairMesh(o.geometry), t=new THREE.Mesh(geoFromIndexed(r.vp,r.tv)); t.position.copy(o.position); t.quaternion.copy(o.quaternion); t.scale.copy(o.scale); t.updateMatrixWorld(true);
+      return toManifold(t);
+    }catch(e2){
+      const er=new Error('no cerrada'); er.userMsg='Esta pieza no es una malla cerrada y no se pudo reparar sola, por eso no se puede usar acá. Probá con Revisar (Preparar › Revisar) o rehacé la pieza.'; throw er;
+    }
+  }
+}
 function mfBool(a,c,op){
   if(!MF)return null;
   let A=null,C=null,R=null;
@@ -2252,7 +2264,7 @@ function shellCompute(A,t,open){
   finally{[I,H,T].forEach(x=>{try{x&&x.delete();}catch(e){}});}
 }
 // vista previa: la pieza hueca (en coordenadas del mundo) reemplaza a la original mientras el panel está abierto
-let vz=null, shBusy=false, shTimer=0;
+let vz=null, shBusy=false, shTimer=0, shErr='';
 const shVals=()=>({t:Math.max(0.2,parseFloat($('#shellt').value)||2), open:$('#shello').checked});
 function shStop(){
   clearTimeout(shTimer);
@@ -2262,9 +2274,9 @@ async function shStart(){
   if(vz||shBusy||$('#shellp').hidden)return; const o=sel[sel.length-1]; if(!o)return; shBusy=true;
   try{
     await loadManifold(); if(!MF||$('#shellp').hidden)return;
-    const A=toManifold(o), bb=A.boundingBox();
+    shErr=''; const A=toManifoldAuto(o), bb=A.boundingBox();
     vz={o,A,R:null,mesh:null,key:'',zc:(bb.min[2]+bb.max[2])/2}; shUpdate();
-  }catch(err){console.error(err);}
+  }catch(err){console.error(err); shErr=(err&&err.userMsg)||'No se pudo preparar la pieza para vaciarla.'; $('#shellinfo').textContent=shErr;}
   finally{shBusy=false;}
 }
 function shCut(){ if(!vz||!vz.mesh)return; const on=$('#shellcut').checked; vz.mesh.material.clippingPlanes=on?[new THREE.Plane(new THREE.Vector3(0,0,-1),vz.zc)]:[]; vz.mesh.material.side=on?THREE.DoubleSide:THREE.FrontSide; vz.mesh.material.needsUpdate=true; }
@@ -2289,7 +2301,7 @@ new MutationObserver(()=>{ if($('#shellp').hidden)shStop(); else shStart(); }).o
 setInterval(()=>{ if($('#shellp').hidden)return; const o=sel[sel.length-1]; if(vz&&vz.o!==o)shStop(); if(!vz)shStart(); },300);
 async function makeShell(){
   if(!vz&&!shBusy)await shStart();
-  if(!vz){msg('Elegí la pieza que querés vaciar.'); return;}
+  if(!vz){msg(shErr||'Elegí la pieza que querés vaciar.'); return;}
   clearTimeout(shTimer); shUpdate();
   if(!vz.R){msg($('#shellinfo').textContent); return;}
   const o=vz.o, v=shVals();
@@ -2399,7 +2411,7 @@ function rdCompute(A,r,kind,which){
   }catch(e){console.error(e); return {err:'No se pudo redondear esta pieza (la forma es muy compleja).'};}
   finally{tmp.forEach(x=>{try{x.delete();}catch(e){}});}
 }
-let rd=null, rdBusy=false, rdTimer=0;
+let rd=null, rdBusy=false, rdTimer=0, rdErr='';
 const rdVals=()=>({r:Math.max(0.1,parseFloat($('#rndr').value)||2), k:$('#rndk').value, w:$('#rndw').value});
 function rdStop(){
   clearTimeout(rdTimer);
@@ -2409,8 +2421,8 @@ async function rdStart(){
   if(rd||rdBusy||$('#rndp').hidden)return; const o=sel[sel.length-1]; if(!o)return; rdBusy=true;
   try{
     await loadManifold(); if(!MF||$('#rndp').hidden)return;
-    const A=toManifold(o), bb=A.boundingBox(); rd={o,A,R:null,mesh:null,key:'',zc:(bb.min[2]+bb.max[2])/2}; rdUpdate();
-  }catch(err){console.error(err);}
+    rdErr=''; const A=toManifoldAuto(o), bb=A.boundingBox(); rd={o,A,R:null,mesh:null,key:'',zc:(bb.min[2]+bb.max[2])/2}; rdUpdate();
+  }catch(err){console.error(err); rdErr=(err&&err.userMsg)||'No se pudo preparar la pieza para redondearla.'; $('#rndinfo').textContent=rdErr;}
   finally{rdBusy=false;}
 }
 function rdCut(){ if(!rd||!rd.mesh)return; const on=$('#rndcut').checked; rd.mesh.material.clippingPlanes=on?[new THREE.Plane(new THREE.Vector3(0,0,-1),rd.zc)]:[]; rd.mesh.material.side=on?THREE.DoubleSide:THREE.FrontSide; rd.mesh.material.needsUpdate=true; }
@@ -2442,7 +2454,7 @@ new MutationObserver(()=>{ if($('#rndp').hidden)rdStop(); else rdStart(); }).obs
 setInterval(()=>{ if($('#rndp').hidden)return; const o=sel[sel.length-1]; if(rd&&rd.o!==o)rdStop(); if(!rd)rdStart(); },300);
 $('#rndgo').onclick=async()=>{
   if(!rd&&!rdBusy)await rdStart();
-  if(!rd){msg('Elegí la pieza que querés redondear.'); return;}
+  if(!rd){msg(rdErr||'Elegí la pieza que querés redondear.'); return;}
   clearTimeout(rdTimer); if(!rd.R||rd.manual)rdUpdate(true);
   const t0=Date.now(); while(rd&&!rd.R&&!rd.err&&Date.now()-t0<240000)await new Promise(r=>setTimeout(r,50));
   if(!rd||!rd.R){msg($('#rndinfo').textContent||'No se pudo redondear.'); return;}
