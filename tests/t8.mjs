@@ -56,8 +56,6 @@ console.log(await msg(page)); check('Importa 3MF',/Importado: r.3mf/.test(await 
 // --- Paleta
 await page.click('#dmore').catch(()=>{}); 
 const before=await page.inputValue('#col'); await page.click('.pal button.sw:nth-child(6)'); const after=await page.inputValue('#col'); check('Paleta cambia color',before!==after&&after==='#e5484d',before+'→'+after);
-// --- Ejemplos
-for(const k of ['key','box','brk']){ await fresh(null); await clk(page,'#exbtn'); await page.click('#ex-'+k); await page.waitForTimeout(1500); st=await exportStl(page); check('Ejemplo '+k+' cerrado y con volumen',st.openEdges===0&&st.vol>1000,JSON.stringify({vol:Math.round(st.vol),open:st.openEdges,mn:st.mn.map(Math.round),mx:st.mx.map(Math.round)})); }
 // --- Regla / imán
 await clk(page,'#bedbtn'); await page.check('#rulerchk'); await page.selectOption('#snapstep','5'); await page.click('#snap'); await page.waitForTimeout(200);
 check('Regla y snap sin errores',errs.length===0,errs.join(' | ')); console.log(await msg(page));

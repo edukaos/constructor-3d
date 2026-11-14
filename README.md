@@ -22,7 +22,7 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 - Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Agujero, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
 
 ## Atajos
-1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
+1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend.
@@ -38,7 +38,6 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Colores**: paleta rápida junto al selector de color.
 - **Importar OBJ y 3MF** además de STL.
 - **Regla** sobre la cama (en mm) e **imán** configurable de 1, 5 o 10 mm (panel Cama).
-- **Ejemplos**: llavero, caja con tapa y soporte en L.
 - **Iconos 3D glossy** propios: las formas básicas son renders reales en 3D (WebP incrustado) y el resto son ilustraciones SVG con degradado y brillo, con una escala de espaciado única (múltiplos de 4 px). Los scripts para regenerarlos están en `tools/iconos/`.
 - **Sistema de diseño** estilo Apple: tipografía del sistema con escala 11.5/12.5/13.5/15, controles de 32 px, selectores propios, interruptores tipo iOS, foco accesible solo con teclado, barra de scroll fina que aparece al usarla, paneles que entran con un fundido corto (respeta «reducir movimiento»).
 - **Estilo liquid glass**: en escritorio el visor ocupa toda la pantalla y barras, paneles y diálogos flotan encima como vidrio translúcido (desenfoque, brillo de borde, deslizadores en gota), en modo oscuro y claro. En celulares y pantallas táctiles se usa una versión plana y liviana, sin desenfoque, brillos ni sombras.
@@ -49,4 +48,10 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Biblioteca de formas** (columna derecha, "Más formas"): 24 piezas por categoría con buscador (cilindro y caja redondeados, esfera cuarta, prismas, estrella, corazón, escalera, arco, techo, arandela, perfiles L/U, cruz, llave, tuerca, engranaje, flecha, escuadra…).
 - **Redondear / chaflán** (columna izquierda, con vista previa): redondea o achaflana todas las aristas de la pieza, hacia afuera, hacia adentro o ambos. Las piezas complejas piden "Calcular vista previa" porque tarda varios segundos.
 - **Rediseño de la interfaz** (pantalla ancha): inspector con Piezas y Propiedades, barra de acciones de la selección, barra de vista, pie de estado, menú Agregar y buscador Ctrl K, sobre la base del artefacto "Rediseño Constructor 3D", conservando el estilo liquid glass, los íconos 3D y los atajos (S = Escalar).
+- **Paleta azul y dorado** (como Qlamps), en oscuro y claro, e **íconos duotono** (línea azul, relleno translúcido, detalle dorado); las formas de Agregar siguen siendo renders 3D.
+- **Cámara ortográfica** (botón en la barra de vista o tecla O): Frente, Arriba y Lado sin perspectiva y 3D como isométrica.
+- **Imán de rotación**: al rotar con el gizmo la pieza se pega a los múltiplos de 45° (Shift lo desactiva).
+- **Engranaje y tuerca paramétricos** (Más formas › Taller): dientes, profundidad y agujero; rosca M2–M12.
+- **Vista previa de Cortar para la cama**: planos dorados que muestran dónde se corta.
+- Se quitaron "Ejemplos" y la integración con Tripo.
 - **Pruebas**: carpeta `tests/`.
