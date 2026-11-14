@@ -699,6 +699,10 @@ body .pnl select,body #bedp select{width:176px}
   html body #topbar #savest{margin-left:12px}
   html body #status{border:0!important;border-radius:0!important;font-size:11px}
 }
+/* Zoom 90% en ventanas de compu menores a 1920 px de ancho */
+@media (min-width:1100px) and (max-width:1919px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+  html{zoom:.9}
+}
 </style>
 </head>
 <body>
