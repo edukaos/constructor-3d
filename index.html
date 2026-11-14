@@ -707,6 +707,7 @@ body .pnl select,body #bedp select{width:176px}
 #shpgrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 #shpgrid button{min-width:0}
 #shpgrid img,#shpgrid .ph{max-width:100%}
+body #shpp #shpcats select{width:100%;max-width:none}
 </style>
 </head>
 <body>
@@ -2325,7 +2326,7 @@ function addLibShape(it){
   const cats=['Todas',...new Set(SHAPELIB.map(i=>i.cat))];
   const draw=()=>{
     const q=$('#shpq').value.trim().toLowerCase(), g=$('#shpgrid'); g.textContent='';
-    $('#shpcats').textContent=''; cats.forEach(c=>{const b=document.createElement('button'); b.type='button'; b.textContent=c; b.className=c===cat?'on':''; b.onclick=()=>{cat=c; draw();}; $('#shpcats').appendChild(b);});
+    if(!$('#shpcats select')){const sl=document.createElement('select'); sl.setAttribute('aria-label','Categoría'); cats.forEach(c=>{const o=document.createElement('option'); o.value=c; o.textContent=c; sl.appendChild(o);}); sl.onchange=()=>{cat=sl.value; draw();}; $('#shpcats').appendChild(sl);} $('#shpcats select').value=cat;
     SHAPELIB.filter(it=>(cat==='Todas'||it.cat===cat)&&(!q||it.n.toLowerCase().includes(q)||it.cat.toLowerCase().includes(q))).forEach(it=>{
       const b=document.createElement('button'); b.type='button'; b.dataset.id=it.id; b.title='Agregar: '+it.n;
       const im=thumbs&&thumbs[it.id]?Object.assign(document.createElement('img'),{src:thumbs[it.id],alt:''}):Object.assign(document.createElement('div'),{className:'ph'});
