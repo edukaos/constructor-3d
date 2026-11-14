@@ -49,6 +49,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Redondear / chaflán** (columna izquierda, con vista previa): redondea o achaflana todas las aristas de la pieza, hacia afuera, hacia adentro o ambos. Las piezas complejas piden "Calcular vista previa" porque tarda varios segundos.
 - **Rediseño de la interfaz** (pantalla ancha): inspector con Piezas y Propiedades, barra de acciones de la selección, barra de vista, pie de estado, menú Agregar y buscador Ctrl K, sobre la base del artefacto "Rediseño Constructor 3D", conservando el estilo liquid glass, los íconos 3D y los atajos (S = Escalar).
 - **Paleta azul y dorado** (como Qlamps), en oscuro y claro, e **íconos duotono** (línea azul, relleno translúcido, detalle dorado); las formas de Agregar siguen siendo renders 3D.
+- **Cinta con pestañas** (pantalla ancha): Crear, Transformar, Modificar, Acabados y Preparar, con botones grandes agrupados; riel de Mover/Rotar/Escalar a la izquierda e inspector con pestañas Propiedades y Piezas, donde se acopla el panel de la herramienta activa. Tablet y celular no cambian.
 - **Cámara ortográfica** (botón en la barra de vista o tecla O): Frente, Arriba y Lado sin perspectiva y 3D como isométrica.
 - **Imán de rotación**: al rotar con el gizmo la pieza se pega a los múltiplos de 45° (Shift lo desactiva).
 - **Engranaje y tuerca paramétricos** (Más formas › Taller): dientes, profundidad y agujero; rosca M2–M12.
