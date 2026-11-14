@@ -1,3 +1,11 @@
+# Constructor 3D — Studio v3 (rama de prueba)
+
+Nueva interfaz, resta guiada, guardado visible, preparación para imprimir, vista previa de encastres y biblioteca personal. No incluye historial paramétrico editable.
+
+**Leer [CONTINUIDAD.md](CONTINUIDAD.md)** para probar esta rama, ver las limitaciones y continuar con Claude. Comprobaciones básicas: `node tests/v3-basic.mjs`. La web pública de main no cambia al subir esta rama.
+
+---
+
 # Constructor 3D
 
 App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
@@ -55,3 +63,4 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Vista previa de Cortar para la cama**: planos dorados que muestran dónde se corta.
 - Se quitaron "Ejemplos" y la integración con Tripo.
 - **Pruebas**: carpeta `tests/`.
+

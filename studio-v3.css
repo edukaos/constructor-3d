@@ -1,0 +1,50 @@
+/* Studio v3: quiet surfaces, task groups and readable controls. */
+body.studio{--glass:var(--bar);--glass-hi:transparent;--glass-in:none;--glass-sh:0 8px 24px #0002;--glass-bd:var(--bd)}
+body.studio .pnl,body.studio #topbar,body.studio #lrail,body.studio #rrail,body.studio #listp,body.studio #dims,body.studio #ctx,body.studio #vbar,body.studio #status,body.studio #bedp,body.studio #chkp,body.studio #toolp{background:var(--bar)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 4px 18px #0002!important;border:1px solid var(--bd)}
+body.studio button.pri,body.studio #topbar #stl,body.studio #lrail #addbtn{background:var(--ac)!important;color:var(--ac-tx)!important;box-shadow:none!important}
+body.studio :focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+body.studio .pnl{padding:16px;gap:12px;border-radius:12px}
+body.studio .pnl button{min-height:36px;height:auto;white-space:normal}
+body.studio .pnl [data-close]{min-height:30px}
+body.studio .pnl input,body.studio .pnl select{max-width:100%}
+.studio-panel{width:320px;max-width:calc(100% - 20px)}
+.studio-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.studio-tools button{text-align:left;justify-content:flex-start!important}
+.studio-panel [role=status]{font-size:12px;line-height:1.5;color:var(--tx-2)}
+.save-state{font-size:11px!important;white-space:nowrap;border:0!important;color:var(--tx-2);order:9;flex-shrink:0}
+.save-state[data-state=saved]{color:#64cfad!important}
+.save-state[data-state=error],.save-state[data-state=paused]{color:var(--ac)!important}
+.studio-version{order:29;color:var(--tx-3);font-size:11px;white-space:nowrap}
+.studio-brand{order:0;font-size:14px;white-space:nowrap;margin-right:12px;flex-shrink:0}
+.prepare-row,.library-card{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--bd)}
+.prepare-row b,.library-card b{overflow-wrap:anywhere}
+.library-card .row{justify-content:flex-start;gap:6px;flex-wrap:wrap}
+.library-card button{padding:4px 8px!important;font-size:12px!important}
+.studio-panel #library-search,.studio-panel #library-name{width:100%}
+.pin-editor{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--bd);padding-top:12px}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;margin:8px 0;border:1px solid var(--bd);border-radius:10px}
+.pin-grid button{height:36px;color:var(--tx-3)}
+.pin-grid button[aria-pressed=true]{color:var(--ac-tx);background:var(--ac);border-color:var(--ac)}
+body.studio-wide #lrail{width:86px;box-sizing:border-box;padding:8px!important;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:calc(100% - 128px)}
+body.studio-wide #lrail .grp{display:contents}
+body.studio-wide #lrail .grp .row{display:contents}
+body.studio-wide #lrail .grp .lbl{display:none}
+body.studio-wide #lrail .grp button{display:none}
+body.studio-wide #lrail .grp button[data-mode],body.studio-wide #lrail #measure{display:flex}
+body.studio-wide #lrail button,body.studio-wide #lrail #addbtn{width:100%;min-height:58px;height:auto;flex-direction:column;justify-content:center;padding:8px 2px;gap:4px;font-size:11px;order:2}
+body.studio-wide #lrail #addbtn{order:0;margin:0 0 8px}
+body.studio-wide #lrail #modify-btn{order:3;border-top:1px solid var(--bd);margin-top:8px}
+body.studio-wide #lrail #prepare-btn{order:4}
+body.studio-wide #lrail #library-btn{order:5}
+body.studio-wide #lrail button svg{width:24px;height:24px}
+body.studio-wide #lrail button[data-k]::after{display:none}
+body.studio-wide #rrail{left:108px;bottom:auto;top:var(--top)}
+body.studio-wide .pnl,body.studio-wide #splitp,body.studio-wide #bedp,body.studio-wide #chkp,body.studio-wide #toolp{right:var(--g);width:300px;top:var(--top);max-height:calc(100% - var(--top) - var(--bot));z-index:6}
+body.studio-wide:has(.pnl:not([hidden]),#splitp:not([hidden]),#bedp:not([hidden]),#chkp:not([hidden]),#toolp:not([hidden])) #insp{visibility:hidden}
+body.studio-wide #ctx,body.studio-wide:has(.pnl:not([hidden])) #ctx{left:calc(50% - 105px);max-width:calc(100% - 450px);overflow-x:auto}
+body.studio-wide #ctx .cnt{display:none}
+body.studio-wide #vbar{left:calc(50% - 105px);max-width:calc(100% - 430px);overflow-x:auto}
+body.studio-wide #topbar #cmdbtn{width:min(230px,20vw)}
+@media(min-width:1100px) and (max-width:1390px){body.studio-wide #topbar #cmdbtn span,body.studio-wide #topbar #cmdbtn kbd{display:none}body.studio-wide #topbar #cmdbtn{width:36px;flex:none;padding:8px}.studio-version{display:none}}
+@media(max-width:1099px){.studio #lrail>button{width:auto;min-width:64px;font-size:11px}.save-state{max-width:170px;overflow:hidden;text-overflow:ellipsis}.studio-version{display:none}.studio-panel{right:10px;top:10px;max-height:calc(100% - 20px)}}
+@media(max-width:760px){body.studio .studio-panel{left:8px;right:8px;top:8px;width:auto;max-width:none;max-height:calc(100% - 16px)}body.studio .save-state{font-size:10px!important;max-width:120px}.studio #lrail>button{flex-shrink:0}.studio .pnl input,.studio .pnl select{width:150px}.studio-brand{display:none}}

@@ -331,7 +331,7 @@ select option:checked,select option:hover{background-color:var(--ac);color:var(-
   input[type=checkbox]{accent-color:var(--ac)}
 }
 /* Pantalla ancha: el visor ocupa todo y la interfaz flota encima como vidrio */
-@media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+@media (min-width:1100px) and (pointer:fine){
   #main{position:relative}
   #wrap{position:absolute;inset:0}
   #topbar{position:absolute;top:var(--g);left:var(--g);right:var(--g);z-index:8}
@@ -529,7 +529,7 @@ body .pnl select,body #bedp select{width:176px}
 #cmdk .empty{padding:18px;text-align:center;color:var(--tx-3);font-size:13px}
 #tip{position:fixed;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;font-size:12px;line-height:1.2;white-space:nowrap;z-index:60;pointer-events:none;background:var(--bar);color:var(--tx);border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 #tip kbd{font-family:inherit;font-size:11px;padding:2px 6px;border-radius:5px;border:1px solid var(--line);color:var(--tx-2)}
-@media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+@media (min-width:1100px) and (pointer:fine){
   :root{--top:76px;--bot:calc(var(--g)*2 + 32px)}
   /* barra superior: fina, con buscador al centro y Exportar a la derecha */
   #topbar{height:54px;box-sizing:border-box;padding:0 10px;align-items:center;gap:4px;flex-wrap:nowrap;overflow:visible}
@@ -629,6 +629,7 @@ body .pnl select,body #bedp select{width:176px}
 #dims #prow label.ax{grid-column:1/-1}
 #dims #prow label.ax span{width:64px;font-weight:600;font-size:11.5px}
 </style>
+<link rel="stylesheet" href="studio-v3.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="gV" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#a9ceff"/><stop offset="1" stop-color="#3f7be6"/></linearGradient><linearGradient id="gVt" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#e2efff"/><stop offset="1" stop-color="#9bc2ff"/></linearGradient><linearGradient id="gVd" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#6a9ef0"/><stop offset="1" stop-color="#1f4fb8"/></linearGradient><linearGradient id="gB" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#86b9ff"/><stop offset="1" stop-color="#2f66e4"/></linearGradient><linearGradient id="gT" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#7ff3f0"/><stop offset="1" stop-color="#14a1b6"/></linearGradient><linearGradient id="gR" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ff9d9d"/><stop offset="1" stop-color="#dc3347"/></linearGradient><linearGradient id="gRd" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ff7c86"/><stop offset="1" stop-color="#b8243a"/></linearGradient><linearGradient id="gA" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ffd878"/><stop offset="1" stop-color="#f08a1c"/></linearGradient><linearGradient id="gAd" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#f7b24a"/><stop offset="1" stop-color="#c9680f"/></linearGradient><linearGradient id="gAt" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ffe9a6"/><stop offset="1" stop-color="#ffc04d"/></linearGradient><linearGradient id="gG" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#84eeaa"/><stop offset="1" stop-color="#1da362"/></linearGradient><linearGradient id="gS" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#d3d8ee"/><stop offset="1" stop-color="#6a7298"/></linearGradient><linearGradient id="gSt" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#eef0fb"/><stop offset="1" stop-color="#b3bad6"/></linearGradient><linearGradient id="gSd" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#8a92b6"/><stop offset="1" stop-color="#4a5178"/></linearGradient><linearGradient id="gKd" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#4b5078"/><stop offset="1" stop-color="#14172e"/></linearGradient><linearGradient id="gWt" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d5dbf7"/></linearGradient><linearGradient id="sV" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#a9ceff"/><stop offset="1" stop-color="#3f7be6"/></linearGradient><linearGradient id="sB" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#86b9ff"/><stop offset="1" stop-color="#2f66e4"/></linearGradient><linearGradient id="sT" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#7ff3f0"/><stop offset="1" stop-color="#14a1b6"/></linearGradient><linearGradient id="sR" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#ff9d9d"/><stop offset="1" stop-color="#dc3347"/></linearGradient><linearGradient id="sA" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#ffd878"/><stop offset="1" stop-color="#f08a1c"/></linearGradient><linearGradient id="sG" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#84eeaa"/><stop offset="1" stop-color="#1da362"/></linearGradient><linearGradient id="sS" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#d3d8ee"/><stop offset="1" stop-color="#6a7298"/></linearGradient><linearGradient id="gHL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs></svg>
@@ -663,6 +664,8 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http') && !wind
 "manifold-3d":"https://cdn.jsdelivr.net/npm/manifold-3d@3.5.4/manifold.js"}}
 </script>
 <script type="module">
+import {installStudio} from "./studio-v3.js";
+let studio=null;
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
@@ -750,7 +753,7 @@ document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
 const hist=[], redoSt=[]; let cur=[];
 const snap=()=>objs.map(o=>({g:o.geometry,c:o.material.color.getHex(),p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone(),u:o.userData.p?{...o.userData.p}:null,m:JSON.parse(JSON.stringify(M_(o)))}));
 const key=s=>JSON.stringify(s.map(d=>[d.g.uuid,d.c,d.p.toArray(),d.q.toArray(),d.s.toArray(),d.m]));
-function commit(){const n=snap(); if(key(n)===key(cur))return; hist.push(cur); if(hist.length>60)hist.shift(); cur=n; redoSt.length=0; refreshBtns(); scheduleSave(); markDirty(true); renderList();}
+function commit(){studio?.clearPreview(); const n=snap(); if(key(n)===key(cur))return; hist.push(cur); if(hist.length>60)hist.shift(); cur=n; redoSt.length=0; refreshBtns(); scheduleSave(); markDirty(true); renderList();}
 function restore(st){
   objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach();
   st.forEach(d=>{const m=new THREE.Mesh(d.g,new THREE.MeshStandardMaterial({color:d.c,roughness:0.55,metalness:0.05}));
@@ -1047,9 +1050,21 @@ const endScale=()=>{
 };
 canvas.addEventListener('pointerup',endScale); canvas.addEventListener('pointercancel',endScale);
 
-const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('constructor3d',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});
-async function idbSet(v){try{const db=await idb(); await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,'auto'); t.oncomplete=res; t.onerror=()=>rej(t.error);}); db.close();}catch(e){}}
-async function idbGet(){try{const db=await idb(); const v=await new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get('auto'); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);}); db.close(); return v;}catch(e){return null;}}
+const idb=()=>new Promise((res,rej)=>{
+  const r=indexedDB.open('constructor3d',1);
+  r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('kv'))r.result.createObjectStore('kv');};
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); r.onblocked=()=>rej(new Error('Base local bloqueada'));
+});
+async function idbSet(v,key='auto'){
+  const db=await idb();
+  try{await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,key);t.oncomplete=res;t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error||new Error('Guardado cancelado'));});}
+  finally{db.close();}
+}
+async function idbGet(key='auto'){
+  const db=await idb();
+  try{return await new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(key);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+  finally{db.close();}
+}
 function projectData(){
   return {app:'constructor3d',v:1,objs:objs.map(o=>{const g=o.geometry, a=g.attributes;
     return {p:o.userData.p||null,m:M_(o),c:o.material.color.getHex(),pos:o.position.toArray(),q:o.quaternion.toArray(),s:o.scale.toArray(),
@@ -1075,13 +1090,16 @@ function loadProject(d){
   });
   updateDims();
 }
-let saveT=null, warnedHeavy=false;
+let saveT=null, saveRevision=0, saveChain=Promise.resolve();
 function scheduleSave(){
-  clearTimeout(saveT);
+  clearTimeout(saveT); const revision=++saveRevision;
+  studio?.setSaveState('pending','Cambios pendientes…');
   saveT=setTimeout(()=>{
-    let n=0; objs.forEach(o=>{if(!o.userData.p)n+=o.geometry.attributes.position.count;});
-    if(n>900000){idbSet(null); if(!warnedHeavy){warnedHeavy=true; msg('La escena es muy pesada para el autoguardado. Usá Guardar para no perder el trabajo.');} return;}
-    try{idbSet(JSON.stringify(projectData()));}catch(e){}
+    let n=0;objs.forEach(o=>{if(!o.userData.p)n+=o.geometry.attributes.position.count;});
+    if(n>900000){studio?.setSaveState('paused','Escena pesada · Guardá un archivo');msg('Autoguardado pausado: la escena es pesada. Se conserva la última copia local. Usá Ctrl+S para guardar los cambios.');return;}
+    let data;try{data=JSON.stringify(projectData());}catch(e){studio?.setSaveState('error','No se pudo guardar · Reintentar');return;}
+    studio?.setSaveState('saving','Guardando localmente…');
+    saveChain=saveChain.catch(()=>{}).then(()=>idbSet(data)).then(()=>{if(revision===saveRevision)studio?.setSaveState('saved','Guardado local ✓');}).catch(()=>{if(revision===saveRevision){studio?.setSaveState('error','Error al guardar · Reintentar');msg('Falló el autoguardado. Guardá una copia con Ctrl+S.');}});
   },400);
 }
 $('#pnew').onclick=()=>{
@@ -1149,8 +1167,8 @@ $('#bedbtn').onclick=()=>{openPanel('#bedp'); syncBedUI();};
 $('#bclose').onclick=()=>{$('#bedp').hidden=true;};
 $('#bpre').addEventListener('change',e=>{if(e.target.value==='custom')return; const [w,d]=e.target.value.split('x').map(Number); setBed(w,d);});
 ['#bw','#bd'].forEach(s=>$(s).addEventListener('change',()=>setBed(parseFloat($('#bw').value),parseFloat($('#bd').value))));
-function undo(){if(!hist.length){msg('No hay nada para deshacer.');return;} redoSt.push(cur); cur=hist.pop(); restore(cur); msg('Deshecho.');}
-function redoAct(){if(!redoSt.length){msg('No hay nada para rehacer.');return;} hist.push(cur); cur=redoSt.pop(); restore(cur); msg('Rehecho.');}
+function undo(){if(!hist.length){msg('No hay nada para deshacer.');return;} redoSt.push(cur); cur=hist.pop(); restore(cur); refreshBtns(); scheduleSave(); markDirty(true); msg('Deshecho.');}
+function redoAct(){if(!redoSt.length){msg('No hay nada para rehacer.');return;} hist.push(cur); cur=redoSt.pop(); restore(cur); refreshBtns(); scheduleSave(); markDirty(true); msg('Rehecho.');}
 $('#undo').onclick=undo; $('#redo').onclick=redoAct;
 $('#dims').addEventListener('change',()=>commit());
 
@@ -1300,6 +1318,7 @@ function mfCombine(solids,holes,op){
 }
 document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>runOp(b.dataset.op));
 async function runOp(op){
+  studio?.clearPreview();
   let jobs=[];
   if(op==='subtract'){
     if(!sel.length){msg('Seleccioná el objeto que querés restar (el que corta).');return;}
@@ -2472,11 +2491,16 @@ function cutAxis(M,axis,n,peg,pd,clr,owned){
     if(low.isEmpty()||high.isEmpty()){rem=null; break;}
     if(peg){
       const b=rem.boundingBox(), oa=axis===0?[1,2]:[0,1], pts=[];
-      for(const fu of [0.2,0.5,0.8])for(const fv of [0.2,0.5,0.8]){
-        const u=b.min[oa[0]]+(b.max[oa[0]]-b.min[oa[0]])*fu, v=b.min[oa[1]]+(b.max[oa[1]]-b.min[oa[1]])*fv;
-        const probe=cyl(r,2*L,p-L,u,v), inter=probe.intersect(rem); owned.push(inter);
-        if(inter.volume()>=0.97*probe.volume())pts.push([u,v]);
+      const manual=studio?.pinConfig();
+      if(manual&&!manual.length)throw new Error('Elegí al menos una posición de espiga, o desactivá Con espigas.');
+      const fractions=manual?manual.map(([height,side])=>axis===0?[height,side]:[side,height]):[.2,.5,.8].flatMap(u=>[.2,.5,.8].map(v=>[u,v]));
+      for(const [fu,fv] of fractions){
+        const u=b.min[oa[0]]+(b.max[oa[0]]-b.min[oa[0]])*fu,v=b.min[oa[1]]+(b.max[oa[1]]-b.min[oa[1]])*fv;
+        const probe=cyl(r+clr,2*L,p-L,u,v),inter=probe.intersect(rem);owned.push(inter);
+        if(inter.volume()>=0.999*probe.volume())pts.push([u,v]);
+        else if(manual)throw new Error('Una espiga elegida queda fuera del material en el corte '+(axis===0?'X':'Z')+' '+k+'. Cambiá posiciones o reducí el diámetro.');
       }
+      if(!pts.length)throw new Error('No hay espacio seguro para espigas en un corte. Reducí el diámetro o desactivá Con espigas.');
       const pick=[]; if(pts.length){pick.push(pts[0]); while(pick.length<Math.min(4,pts.length)){let best=null,bd=-1; for(const q of pts){if(pick.includes(q))continue; const d=Math.min(...pick.map(a=>Math.hypot(a[0]-q[0],a[1]-q[1]))); if(d>bd){bd=d;best=q;}} pick.push(best);}}
       let lowP=low, highP=high;
       for(const [u,v] of pick){
@@ -2490,30 +2514,26 @@ function cutAxis(M,axis,n,peg,pd,clr,owned){
   if(rem)out.push(rem);
   return out;
 }
-async function makeCut(){
-  const o=sel[sel.length-1]; if(!o){msg('Elegí la pieza que querés cortar.'); return;}
-  const nx=Math.max(1,Math.min(12,parseInt($('#fitnx').value)||1)), nz=Math.max(1,Math.min(12,parseInt($('#fitnz').value)||1));
-  if(nx*nz===1){msg('Con 1 parte en cada eje no hay nada que cortar. Poné 2 o más en alguno.'); return;}
-  const peg=$('#fitpeg').checked, pd=Math.max(2,parseFloat($('#fitpd').value)||5), clr=Math.max(0,parseFloat($('#fitclr').value)||0);
-  await busyOn('Cortando la pieza…');
-  const owned=[];
+async function buildCutMeshes(o){
+  if(!o||M_(o).l)throw new Error('Elegí una pieza desbloqueada para cortar.');
+  const nx=Math.max(1,Math.min(12,parseInt($('#fitnx').value)||1)),nz=Math.max(1,Math.min(12,parseInt($('#fitnz').value)||1));
+  if(nx*nz===1)throw new Error('Elegí 2 o más partes en algún eje.');
+  const peg=$('#fitpeg').checked,pd=Math.max(2,parseFloat($('#fitpd').value)||5),clr=Math.max(0,parseFloat($('#fitclr').value)||0);
+  const owned=[],meshes=[];
   try{
-    await loadManifold(); if(!needManifold())return;
-    const A=toManifold(o); owned.push(A);
-    const slabs=cutAxis(A,0,nx,peg,pd,clr,owned); if(slabs.length<nx){msg('No se pudo cortar en X.'); return;}
-    const cells=[]; // [ix][iz]
-    for(const s of slabs){const c=cutAxis(s,2,nz,peg,pd,clr,owned); if(c.length<nz){msg('No se pudo cortar en Z.'); return;} cells.push(c);}
-    const meshes=[], gap=8, base=M_(o).n;
-    cells.forEach((col,ix)=>col.forEach((cm,iz)=>{
-      const m=new THREE.Mesh(fromManifold(cm),o.material.clone()); m.material.emissive.setHex(0); recenter(m);
-      m.position.x+=(ix-(nx-1)/2)*gap; m.position.z+=(iz-(nz-1)/2)*gap;
-      m.userData.m={n:base+' '+(nx>1?String.fromCharCode(65+ix):'')+(nz>1?(iz+1):''),h:false,l:false,k:!!M_(o).k};
-      meshes.push(m);
-    }));
-    replacePiece(o,meshes); select(meshes); commit(); $('#fitp').hidden=true; fitPrevClear();
-    msg('Pieza cortada en '+meshes.length+' partes'+(peg?' con espigas y agujeros de encastre':'')+'. Usá Piezas para elegirlas y exportá una por archivo.');
-  }catch(err){console.error(err); msg('No se pudo cortar esta pieza.');}
-  finally{owned.forEach(x=>{try{x.delete();}catch(e){}}); busyOff();}
+    await loadManifold();if(!MF)throw new Error('No se pudo cargar el motor de cortes. Revisá la conexión.');
+    const A=toManifold(o);owned.push(A);
+    const slabs=cutAxis(A,0,nx,peg,pd,clr,owned);if(slabs.length<nx)throw new Error('Algún corte X no atraviesa material. Reducí las partes.');
+    slabs.forEach((slab,ix)=>{
+      const cells=cutAxis(slab,2,nz,peg,pd,clr,owned);if(cells.length<nz)throw new Error('Algún corte Z no atraviesa material. Reducí las partes.');
+      cells.forEach((cm,iz)=>{const m=new THREE.Mesh(fromManifold(cm),o.material.clone());m.material.emissive.setHex(0);recenter(m);m.position.x+=(ix-(nx-1)/2)*8;m.position.z+=(iz-(nz-1)/2)*8;m.userData.m={n:M_(o).n+' '+(nx>1?String.fromCharCode(65+ix):'')+(nz>1?iz+1:''),h:false,l:false,k:!!M_(o).k};meshes.push(m);});
+    });
+    return meshes;
+  }catch(e){meshes.forEach(m=>{m.geometry.dispose();m.material.dispose();});throw e;}
+  finally{owned.forEach(m=>{try{m.delete();}catch(e){}});}
+}
+async function makeCut(){
+  await busyOn('Cortando la pieza…');try{const o=sel.at(-1),meshes=await buildCutMeshes(o);replacePiece(o,meshes);select(meshes);commit();$('#fitp').hidden=true;fitPrevClear();}catch(e){msg(e.message);}finally{busyOff();}
 }
 $('#fitgo').onclick=makeCut;
 
@@ -2676,14 +2696,14 @@ addEventListener('keydown',e=>{
 
 function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);if(composer)composer.setSize(w,h);camP.aspect=w/h;camP.updateProjectionMatrix();camO.left=-ORTH_H/2*w/h;camO.right=ORTH_H/2*w/h;camO.top=ORTH_H/2;camO.bottom=-ORTH_H/2;camO.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(wrap); resize();
-renderer.setAnimationLoop(()=>{stepCam();orbit.update();fitPreviewTick();updateScaleUI();updateOverlays();renderFrame();});
+renderer.setAnimationLoop(()=>{stepCam();orbit.update();fitPreviewTick();updateScaleUI();updateOverlays();studio?.tick();renderFrame();});
 {const P0={t:'box',w:25,h:25,d:25,r:0,soft:true}; const m0=addMesh(buildGeo(P0)); m0.userData.p={...P0}; m0.position.y=12.5; updateDims(); cur=snap();}
 loadBed(); buildBed(); checkBed();
 idbGet().then(s=>{
-  if(!s)return;
-  try{loadProject(JSON.parse(s)); hist.length=0; redoSt.length=0; cur=snap(); refreshBtns(); msg('Se recuperó tu trabajo anterior (autoguardado en este navegador).');}
-  catch(e){restore(cur);}
-});
+  if(!s){studio?.setSaveState('empty','Sin copia local todavía');return;}
+  try{loadProject(JSON.parse(s)); hist.length=0; redoSt.length=0; cur=snap(); refreshBtns(); msg('Se recuperó tu trabajo anterior (autoguardado en este navegador).'); studio?.setSaveState('saved','Guardado local ✓');}
+  catch(e){restore(cur);studio?.setSaveState('error','No se pudo recuperar la copia local');}
+}).catch(()=>{studio?.setSaveState('error','Almacenamiento local no disponible');});
 (()=>{
   document.querySelectorAll('.bar').forEach(bar=>{
     const names=(bar.dataset.names||'').split(','), isTop=!bar.classList.contains('rail');
@@ -2707,11 +2727,11 @@ idbGet().then(s=>{
   });
   addEventListener('resize',fitBar); fitBar();
 })();
-msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference)').matches?'Tocá Agregar para sumar una forma. Shift+clic elige varias piezas. Buscador: Ctrl K · Atajos: ?':'Agregá formas desde la barra. Para elegir varias piezas: Shift+clic o Shift+arrastrar en un espacio vacío. Atajos: tecla ?');
+msg(matchMedia('(min-width:1100px) and (pointer:fine)').matches?'Tocá Agregar para sumar una forma. Shift+clic elige varias piezas. Buscador: Ctrl K · Atajos: ?':'Agregá formas desde la barra. Para elegir varias piezas: Shift+clic o Shift+arrastrar en un espacio vacío. Atajos: tecla ?');
 
 // ===== Layout v2 (pantalla ancha): inspector, barra de acciones, barra de vista, estado y buscador =====
 {
-  const mq=matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference)');
+  const mq=matchMedia('(min-width:1100px) and (pointer:fine)');
   const body=document.body, wrapEl=$('#wrap'), isMac=/Mac|iPhone|iPad/.test(navigator.platform);
   const svgOf=sel=>{const e=$(sel), s=e&&e.querySelector('svg'); return s?s.outerHTML:'';};
   const keyOf=b=>b.dataset.k||((b.title||'').match(/\(([A-Za-z0-9+?]{1,10})\)/)||[])[1]||'';
@@ -2793,6 +2813,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
 
   // --- buscador de acciones (Ctrl K) ---
   const ACT=[
+    ['Studio','Preparar para imprimir','#prepare-btn'],['Studio','Mi biblioteca','#library-btn'],['Studio','Modificar','#modify-btn'],
     ['Archivo','Nuevo proyecto','#pnew'],['Archivo','Abrir proyecto','#popen'],['Archivo','Guardar proyecto','#psave'],['Archivo','Importar STL, OBJ o 3MF','#imp'],['Archivo','Exportar','#stl'],['Archivo','Revisar malla para imprimir','#chk'],
     ['Historial','Deshacer','#undo'],['Historial','Rehacer','#redo'],
     ['Herramienta','Mover','[data-mode="translate"]'],['Herramienta','Rotar','[data-mode="rotate"]'],['Herramienta','Escalar','[data-mode="scale"]'],['Herramienta','Snap (mover de a pasos)','#snap'],['Herramienta','Selección múltiple','#multi'],
@@ -2849,8 +2870,30 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
   mq.addEventListener('change',apply); apply();
 }
 
+
+// ===== Studio v3 integration: explicit interface to the existing modeling core =====
+studio=installStudio({
+  THREE,scene,objs,M:M_,bbox,select,commit,openPanel,msg,busyOn,busyOff,bed,
+  panels:PANELS,selection:()=>sel,detach:()=>tc.detach(),refreshSelection:()=>select(sel.filter(o=>objs.includes(o))),
+  applyGhost,recenter,loadManifold,subtractGeometry:(a,b)=>mfCombine([a],[b],'union'),
+  analyzeMesh,buildCutMeshes,clearCutPlanes:fitPrevClear,retrySave:scheduleSave,
+  storageGet:idbGet,storageSet:idbSet,saveFile,
+  remove:o=>{scene.remove(o);const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);},
+  serializeSelection:items=>{const data=projectData();data.objs=data.objs.filter((_,i)=>items.includes(objs[i]));return data;},
+  insertProject:data=>{
+    if(!data||data.app!=='constructor3d'||!Array.isArray(data.objs))throw new Error('Biblioteca inválida');
+    const made=[];
+    try{for(const it of data.objs){
+      let g;if(it.p)g=buildGeo(it.p);else{g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(unb64(it.g.pos,Float32Array),3));if(it.g.idx)g.setIndex(new THREE.BufferAttribute(unb64(it.g.idx.d,it.g.idx.t===16?Uint16Array:Uint32Array),1));if(it.g.nor)g.setAttribute('normal',new THREE.BufferAttribute(unb64(it.g.nor,Float32Array),3));else g.computeVertexNormals();g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));}
+      const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:it.c,roughness:.55,metalness:.05}));m.position.fromArray(it.pos);m.quaternion.fromArray(it.q);m.scale.fromArray(it.s);if(it.p)m.userData.p={...it.p};m.userData.m={...it.m,n:(it.m?.n||'Pieza')+' (biblioteca)',h:false,l:false};made.push(m);
+    }}catch(e){made.forEach(m=>{m.geometry.dispose();m.material.dispose();});throw e;}
+    const box=new THREE.Box3();made.forEach(m=>box.union(bbox(m)));const c=box.getCenter(new THREE.Vector3());made.forEach(m=>{m.position.add(new THREE.Vector3(-c.x,-box.min.y,-c.z));scene.add(m);objs.push(m);});select(made);commit();msg('Piezas agregadas desde Mi biblioteca.');
+  }
+});
+
 // barra de scroll: se muestra mientras se desplaza
 document.addEventListener('scroll',e=>{const t=e.target; if(t&&t.classList){t.classList.add('scrolling'); clearTimeout(t._sb); t._sb=setTimeout(()=>t.classList.remove('scrolling'),900);}},true);
 </script>
 </body>
 </html>
+
