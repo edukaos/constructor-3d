@@ -709,6 +709,7 @@ body .pnl select,body #bedp select{width:176px}
 #shpgrid img,#shpgrid .ph{max-width:100%}
 body #shpp #shpcats select{width:100%;max-width:none}
 /* Historial editable */
+#fxrow[hidden]{display:none!important}
 #fxlist .fxr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-top:1px solid var(--glass-bd,var(--bd))}
 #fxlist .fxr:first-child{border-top:0;padding-top:2px}
 #fxlist .fxr b{flex:1 0 100%;font-size:12px;font-weight:600;color:var(--tx)}
@@ -716,6 +717,16 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #fxlist .fxck{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx-2)}
 #fxlist .fxr select,#fxlist .fxr button{height:30px;font:inherit;font-size:12px;padding:0 10px;border-radius:var(--r-m,8px);border:1px solid var(--glass-bd,var(--bd));background:rgba(255,255,255,.07);color:var(--tx);cursor:pointer}
 #fxlist .fxr button:hover{border-color:var(--ac)}
+/* Cubo de vistas */
+#vcube{display:none}
+@media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
+  #vcube{display:block;--h:30px;position:absolute;top:calc(var(--top) + 6px);right:calc(var(--g) + 340px + 34px);width:60px;height:60px;perspective:240px;z-index:3;cursor:grab;touch-action:none;user-select:none}
+  #vcube:active{cursor:grabbing}
+  #vcube .vc3{position:absolute;inset:0;transform-style:preserve-3d}
+  #vcube .vcf{position:absolute;left:0;top:0;width:60px;height:60px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;letter-spacing:.02em;color:var(--tx);background:rgba(22,34,58,.78);border:1px solid rgba(245,196,81,.5);backface-visibility:hidden}
+  #vcube .vcf:hover{background:rgba(245,196,81,.9);color:#1A1405}
+  :root[data-theme="light"] #vcube .vcf{background:rgba(228,234,242,.9)}
+}
 </style>
 </head>
 <body>
@@ -1704,7 +1715,7 @@ $('#stl').onclick=()=>{ if(!objs.length){msg('No hay nada para exportar.');retur
 
 // selección por clic (ignora arrastres)
 const ray=new THREE.Raycaster(), p=new THREE.Vector2(); let down=null; let multi=false;
-$('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi); msg(multi?'Selección múltiple activada: cada clic suma o saca un objeto.':'Selección múltiple desactivada.');};
+$('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi); msg(multi?'Selección múltiple activada: cada clic suma o saca un objeto. Arrastrar en un espacio vacío dibuja un rectángulo; para orbitar usá el cubo de vistas o apagá esta opción.':'Selección múltiple desactivada.');};
 canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4||tc.dragging||splitting)return;
@@ -1799,7 +1810,7 @@ const VIEWS_O={front:[0,0,1],top:[0,1,0.0001],right:[1,0,0],iso:[1,1,1]};
 const camK=p=>ortho?(ORTH_H/cam.zoom)*0.9:cam.position.distanceTo(p);
 function setView(name){
   const b=sceneBox(sel), c=b.getCenter(new THREE.Vector3()), r=Math.max(b.getSize(new THREE.Vector3()).length()/2,8);
-  const dir=name?new THREE.Vector3(...(ortho?VIEWS_O:VIEWS)[name]).normalize():cam.position.clone().sub(orbit.target).normalize();
+  const dir=name?new THREE.Vector3(...(Array.isArray(name)?name:(ortho?VIEWS_O:VIEWS)[name])).normalize():cam.position.clone().sub(orbit.target).normalize();
   const hf=THREE.MathUtils.degToRad(camP.fov)/2, fit=Math.min(hf,Math.atan(Math.tan(hf)*camP.aspect));
   const dist=r/Math.sin(fit)*1.08, to=c.clone().addScaledVector(dir,dist);
   cam.far=Math.max(ortho?4000:1000,dist*10); if(ortho){cam.near=-dist*10; cam.zoom=Math.max(.01,(ORTH_H/2)/(dist*Math.tan(hf)))/1.22;} cam.updateProjectionMatrix();
@@ -1825,6 +1836,33 @@ function stepCam(){
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#vfit').onclick=()=>setView();
+
+// ===== Cubo de vistas (arriba a la derecha del visor): clic en una cara = esa vista, arrastrar = orbitar =====
+const vcube=(()=>{
+  const root=document.createElement('div'); root.id='vcube'; root.title='Cubo de vistas: clic en una cara para ir a esa vista, arrastrá para orbitar';
+  const box=document.createElement('div'); box.className='vc3'; root.appendChild(box);
+  const faces=[['Frente','translateZ(var(--h))',[0,0,1]],['Atrás','rotateY(180deg) translateZ(var(--h))',[0,0,-1]],['Der','rotateY(90deg) translateZ(var(--h))',[1,0,0]],['Izq','rotateY(-90deg) translateZ(var(--h))',[-1,0,0]],['Arriba','rotateX(90deg) translateZ(var(--h))',[0,1,0.0001]],['Abajo','rotateX(-90deg) translateZ(var(--h))',[0,-1,0.0001]]];
+  const fe=faces.map(([t,tr,dir])=>{const f=document.createElement('div'); f.className='vcf'; f.textContent=t; f.style.transform=tr; f.dataset.d=JSON.stringify(dir); box.appendChild(f); return f;});
+  $('#wrap').appendChild(root);
+  let drag=null;
+  root.addEventListener('pointerdown',e=>{ if(e.button!==0)return; e.preventDefault(); e.stopPropagation(); camAnim=null; drag={x:e.clientX,y:e.clientY,moved:false,f:e.target.closest('.vcf')}; root.setPointerCapture(e.pointerId); });
+  root.addEventListener('pointermove',e=>{
+    if(!drag)return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    if(!drag.moved&&Math.hypot(dx,dy)<4)return; drag.moved=true; drag.x=e.clientX; drag.y=e.clientY;
+    const off=cam.position.clone().sub(orbit.target), sp=new THREE.Spherical().setFromVector3(off);
+    sp.theta-=dx*0.012; sp.phi=Math.max(0.02,Math.min(Math.PI-0.02,sp.phi-dy*0.012));
+    off.setFromSpherical(sp); cam.position.copy(orbit.target).add(off); cam.lookAt(orbit.target); orbit.update();
+  });
+  const end=e=>{ if(!drag)return; const d=drag; drag=null; try{root.releasePointerCapture(e.pointerId);}catch(_){} if(!d.moved&&d.f&&e.type==='pointerup')setView(JSON.parse(d.f.dataset.d)); };
+  root.addEventListener('pointerup',end); root.addEventListener('pointercancel',end);
+  const q=new THREE.Quaternion(), key=[0,0,0,0], m=new THREE.Matrix4();
+  return {tick(){
+    if(!root.offsetParent)return; const c=cam.quaternion;
+    if(c.x===key[0]&&c.y===key[1]&&c.z===key[2]&&c.w===key[3])return; key[0]=c.x; key[1]=c.y; key[2]=c.z; key[3]=c.w;
+    q.copy(c).invert(); m.makeRotationFromQuaternion(q); const e=m.elements; e[1]=-e[1]; e[4]=-e[4]; e[6]=-e[6]; e[9]=-e[9];
+    box.style.transform='matrix3d('+e.join(',')+')';
+  }};
+})();
 
 
 // Nunca dejar que la página se desplace (zoom, pellizco, foco): la interfaz queda fija.
@@ -2900,7 +2938,7 @@ addEventListener('keydown',e=>{
 
 function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);if(composer)composer.setSize(w,h);camP.aspect=w/h;camP.updateProjectionMatrix();camO.left=-ORTH_H/2*w/h;camO.right=ORTH_H/2*w/h;camO.top=ORTH_H/2;camO.bottom=-ORTH_H/2;camO.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(wrap); resize();
-renderer.setAnimationLoop(()=>{stepCam();orbit.update();fitPreviewTick();updateScaleUI();updateOverlays();renderFrame();});
+renderer.setAnimationLoop(()=>{stepCam();orbit.update();vcube.tick();fitPreviewTick();updateScaleUI();updateOverlays();renderFrame();});
 {const P0={t:'box',w:25,h:25,d:25,r:0,soft:true}; const m0=addMesh(buildGeo(P0)); m0.userData.p={...P0}; m0.position.y=12.5; updateDims(); cur=snap();}
 loadBed(); buildBed(); checkBed();
 idbGet().then(s=>{
