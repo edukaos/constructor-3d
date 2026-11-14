@@ -691,7 +691,10 @@ body .pnl select,body #bedp select{width:176px}
 #dims #prow label.ax span{width:64px;font-weight:600;font-size:11.5px}
 /* Barras sin borde (cinta v3) */
 @media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
-  html body #topbar{border:0!important}
+  html body #topbar{border:0!important;box-shadow:none!important}
+  html body #topbar .logo{display:none!important}
+  html body #topbar #cmdbtn{margin:0 0 0 auto!important}
+  html body #topbar #savest{margin-left:12px}
   html body #status{border:0!important;border-radius:0!important;font-size:11px}
 }
 </style>
