@@ -1,4 +1,4 @@
-import {open} from '../t/harness.mjs';
+import {open} from '../../tests/harness.mjs';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const out=await page.evaluate(async()=>{
@@ -25,11 +25,11 @@ const out=await page.evaluate(async()=>{
   const res={};
   for(const [k,mk] of Object.entries(geos)){ if(!mk)continue;
     const sc=new T.Scene(); sc.environment=env;
-    const g=mk(); const mat=new T.MeshPhysicalMaterial({color:0x6f5bf2,roughness:.2,metalness:0,clearcoat:1,clearcoatRoughness:.06,envMapIntensity:.85,sheen:.3,sheenColor:new T.Color(0x38e0ea),sheenRoughness:.4});
+    const g=mk(); const mat=new T.MeshPhysicalMaterial({color:0x3f7be6,roughness:.2,metalness:0,clearcoat:1,clearcoatRoughness:.06,envMapIntensity:.85,sheen:.3,sheenColor:new T.Color(0xF5C451),sheenRoughness:.4});
     const m=new T.Mesh(g,mat); sc.add(m);
     const k1=new T.DirectionalLight(0xffffff,1.6); k1.position.set(-2,3,3); sc.add(k1);
-    const rim=new T.DirectionalLight(0x35e0ee,2.0); rim.position.set(3,1,-3); sc.add(rim);
-    sc.add(new T.AmbientLight(0x6a5cff,.35));
+    const rim=new T.DirectionalLight(0xffd27a,2.0); rim.position.set(3,1,-3); sc.add(rim);
+    sc.add(new T.AmbientLight(0x4a7cff,.35));
     g.computeBoundingSphere(); const R=g.boundingSphere.radius;
     const cam=new T.PerspectiveCamera(30,1,.1,50); const d=R*4.3; cam.position.set(d*.6,d*.52,d*.8); cam.lookAt(g.boundingSphere.center);
     r.render(sc,cam); res[k]=cv.toDataURL('image/png');
