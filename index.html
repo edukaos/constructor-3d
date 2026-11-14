@@ -1121,6 +1121,19 @@ const endScale=()=>{
   updateDims(); commit();
 };
 canvas.addEventListener('pointerup',endScale); canvas.addEventListener('pointercancel',endScale);
+// Red de seguridad: si un arrastre quedó "pegado" (soltar fuera del visor, cancelar, cambiar de ventana,
+// o quitar la selección en pleno arrastre), se libera para poder deseleccionar y orbitar de nuevo.
+function liberarArrastre(){
+  for(const c of [tc,tp]){ if(c.dragging){ c.pointerUp({button:0}); c.dragging=false; } c.axis=null; }
+  if(!sdrag&&!rsel)orbit.enabled=true;
+}
+for(const c of [tc,tp]){ const det=c.detach.bind(c); c.detach=function(){ if(c.dragging){c.dragging=false;} return det(); }; }
+document.addEventListener('pointerup',liberarArrastre);
+document.addEventListener('pointercancel',liberarArrastre);
+canvas.addEventListener('lostpointercapture',()=>setTimeout(()=>{if(!sdrag&&!rsel&&(tc.dragging||tp.dragging))liberarArrastre();},0));
+addEventListener('blur',liberarArrastre);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)liberarArrastre();});
+document.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse'&&(tc.dragging||tp.dragging)&&!sdrag&&!rsel)liberarArrastre(); },true);
 
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('constructor3d',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});
 async function idbSet(v){try{const db=await idb(); await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,'auto'); t.oncomplete=res; t.onerror=()=>rej(t.error);}); db.close();}catch(e){}}
