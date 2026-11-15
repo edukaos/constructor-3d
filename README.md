@@ -32,6 +32,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Biblioteca de piezas** (Crear › Archivo): guardá las piezas elegidas con un nombre, con su historial editable, y volvé a usarlas en cualquier proyecto. Se guarda en el navegador y se puede exportar e importar como archivo.
 - **Sketch 2D** (Crear › Boceto): dibujá con línea, arco, rectángulo y círculo en Planta o Frente, con imán y cotas editables, y dale volumen con Extruir o Revolucionar. Se puede dibujar arrastrando; el boceto queda editable desde el Historial.
 - **Historial editable**: Vaciar, Redondear, uniones/restas y bocetos guardan sus valores; se pueden cambiar después desde el panel Propiedades, y "Editar piezas" recupera las originales de una unión.
 - **Cortar en partes** con tres tipos de unión (perno redondo, espiga y ranura, cola de milano) y holgura; funciona con cualquier pieza, aunque ya entre en la cama.
