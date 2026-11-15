@@ -38,6 +38,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Celular simplificado**: se ocultan las funciones avanzadas. Aspecto sin la calidad Máxima y panel de medidas sin Más/Menos.
 - **Biblioteca de piezas** (Crear › Archivo): guardá las piezas elegidas con un nombre, con su historial editable, y volvé a usarlas en cualquier proyecto. Se guarda en el navegador y se puede exportar e importar como archivo.
 - **Sketch 2D** (Crear › Boceto): dibujá con línea, arco, rectángulo y círculo en Planta o Frente, con imán y cotas editables, y dale volumen con Extruir o Revolucionar. Se puede dibujar arrastrando; el boceto queda editable desde el Historial.
+- **Esquinas redondeadas en el Sketch**: herramienta Esquina (poné el radio y tocá una esquina recta), volver a tocarla con otro radio para cambiarla, y Redondear todas / Esquinas rectas desde el panel de la forma.
 - **Historial editable**: Vaciar, Redondear, uniones/restas y bocetos guardan sus valores; se pueden cambiar después desde el panel Propiedades, y "Editar piezas" recupera las originales de una unión.
 - **Cortar en partes** con tres tipos de unión (perno redondo, espiga y ranura, cola de milano) y holgura; funciona con cualquier pieza, aunque ya entre en la cama.
 - **Cubo de vistas** arriba a la derecha: clic en una cara para mirar desde ahí, arrastrar para orbitar.

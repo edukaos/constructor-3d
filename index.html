@@ -2732,11 +2732,31 @@ function skBulge(p0,m,p2){
   return Math.tan((sm<=s?s:-(TAU-s))/4);
 }
 // puntos [x,y] de una forma (los círculos y los arcos se pasan a segmentos)
+// esquinas redondeadas: cada vértice recto con radio cr se reemplaza por un arco tangente a sus dos lados
+function skCorner(P,i,r,closed){
+  const n=P.length, cur=P[i], prev=P[(i-1+n)%n], next=P[(i+1)%n];
+  if(!(r>0)||(!closed&&(i===0||i===n-1)))return null;
+  if(prev.b||cur.b)return {bad:'arco'};
+  const l1=Math.hypot(cur.x-prev.x,cur.y-prev.y), l2=Math.hypot(next.x-cur.x,next.y-cur.y); if(l1<1e-9||l2<1e-9)return null;
+  const d1x=(cur.x-prev.x)/l1, d1y=(cur.y-prev.y)/l1, d2x=(next.x-cur.x)/l2, d2y=(next.y-cur.y)/l2;
+  const cr=d1x*d2y-d1y*d2x, dt=d1x*d2x+d1y*d2y, ph=Math.acos(Math.max(-1,Math.min(1,dt)));
+  if(ph<1e-3||Math.PI-ph<1e-3)return null;
+  const want=r*Math.tan(ph/2), t=Math.min(want,0.5*Math.min(l1,l2));
+  return {A:{x:cur.x-d1x*t,y:cur.y-d1y*t},B:{x:cur.x+d2x*t,y:cur.y+d2y*t},b:(cr>=0?1:-1)*Math.tan(ph/4),reff:t/Math.tan(ph/2),clamped:t<want-1e-9};
+}
+function skRoundVerts(P,rs,closed){
+  const out=[]; P.forEach((q,i)=>{const c=skCorner(P,i,rs[i],closed); if(!c||c.bad){out.push({x:q.x,y:q.y,b:q.b||0}); return;} out.push({x:c.A.x,y:c.A.y,b:c.b},{x:c.B.x,y:c.B.y,b:0});});
+  return out;
+}
+const skRectP=s=>[{x:s.x,y:s.y,b:0},{x:s.x+s.w,y:s.y,b:0},{x:s.x+s.w,y:s.y+s.h,b:0},{x:s.x,y:s.y+s.h,b:0}];
 function skTess(s){
-  if(s.t==='rect'){const x2=s.x+s.w, y2=s.y+s.h; return [[s.x,s.y],[x2,s.y],[x2,y2],[s.x,y2]];}
+  if(s.t==='rect'){ if(s.cr&&s.cr.some(r=>r>0))return skTessV(skRoundVerts(skRectP(s),s.cr,true),true); const x2=s.x+s.w, y2=s.y+s.h; return [[s.x,s.y],[x2,s.y],[x2,y2],[s.x,y2]];}
   if(s.t==='circ'){const o=[]; for(let i=0;i<SK_SEG;i++){const a=Math.PI*2*i/SK_SEG; o.push([s.x+s.r*Math.cos(a),s.y+s.r*Math.sin(a)]);} return o;}
-  const out=[], n=s.v.length, last=s.closed?n:n-1;
-  for(let i=0;i<n;i++){out.push([s.v[i].x,s.v[i].y]); if(i<last&&s.v[i].b)out.push(...skArcPts(s.v[i],s.v[(i+1)%n],s.v[i].b));}
+  return skTessV(s.v.some(q=>q.cr>0)?skRoundVerts(s.v,s.v.map(q=>q.cr||0),s.closed):s.v,s.closed);
+}
+function skTessV(V,closed){
+  const out=[], n=V.length, last=closed?n:n-1;
+  for(let i=0;i<n;i++){out.push([V[i].x,V[i].y]); if(i<last&&V[i].b)out.push(...skArcPts(V[i],V[(i+1)%n],V[i].b));}
   return out;
 }
 const skIsClosed=s=>s.t!=='path'||s.closed;
@@ -2850,6 +2870,23 @@ function skFinishPath(close,keepB){
 }
 function skClick(e){
   const p=skPt(e); if(!p)return; sk.mouse=p; const t=sk.tool;
+  if(t==='corner'){
+    const r=canvas.getBoundingClientRect(), sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
+    let best=16, hit=null;
+    sk.shapes.forEach((s,si)=>{
+      if(s.t==='circ')return; const P=s.t==='rect'?skRectP(s):s.v, closed=skIsClosed(s);
+      P.forEach((q,i)=>{ if(!closed&&(i===0||i===P.length-1))return; const c=sc([q.x,q.y]), d=Math.hypot(c[0]-e.clientX,c[1]-e.clientY); if(d<best){best=d; hit={si,i,s,P,closed};} });
+    });
+    if(!hit){msg('Tocá cerca de una esquina de una forma (los puntos). Los círculos y los extremos de un trazo abierto no tienen esquinas.'); return;}
+    const rr=sk.cr, test=skCorner(hit.P,hit.i,rr>0?rr:1,hit.closed);
+    if(test&&test.bad){skWarn('Esa esquina toca un arco: solo se pueden redondear esquinas entre dos tramos rectos.'); return;}
+    if(!test){skWarn('Ahí no hay una esquina para redondear (los lados están alineados).'); return;}
+    skPush();
+    if(hit.s.t==='rect'){hit.s.cr=hit.s.cr||[0,0,0,0]; hit.s.cr[hit.i]=rr;} else if(rr>0)hit.s.v[hit.i].cr=rr; else delete hit.s.v[hit.i].cr;
+    sk.sel=hit.si; skRedraw(); skDims();
+    msg(rr>0?('Esquina redondeada con radio '+(Math.round(test.reff*100)/100)+' mm'+(test.clamped?' (el radio era muy grande para ese lado y se achicó)':'')+'.'):'Esquina vuelta recta.');
+    return;
+  }
   if(t==='sel'){
     let best=1e9, bi=-1; const r=canvas.getBoundingClientRect(), sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
     sk.shapes.forEach((s,i)=>{const pts=skTess(s).map(sc), n=pts.length, cl=skIsClosed(s);
@@ -2888,8 +2925,16 @@ function skDims(){
     const ol=document.createElement('label'); const oi=document.createElement('input'); oi.type='number'; oi.step='0.5'; oi.value=sk.off; oi.onchange=()=>{const x=parseFloat(oi.value); if(isNaN(x)||x===0)oi.value=sk.off; else sk.off=x;}; ol.title='Negativo: achica. Positivo: agranda.'; ol.append('Desfase ',oi); box.appendChild(ol);
     const ob=document.createElement('button'); ob.type='button'; ob.textContent='Desfasar copia'; ob.title='Agrega un contorno paralelo a esa distancia (mm)'; ob.onclick=()=>skOffset(s,sk.off); box.appendChild(ob);
   }
+  if(s.t!=='circ'){
+    const rl=document.createElement('label'), ri=document.createElement('input'); ri.type='number'; ri.min='0'; ri.step='0.5'; ri.value=sk.cr; ri.onchange=()=>{const x=parseFloat(ri.value); if(x>=0){sk.cr=x; const m=sk.bar.querySelector('#skcr'); if(m)m.value=x;} else ri.value=sk.cr;}; rl.append('Radio esquinas ',ri); box.appendChild(rl);
+    const setAll=(rr)=>{ const P=s.t==='rect'?skRectP(s):s.v, cl=skIsClosed(s); let n=0, skipped=0; skPush();
+      P.forEach((q,i)=>{ if(!cl&&(i===0||i===P.length-1))return; const c=skCorner(P,i,rr>0?rr:1,cl); if(!c||c.bad){skipped++; return;} n++; if(s.t==='rect'){s.cr=s.cr||[0,0,0,0]; s.cr[i]=rr;} else if(rr>0)s.v[i].cr=rr; else delete s.v[i].cr; });
+      skRedraw(); skDims(); msg(rr>0?(n+' esquina(s) redondeada(s)'+(skipped?'; '+skipped+' no se pudieron (tocan un arco o están alineadas)':'')+'.'):'Esquinas vueltas rectas.'); };
+    const ba=document.createElement('button'); ba.type='button'; ba.textContent='Redondear todas'; ba.title='Redondea todas las esquinas rectas de esta forma con el radio indicado'; ba.onclick=()=>setAll(sk.cr); box.appendChild(ba);
+    const bz=document.createElement('button'); bz.type='button'; bz.textContent='Esquinas rectas'; bz.title='Vuelve rectas todas las esquinas'; bz.onclick=()=>setAll(0); box.appendChild(bz);
+  }
   const mr=document.createElement('button'); mr.type='button'; mr.textContent='Espejar copia'; mr.title='Agrega una copia espejada respecto del eje rojo vertical';
-  mr.onclick=()=>{ skPush(); const c=skClone([s])[0]; if(c.t==='rect')c.x=-(c.x+c.w); else if(c.t==='circ')c.x=-c.x; else c.v.forEach(q=>{q.x=-q.x; q.b=-(q.b||0);}); sk.shapes.push(c); sk.sel=sk.shapes.length-1; skRedraw(); skDims(); msg('Copia espejada agregada. Si se superpone con la original, esa zona queda como hueco: separalas o dibujá la mitad de un lado del eje.'); };
+  mr.onclick=()=>{ skPush(); const c=skClone([s])[0]; if(c.t==='rect'){c.x=-(c.x+c.w); if(c.cr)c.cr=[c.cr[1],c.cr[0],c.cr[3],c.cr[2]];} else if(c.t==='circ')c.x=-c.x; else c.v.forEach(q=>{q.x=-q.x; q.b=-(q.b||0);}); sk.shapes.push(c); sk.sel=sk.shapes.length-1; skRedraw(); skDims(); msg('Copia espejada agregada. Si se superpone con la original, esa zona queda como hueco: separalas o dibujá la mitad de un lado del eje.'); };
   box.appendChild(mr);
   const d=document.createElement('button'); d.type='button'; d.textContent='Eliminar forma'; d.onclick=()=>{skPush(); sk.shapes.splice(sk.sel,1); sk.sel=-1; skRedraw(); skDims();}; box.appendChild(d);
 }
@@ -2961,19 +3006,20 @@ function skStart(o={}){
   select([]); tc.enabled=false; orbit.enableRotate=false; down=null; $('#skbtn').classList.add('on');
   const bar=document.createElement('div'); bar.id='skbar'; bar.innerHTML=
     '<div class="skr"><b>Sketch</b>'+
-    '<span class="skg">'+[['path','Línea'],['arc','Arco'],['rect','Rectángulo'],['circ','Círculo'],['sel','Elegir']].map(([k,l])=>'<button type="button" data-t="'+k+'">'+l+'</button>').join('')+'</span>'+
+    '<span class="skg">'+[['path','Línea'],['arc','Arco'],['rect','Rectángulo'],['circ','Círculo'],['corner','Esquina'],['sel','Elegir']].map(([k,l])=>'<button type="button" data-t="'+k+'">'+l+'</button>').join('')+'</span>'+
     '<span class="skg"><button type="button" data-pl="xz" title="Dibujar sobre la cama">Planta</button><button type="button" data-pl="xy" title="Dibujar en vertical, para revolucionar">Frente</button></span>'+
-    '<label>Imán <select id="skiman"><option value="0">libre</option><option value="0.5">0,5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="10">10 mm</option></select></label></div>'+
+    '<label>Imán <select id="skiman"><option value="0">libre</option><option value="0.5">0,5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="10">10 mm</option></select></label><label title="Radio para la herramienta Esquina y para Redondear todas">Radio esquina <input id="skcr" type="number" min="0" step="0.5"> mm</label></div>'+
     '<div class="skr"><span class="skg2"><label>Altura <input id="skh" type="number" min="0.1" step="0.5"> mm</label><button type="button" id="skext" class="pri">Extruir</button></span>'+
     '<span class="skg2" id="skrevbox"><label>Giro <input id="skdeg" type="number" min="1" max="360" step="5"> °</label><button type="button" id="skrev" class="pri">Revolucionar</button></span>'+
     '<button type="button" id="skcancel">Cancelar</button></div><div class="skr skd" id="skdims" hidden></div>';
   const lab=document.createElement('div'); lab.id='skdim'; lab.hidden=true; $('#wrap').appendChild(lab); $('#wrap').appendChild(bar); $('#wrap').classList.add('sketching');
   const g=new THREE.Group(), lines=new THREE.Group(), help=new THREE.Group(); g.add(help,lines); scene.add(g);
-  sk={plane:o.plane||'xz',shapes:o.shapes?skClone(o.shapes):[],tool:o.shapes&&o.shapes.length?'sel':'path',cur:null,arcEnd:null,sel:-1,snap:1,mouse:null,me:null,hist:[],edit:o.piece||null,off:-2,h:o.h||10,deg:o.deg||360,g,lines,help,bar,lab,
+  sk={plane:o.plane||'xz',shapes:o.shapes?skClone(o.shapes):[],tool:o.shapes&&o.shapes.length?'sel':'path',cur:null,arcEnd:null,sel:-1,snap:1,cr:3,mouse:null,me:null,hist:[],edit:o.piece||null,off:-2,h:o.h||10,deg:o.deg||360,g,lines,help,bar,lab,
     dimsEl:bar.querySelector('#skdims'),revBtn:bar.querySelector('#skrev'),degIn:bar.querySelector('#skdeg'),revBox:bar.querySelector('#skrevbox')};
-  bar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const keep=['path','arc'].includes(sk.tool)&&['path','arc'].includes(b.dataset.t)&&sk.cur&&sk.cur.t==='path'; sk.tool=b.dataset.t; if(!keep)sk.cur=null; sk.arcEnd=null; skRedraw(); skSync(); msg({path:'Línea: tocá los puntos; tocá el primero para cerrar, o doble toque / Enter para terminar abierta.',arc:'Arco: tocá el inicio, después el final y por último un punto por donde pasa el arco.',rect:'Rectángulo: tocá una esquina y la opuesta.',circ:'Círculo: tocá el centro y después un punto del borde.',sel:'Elegir: tocá una forma para cambiar sus cotas o borrarla.'}[sk.tool]);});
+  bar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const keep=['path','arc'].includes(sk.tool)&&['path','arc'].includes(b.dataset.t)&&sk.cur&&sk.cur.t==='path'; sk.tool=b.dataset.t; if(!keep)sk.cur=null; sk.arcEnd=null; skRedraw(); skSync(); msg({path:'Línea: tocá los puntos; tocá el primero para cerrar, o doble toque / Enter para terminar abierta.',arc:'Arco: tocá el inicio, después el final y por último un punto por donde pasa el arco.',rect:'Rectángulo: tocá una esquina y la opuesta.',circ:'Círculo: tocá el centro y después un punto del borde.',corner:'Esquina: poné el radio y tocá una esquina recta para redondearla. Para cambiarla, tocala de nuevo con otro radio (0 la vuelve recta).',sel:'Elegir: tocá una forma para cambiar sus cotas o borrarla.'}[sk.tool]);});
   bar.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>skSetPlane(b.dataset.pl));
   bar.querySelector('#skiman').onchange=e=>sk.snap=parseFloat(e.target.value);
+  { const ci=bar.querySelector('#skcr'); ci.value=sk.cr; ci.onchange=()=>{const x=parseFloat(ci.value); if(x>=0)sk.cr=x; else ci.value=sk.cr;}; }
   bar.querySelector('#skh').value=sk.h; bar.querySelector('#skh').onchange=e=>{const x=parseFloat(e.target.value); if(x>0)sk.h=x; else e.target.value=sk.h;};
   sk.degIn.value=sk.deg; sk.degIn.onchange=e=>{const x=parseFloat(e.target.value); if(x>=1&&x<=360)sk.deg=x; else e.target.value=sk.deg;};
   bar.querySelector('#skext').onclick=()=>skFinish('extrude'); sk.revBtn.onclick=()=>skFinish('revolve'); bar.querySelector('#skcancel').onclick=()=>{skExit(); msg('Sketch cancelado.');};
