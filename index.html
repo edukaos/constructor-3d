@@ -396,11 +396,11 @@ input[type=range]{accent-color:var(--ac)}
 /* ===== Íconos duotono: línea azul + relleno translúcido + detalle dorado ===== */
 :root{--ic-b:#8db9ff;--ic-bf:rgba(110,160,255,.22);--ic-g:#F5C451;--ic-gf:rgba(245,196,81,.26);--ic-dk:#1A1405}
 :root[data-theme="light"]{--ic-b:#2f6df6;--ic-bf:rgba(47,109,246,.16);--ic-g:#c98500;--ic-gf:rgba(245,196,81,.4)}
-button svg :is(path,circle,ellipse){fill:none;stroke:var(--ic-b);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-button svg .f{fill:var(--ic-bf)}
-button svg .a{stroke:var(--ic-g)}
-button svg .f.a{fill:var(--ic-gf)}
-button svg .d{stroke-dasharray:2.4 2.2}
+:is(button,#cmdk .it) svg :is(path,circle,ellipse){fill:none;stroke:var(--ic-b);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+:is(button,#cmdk .it) svg .f{fill:var(--ic-bf)}
+:is(button,#cmdk .it) svg .a{stroke:var(--ic-g)}
+:is(button,#cmdk .it) svg .f.a{fill:var(--ic-gf)}
+:is(button,#cmdk .it) svg .d{stroke-dasharray:2.4 2.2}
 .bar button:disabled svg{opacity:.4}
 /* sobre dorado sólido: trazo oscuro */
 .pnl button.pri svg :is(path,circle,ellipse),#dlg button.pri svg :is(path,circle,ellipse),#topbar #stl svg :is(path,circle,ellipse),#lrail #addbtn svg :is(path,circle,ellipse),#shpcats button.on svg :is(path,circle,ellipse){stroke:var(--ic-dk)}
