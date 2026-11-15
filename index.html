@@ -751,9 +751,9 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #wrap.sketching canvas{cursor:crosshair}
 #skwarn{position:absolute;left:50%;top:38%;transform:translateX(-50%);max-width:min(420px,86%);z-index:60;background:#2a1d00;color:#ffd77a;border:1px solid #f5c451;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.35;text-align:center;pointer-events:none;box-shadow:none}
 #skwarn[hidden]{display:none}
-html body .rplus{position:absolute;z-index:8;top:calc(6px + 44px + 4px);left:var(--g);width:var(--rh);height:var(--rh);box-sizing:border-box;padding:0;border:0;border-radius:var(--r-xl,18px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;font:inherit;font-size:13px;font-weight:650;background:linear-gradient(135deg,#F5C451,#FFD979);color:#1A1405;box-shadow:0 2px 10px rgba(245,196,81,.35)}
-html body .rplus svg{width:44px;height:44px;stroke:#1A1405;fill:none}
-html body .rplus svg path{stroke:#1A1405;fill:none}
+html body .rplus{position:absolute;z-index:8;top:calc(6px + 44px + 4px);left:var(--g);width:var(--rh);height:var(--rh);box-sizing:border-box;padding:0;border:0;border-radius:var(--r-xl,18px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font:inherit;font-size:19px;font-weight:800;background:linear-gradient(135deg,#F5C451,#FFD979);color:#1A1405;box-shadow:0 2px 10px rgba(245,196,81,.35)}
+html body .rplus svg{width:64px;height:64px;stroke:#1A1405;fill:none}
+html body .rplus svg path{stroke:#1A1405;fill:none;stroke-width:4.6!important;stroke-linecap:round}
 html body .rplus.on{outline:2px solid rgba(255,255,255,.3)}
 html body #ribbon{left:calc(var(--g) + var(--rh) + 8px)}
 .rplus.hint{animation:plusPulse 1.6s ease-in-out infinite}
@@ -3538,7 +3538,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
 
   // --- botón + (formas), siempre a mano en cualquier pestaña ---
   const plus=mkEl('button',null,'rplus'); plus.type='button'; plus.title='Agregar una forma (A)'; plus.setAttribute('aria-haspopup','true'); plus.setAttribute('aria-expanded','false'); plus.setAttribute('aria-label','Agregar una forma');
-  plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg><span>Agregar</span>'; body.appendChild(plus);
+  plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg><span>Agregar</span>'; body.appendChild(plus);
   const pmenu=mkEl('div','plusmenu'); pmenu.hidden=true; pmenu.setAttribute('role','menu'); const pgrid=mkEl('div',null,'pmgrid'); pmenu.appendChild(pgrid);
   [['box','Cubo'],['sphere','Esfera'],['cylinder','Cilindro'],['cone','Cono'],['torus','Toroide'],['tube','Tubo'],['hemi','Media esfera'],['pyramid','Pirámide'],['hex','Prisma hex.'],['wedge','Cuña']].forEach(([k,l])=>addProxy(pgrid,'[data-add="'+k+'"]',l));
   addProxy(pmenu,'#shpbtn','Más formas',false,'pmmore'); document.body.appendChild(pmenu);
