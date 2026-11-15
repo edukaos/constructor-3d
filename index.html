@@ -2686,10 +2686,10 @@ function skUndo(){
   if(!sk.hist.length){msg('No hay nada para deshacer en el boceto.'); return;}
   sk.shapes=sk.hist.pop(); sk.sel=-1; skRedraw(); skDims();
 }
-function skFinishPath(close){
+function skFinishPath(close,keepB){
   const c=sk.cur; if(!c||c.t!=='path')return;
   const v=c.v; if(v.length<2){sk.cur=null; sk.arcEnd=null; skRedraw(); return;}
-  v[v.length-1].b=0; skAdd({t:'path',v,closed:!!close&&v.length>=3});
+  if(!keepB)v[v.length-1].b=0; skAdd({t:'path',v,closed:!!close&&v.length>=3});
 }
 function skClick(e){
   const p=skPt(e); if(!p)return; sk.mouse=p; const t=sk.tool;
@@ -2712,7 +2712,7 @@ function skClick(e){
   if(t==='arc'){
     if(!sk.arcEnd){ if(Math.hypot(p.x-v[v.length-1].x,p.y-v[v.length-1].y)<1e-6)return; sk.arcEnd={x:p.x,y:p.y}; msg('Ahora tocá un punto por donde pasa el arco.'); skRedraw(); return; }
     const E=sk.arcEnd; v[v.length-1].b=skBulge(v[v.length-1],p,E); sk.arcEnd=null;
-    if(Math.hypot(E.x-first.x,E.y-first.y)<1e-6&&v.length>=2){skFinishPath(true); return;}
+    if(Math.hypot(E.x-first.x,E.y-first.y)<1e-6&&v.length>=2){skFinishPath(true,true); return;}
     v.push({x:E.x,y:E.y,b:0}); skRedraw(); return;
   }
   if(near&&v.length>=3){skFinishPath(true); return;}
@@ -2764,13 +2764,13 @@ async function skFinish(mode){
   if(edit){skExit(); await fxEdit(edit,0,params); return;}
   await busyOn('Creando la forma…');
   try{
-    await loadManifold(); if(!MF)throw new Error('mf');
+    await loadManifold(); if(!MF){skWarn('El motor de formas no cargó (puede ser la conexión). Probá de nuevo en unos segundos o recargá la página.'); return;}
     const r=sketchBuild(params); if(r.err){skWarn(r.err); return;}
     const m=addMesh(r.geo,undefined,newName('Boceto')); m.position.setFromMatrixPosition(r.W);
     m.updateMatrix(); m.userData.fx={id:++fxId,k:'sketch',params,items:[],res0:m.matrix.toArray()};
     skExit(); select([m]); updateDims(); commit();
     msg((mode==='revolve'?'Forma revolucionada':'Forma extruida')+(open?' (los trazos abiertos se ignoraron)':'')+'. Podés cambiar los valores o volver a editar el boceto desde el Historial.');
-  }catch(err){console.error(err); skWarn('No se pudo crear la forma.');}
+  }catch(err){console.error(err); skWarn('No se pudo crear la forma: '+((err&&err.message)||err));}
   finally{busyOff();}
 }
 function skExit(){
