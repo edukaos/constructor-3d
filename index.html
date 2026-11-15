@@ -717,6 +717,7 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #fxlist .fxck{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx-2)}
 #fxlist .fxr select,#fxlist .fxr button{height:30px;font:inherit;font-size:12px;padding:0 10px;border-radius:var(--r-m,8px);border:1px solid var(--glass-bd,var(--bd));background:rgba(255,255,255,.07);color:var(--tx);cursor:pointer}
 #fxlist .fxr button:hover{border-color:var(--ac)}
+#fxlist .fxr button{white-space:nowrap}
 /* Cubo de vistas */
 #vcube{display:none}
 @media (min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference){
@@ -727,6 +728,27 @@ body #shpp #shpcats select{width:100%;max-width:none}
   #vcube .vcf:hover{background:rgba(245,196,81,.9);color:#1A1405}
   :root[data-theme="light"] #vcube .vcf{background:rgba(228,234,242,.9)}
 }
+/* Sketch 2D */
+#skbar{position:absolute;z-index:9;top:calc(var(--top) + 8px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:var(--r-l,14px);background:rgba(22,34,58,.82);border:1px solid rgba(245,196,81,.35);box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:min(760px,calc(100% - 40px));font-size:12px;color:var(--tx)}
+#skbar .skr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#skbar b{color:#F5C451;font-weight:650}
+#skbar .skg{display:inline-flex;gap:2px;padding:2px;border-radius:9px;background:rgba(255,255,255,.07)}
+#skbar button{font:inherit;font-size:12px;height:28px;padding:0 10px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--tx);cursor:pointer}
+#skbar .skg button:hover{background:rgba(255,255,255,.1)}
+#skbar button.on{background:linear-gradient(180deg,rgba(255,217,121,.98),rgba(236,178,52,.96));color:#1A1405}
+#skbar button.pri{background:linear-gradient(180deg,rgba(255,217,121,.98),rgba(236,178,52,.96));color:#1A1405;font-weight:600}
+#skbar button:disabled{opacity:.4;cursor:default}
+#skbar #skcancel{border-color:rgba(255,255,255,.2);margin-left:auto}
+#skbar label{display:inline-flex;align-items:center;gap:5px;color:var(--tx-2)}
+#skbar input,#skbar select{height:28px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:var(--tx);font:inherit;padding:0 6px;width:64px}
+#skbar select{width:auto}
+#skbar .skg2{display:inline-flex;align-items:center;gap:8px}
+#skbar .skd{border-top:1px solid rgba(255,255,255,.12);padding-top:6px;max-height:110px;overflow:auto}
+#skbar .skd input{width:70px}
+#skbar[hidden],#skbar .skd[hidden]{display:none}
+#skdim{position:absolute;z-index:10;pointer-events:none;padding:3px 8px;border-radius:7px;background:rgba(22,34,58,.9);border:1px solid rgba(245,196,81,.5);color:#fff;font-size:12px;white-space:nowrap}
+#skdim[hidden]{display:none}
+#wrap.sketching canvas{cursor:crosshair}
 </style>
 </head>
 <body>
@@ -1911,7 +1933,7 @@ canvas.addEventListener('pointerdown',e=>{
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!rsel)return; const {x0,y0,r}=rsel, el=$('#rect'), w=Math.abs(e.clientX-x0), h=Math.abs(e.clientY-y0);
-  Object.assign(el.style,{left:(Math.min(x0,e.clientX)-r.left)+'px',top:(Math.min(y0,e.clientY)-r.top)+'px',width:w+'px',height:h+'px'}); el.hidden=w<3&&h<3;
+  const z=zf(); Object.assign(el.style,{left:(Math.min(x0,e.clientX)-r.left)/z+'px',top:(Math.min(y0,e.clientY)-r.top)/z+'px',width:w/z+'px',height:h/z+'px'}); el.hidden=w<3&&h<3;
 });
 canvas.addEventListener('pointerup',e=>{
   if(!rsel)return; const {x0,y0,base}=rsel; rsel=null; $('#rect').hidden=true;
@@ -2491,6 +2513,7 @@ function packFx(n){return {k:n.k,params:n.params,res0:n.res0,items:n.items.map(i
 function unpackFx(d){return {id:++fxId,k:d.k,params:d.params,res0:d.res0,items:d.items.map(it=>({geo:it.p?buildGeo(it.p):unpackGeoFx(it.g),pos:it.pos,q:it.q,sc:it.sc,c:it.c,meta:it.meta,p:it.p,fx:it.fx?unpackFx(it.fx):null}))};}
 // recalcula un paso de Redondear o Vaciar; devuelve {geo,W} (W = matriz de la pieza resultado) o {err}
 function fxEval(node){
+  if(node.k==='sketch')return sketchBuild(node.params);
   const src=fxMeshFrom(node.items[0]); let A=null, res=null;
   try{
     A=toManifold(src);
@@ -2545,6 +2568,10 @@ function renderFx(o){
     } else if(n.k==='round'){
       b.textContent=n.params.k==='chamfer'?'Chaflán':'Redondeado'; row.append(b,num(n.params.r,'Radio (mm)','0.1','0.1',x=>fxEdit(o,depth,{r:x})));
       const s=document.createElement('select'); s.innerHTML='<option value="round">Redondeada</option><option value="chamfer">Chaflán</option>'; s.value=n.params.k; s.onchange=()=>fxEdit(o,depth,{k:s.value}); row.append(s);
+    } else if(n.k==='sketch'){
+      const rv=n.params.mode==='revolve'; b.textContent='Boceto · '+(rv?'Revolucionar':'Extruir'); row.append(b);
+      if(rv)row.append(num(n.params.deg,'Giro (grados)','5','1',x=>fxEdit(o,depth,{deg:Math.min(360,x)}))); else row.append(num(n.params.h,'Altura (mm)','0.5','0.1',x=>fxEdit(o,depth,{h:x})));
+      if(depth===0){const bt=document.createElement('button'); bt.type='button'; bt.textContent='Editar boceto'; bt.onclick=()=>skStart({plane:n.params.plane,shapes:n.params.shapes,mode:n.params.mode,h:n.params.h,deg:n.params.deg,piece:o}); row.append(bt);}
     } else {
       const nm={union:'Unir',subtract:'Restar',intersect:'Intersectar'}[n.params.kind]||'Combinar';
       b.textContent=nm+' ('+n.items.length+' piezas)'; const bt=document.createElement('button'); bt.type='button'; bt.textContent='Editar piezas'; bt.title='Devuelve las piezas originales para moverlas y volver a aplicar'; bt.onclick=()=>fxExplode(o); row.append(b,bt);
@@ -2552,6 +2579,240 @@ function renderFx(o){
     list.appendChild(row);
   }
 }
+
+// ===== Sketch 2D: línea, arco, rectángulo y círculo con cotas; Extruir y Revolucionar =====
+// Los bocetos se guardan en userData.fx (k:'sketch') para poder volver a editarlos desde el Historial.
+var sk=null;
+const SK_SEG=64, skRay=new THREE.Raycaster(), skV2=new THREE.Vector2();
+const skClone=o=>JSON.parse(JSON.stringify(o));
+function zf(){return parseFloat(getComputedStyle(document.documentElement).zoom)||1;}
+function skArcPts(a,b,bulge){
+  const th=4*Math.atan(bulge), dx=b.x-a.x, dy=b.y-a.y, c=Math.hypot(dx,dy); if(c<1e-9||Math.abs(th)<1e-6)return [];
+  const k=(c/2)/Math.tan(th/2), cx=(a.x+b.x)/2-dy/c*k, cy=(a.y+b.y)/2+dx/c*k, r=Math.hypot(a.x-cx,a.y-cy), a0=Math.atan2(a.y-cy,a.x-cx), n=Math.max(2,Math.ceil(Math.abs(th)/(Math.PI/36))), out=[];
+  for(let i=1;i<n;i++){const t=a0+th*i/n; out.push([cx+r*Math.cos(t),cy+r*Math.sin(t)]);}
+  return out;
+}
+function skBulge(p0,m,p2){
+  const ax=p0.x,ay=p0.y,bx=m.x,by=m.y,cx=p2.x,cy=p2.y, d=2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by)); if(Math.abs(d)<1e-9)return 0;
+  const ux=((ax*ax+ay*ay)*(by-cy)+(bx*bx+by*by)*(cy-ay)+(cx*cx+cy*cy)*(ay-by))/d, uy=((ax*ax+ay*ay)*(cx-bx)+(bx*bx+by*by)*(ax-cx)+(cx*cx+cy*cy)*(bx-ax))/d;
+  const TAU=Math.PI*2, mod=x=>((x%TAU)+TAU)%TAU, a0=Math.atan2(ay-uy,ax-ux), a1=Math.atan2(by-uy,bx-ux), a2=Math.atan2(cy-uy,cx-ux), s=mod(a2-a0), sm=mod(a1-a0);
+  return Math.tan((sm<=s?s:-(TAU-s))/4);
+}
+// puntos [x,y] de una forma (los círculos y los arcos se pasan a segmentos)
+function skTess(s){
+  if(s.t==='rect'){const x2=s.x+s.w, y2=s.y+s.h; return [[s.x,s.y],[x2,s.y],[x2,y2],[s.x,y2]];}
+  if(s.t==='circ'){const o=[]; for(let i=0;i<SK_SEG;i++){const a=Math.PI*2*i/SK_SEG; o.push([s.x+s.r*Math.cos(a),s.y+s.r*Math.sin(a)]);} return o;}
+  const out=[], n=s.v.length, last=s.closed?n:n-1;
+  for(let i=0;i<n;i++){out.push([s.v[i].x,s.v[i].y]); if(i<last&&s.v[i].b)out.push(...skArcPts(s.v[i],s.v[(i+1)%n],s.v[i].b));}
+  return out;
+}
+const skIsClosed=s=>s.t!=='path'||s.closed;
+function skPolys(shapes){return shapes.filter(s=>skIsClosed(s)&&!(s.t==='circ'&&!(s.r>0))&&!(s.t==='rect'&&(!s.w||!s.h))).map(skTess).filter(p=>p.length>=3);}
+// arma la geometría (en coordenadas del mundo) desde un boceto; devuelve {geo,W} o {err}
+function sketchBuild(p){
+  const polys=skPolys(p.shapes); if(!polys.length)return {err:'No hay formas cerradas en el boceto.'};
+  const del=[];
+  try{
+    const cs=new MF.CrossSection(polys,'EvenOdd'); del.push(cs); let m;
+    if(p.mode==='revolve'){
+      const r=cs.revolve(72,Math.min(360,Math.max(1,p.deg||360))); del.push(r); m=r.rotate([-90,0,0]);
+    } else {
+      const e=cs.extrude(Math.max(0.1,p.h)); del.push(e);
+      m=p.plane==='xz'?e.transform([1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1]):e.translate([0,0,-p.h/2]);
+    }
+    del.push(m); const g=fromManifold(m); g.computeBoundingBox(); g.translate(0,-g.boundingBox.min.y,0);
+    if(!g.attributes.position.count)return {err:'El boceto no generó ninguna forma. Revisá que las formas estén cerradas y, al revolucionar, a la derecha del eje.'};
+    const mesh=new THREE.Mesh(g); recenter(mesh); mesh.updateMatrix(); return {geo:mesh.geometry,W:mesh.matrix.clone()};
+  }catch(e){console.error(e); return {err:'No se pudo generar la forma desde el boceto.'};}
+  finally{del.forEach(x=>{try{x.delete();}catch(_){}});}
+}
+const skW=(u,v)=>sk.plane==='xz'?new THREE.Vector3(u,0.06,-v):new THREE.Vector3(u,v,0.06);
+function skLine(pts,color,closed){
+  const a=pts.map(p=>skW(p[0],p[1])); if(closed&&a.length)a.push(a[0].clone());
+  const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(a),new THREE.LineBasicMaterial({color,depthTest:false,transparent:true})); l.renderOrder=20; return l;
+}
+function skDots(pts,color){
+  const g=new THREE.BufferGeometry().setFromPoints(pts.map(p=>skW(p[0],p[1])));
+  const d=new THREE.Points(g,new THREE.PointsMaterial({color,size:7,sizeAttenuation:false,depthTest:false})); d.renderOrder=21; return d;
+}
+function skClear(grp){while(grp.children.length){const c=grp.children.pop(); if(c.geometry)c.geometry.dispose(); if(c.material)c.material.dispose();}}
+const skVerts=s=>s.t==='rect'?[[s.x,s.y],[s.x+s.w,s.y],[s.x+s.w,s.y+s.h],[s.x,s.y+s.h]]:s.t==='circ'?[[s.x,s.y]]:s.v.map(v=>[v.x,v.y]);
+function skCurShape(){ // forma en curso (con el cursor como último punto)
+  const c=sk.cur, m=sk.mouse; if(!c||!m)return null;
+  if(c.t==='path'){
+    const v=c.v.map(q=>({...q}));
+    if(sk.arcEnd){const e=sk.arcEnd; v[v.length-1].b=skBulge(v[v.length-1],m,e); v.push({x:e.x,y:e.y,b:0});} else v.push({x:m.x,y:m.y,b:0});
+    return {t:'path',v,closed:false};
+  }
+  if(c.t==='rect')return {t:'rect',x:c.x,y:c.y,w:m.x-c.x,h:m.y-c.y};
+  if(c.t==='circ')return {t:'circ',x:c.x,y:c.y,r:Math.hypot(m.x-c.x,m.y-c.y)};
+  return null;
+}
+function skRedraw(){
+  if(!sk)return; skClear(sk.lines);
+  sk.shapes.forEach((s,i)=>{
+    const col=i===sk.sel?0x8db9ff:skIsClosed(s)?0xF5C451:0xff8c6b;
+    sk.lines.add(skLine(skTess(s),col,skIsClosed(s))); sk.lines.add(skDots(skVerts(s),col));
+  });
+  const p=skCurShape(); if(p){sk.lines.add(skLine(skTess(p),0xffffff,false)); sk.lines.add(skDots(skVerts(p),0xffffff));}
+  skLabel();
+}
+function skLabel(){
+  const el=sk.lab, p=skCurShape(), m=sk.mouse; if(!p||!m||!sk.me){el.hidden=true; return;}
+  let t=''; const f=x=>(Math.round(x*100)/100).toString().replace('.',',');
+  if(p.t==='rect')t=f(Math.abs(p.w))+' × '+f(Math.abs(p.h))+' mm';
+  else if(p.t==='circ')t='R '+f(p.r)+' mm  ·  Ø '+f(p.r*2);
+  else {const a=p.v[p.v.length-2]||p.v[0], b=p.v[p.v.length-1]; t='L '+f(Math.hypot(b.x-a.x,b.y-a.y))+' mm  ·  '+f(((Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI)+360)%360)+'°';}
+  const r=$('#wrap').getBoundingClientRect(), z=zf();
+  el.textContent=t; el.hidden=false; el.style.left=((sk.me.x-r.left)/z+14)+'px'; el.style.top=((sk.me.y-r.top)/z+14)+'px';
+}
+function skPt(e){
+  const r=canvas.getBoundingClientRect(); skV2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); skRay.setFromCamera(skV2,cam);
+  const pl=sk.plane==='xz'?new THREE.Plane(new THREE.Vector3(0,1,0),0):new THREE.Plane(new THREE.Vector3(0,0,1),0), hit=new THREE.Vector3();
+  if(!skRay.ray.intersectPlane(pl,hit))return null;
+  let u=hit.x, v=sk.plane==='xz'?-hit.z:hit.y, snapped=false;
+  const all=[]; sk.shapes.forEach(s=>all.push(...skVerts(s))); if(sk.cur)all.push(...(sk.cur.t==='path'?sk.cur.v.map(q=>[q.x,q.y]):[[sk.cur.x,sk.cur.y]]));
+  let best=11, bp=null; const sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
+  for(const q of all){const s=sc(q), d=Math.hypot(s[0]-e.clientX,s[1]-e.clientY); if(d<best){best=d; bp=q;}}
+  if(bp){u=bp[0]; v=bp[1]; snapped=true;} else if(sk.snap>0){u=Math.round(u/sk.snap)*sk.snap; v=Math.round(v/sk.snap)*sk.snap;}
+  u=+u.toFixed(4); v=+v.toFixed(4); return {x:u,y:v,snapped};
+}
+function skPush(){sk.hist.push(skClone(sk.shapes)); if(sk.hist.length>50)sk.hist.shift();}
+function skAdd(s){skPush(); sk.shapes.push(s); sk.sel=-1; sk.cur=null; sk.arcEnd=null; skRedraw(); skDims();}
+function skUndo(){
+  if(sk.cur){ if(sk.arcEnd){sk.arcEnd=null;} else if(sk.cur.t==='path'&&sk.cur.v.length>1){sk.cur.v.pop(); if(sk.cur.v.length)sk.cur.v[sk.cur.v.length-1].b=0;} else sk.cur=null; skRedraw(); return; }
+  if(!sk.hist.length){msg('No hay nada para deshacer en el boceto.'); return;}
+  sk.shapes=sk.hist.pop(); sk.sel=-1; skRedraw(); skDims();
+}
+function skFinishPath(close){
+  const c=sk.cur; if(!c||c.t!=='path')return;
+  const v=c.v; if(v.length<2){sk.cur=null; sk.arcEnd=null; skRedraw(); return;}
+  v[v.length-1].b=0; skAdd({t:'path',v,closed:!!close&&v.length>=3});
+}
+function skClick(e){
+  const p=skPt(e); if(!p)return; sk.mouse=p; const t=sk.tool;
+  if(t==='sel'){
+    let best=1e9, bi=-1; const r=canvas.getBoundingClientRect(), sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
+    sk.shapes.forEach((s,i)=>{const pts=skTess(s).map(sc), n=pts.length, cl=skIsClosed(s);
+      for(let k=0;k<(cl?n:n-1);k++){const a=pts[k], b=pts[(k+1)%n], dx=b[0]-a[0], dy=b[1]-a[1], L=dx*dx+dy*dy||1, u=Math.max(0,Math.min(1,((e.clientX-a[0])*dx+(e.clientY-a[1])*dy)/L)), d=Math.hypot(a[0]+u*dx-e.clientX,a[1]+u*dy-e.clientY); if(d<best){best=d; bi=i;}}});
+    sk.sel=best<14?bi:-1; skRedraw(); skDims(); return;
+  }
+  if(t==='rect'||t==='circ'){
+    if(!sk.cur){sk.cur={t,x:p.x,y:p.y}; skRedraw(); return;}
+    const s=skCurShape(); if(!s)return;
+    if(s.t==='rect'){const x=Math.min(s.x,s.x+s.w), y=Math.min(s.y,s.y+s.h); if(Math.abs(s.w)<0.01||Math.abs(s.h)<0.01){sk.cur=null; skRedraw(); return;} skAdd({t:'rect',x,y,w:Math.abs(s.w),h:Math.abs(s.h)});}
+    else {if(s.r<0.01){sk.cur=null; skRedraw(); return;} skAdd(s);}
+    return;
+  }
+  // línea o arco (polilínea)
+  if(!sk.cur){sk.cur={t:'path',v:[{x:p.x,y:p.y,b:0}]}; skRedraw(); return;}
+  const v=sk.cur.v, first=v[0], near=v.length>=2&&Math.hypot(p.x-first.x,p.y-first.y)<1e-6;
+  if(t==='arc'){
+    if(!sk.arcEnd){ if(Math.hypot(p.x-v[v.length-1].x,p.y-v[v.length-1].y)<1e-6)return; sk.arcEnd={x:p.x,y:p.y}; msg('Ahora tocá un punto por donde pasa el arco.'); skRedraw(); return; }
+    const E=sk.arcEnd; v[v.length-1].b=skBulge(v[v.length-1],p,E); sk.arcEnd=null;
+    if(Math.hypot(E.x-first.x,E.y-first.y)<1e-6&&v.length>=2){skFinishPath(true); return;}
+    v.push({x:E.x,y:E.y,b:0}); skRedraw(); return;
+  }
+  if(near&&v.length>=3){skFinishPath(true); return;}
+  if(Math.hypot(p.x-v[v.length-1].x,p.y-v[v.length-1].y)<1e-6)return;
+  v.push({x:p.x,y:p.y,b:0}); skRedraw();
+}
+// panel de cotas editables de la forma elegida
+function skDims(){
+  const box=sk.dimsEl; box.textContent=''; const s=sk.shapes[sk.sel]; box.hidden=!s; if(!s)return;
+  const fld=(lab,get,set,min)=>{const l=document.createElement('label'); const i=document.createElement('input'); i.type='number'; i.step='0.1'; if(min!==undefined)i.min=min; i.value=+get().toFixed(3); i.onchange=()=>{const x=parseFloat(i.value); if(isNaN(x)||(min!==undefined&&x<min)){i.value=+get().toFixed(3); return;} skPush(); set(x); skRedraw();}; l.append(lab+' ',i); box.appendChild(l);};
+  const ttl=document.createElement('b'); ttl.textContent={rect:'Rectángulo',circ:'Círculo',path:s.closed?'Contorno':'Trazo abierto'}[s.t]+':'; box.appendChild(ttl);
+  if(s.t==='rect'){fld('X',()=>s.x,x=>s.x=x); fld('Y',()=>s.y,x=>s.y=x); fld('Ancho',()=>s.w,x=>s.w=x,0.01); fld('Alto',()=>s.h,x=>s.h=x,0.01);}
+  else if(s.t==='circ'){fld('X',()=>s.x,x=>s.x=x); fld('Y',()=>s.y,x=>s.y=x); fld('Radio',()=>s.r,x=>s.r=x,0.01);}
+  else s.v.forEach((q,i)=>{fld('P'+(i+1)+' X',()=>q.x,x=>q.x=x); fld('Y',()=>q.y,x=>q.y=x);});
+  const d=document.createElement('button'); d.type='button'; d.textContent='Eliminar forma'; d.onclick=()=>{skPush(); sk.shapes.splice(sk.sel,1); sk.sel=-1; skRedraw(); skDims();}; box.appendChild(d);
+}
+function skHelpers(){
+  skClear(sk.help); const gold=0xF5C451;
+  if(sk.plane==='xy'){
+    const g=new THREE.GridHelper(240,24,gold,gold); g.rotation.x=Math.PI/2; g.position.y=120; g.material.transparent=true; g.material.opacity=0.22; g.material.depthWrite=false; sk.help.add(g);
+    const ax=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0.05),new THREE.Vector3(0,240,0.05)]),new THREE.LineBasicMaterial({color:0xff8c6b,depthTest:false})); ax.renderOrder=19; sk.help.add(ax);
+  } else {
+    const mk=(a,b)=>{const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),new THREE.LineBasicMaterial({color:gold,transparent:true,opacity:.5,depthTest:false})); l.renderOrder=19; return l;};
+    sk.help.add(mk(new THREE.Vector3(-200,0.05,0),new THREE.Vector3(200,0.05,0)),mk(new THREE.Vector3(0,0.05,-200),new THREE.Vector3(0,0.05,200)));
+  }
+}
+function skView(){
+  const hf=THREE.MathUtils.degToRad(camP.fov)/2, xz=sk.plane==='xz', t1=new THREE.Vector3(0,xz?0:60,0), dist=130/Math.tan(hf), dir=xz?new THREE.Vector3(0,1,0.0001).normalize():new THREE.Vector3(0,0,1);
+  cam.far=Math.max(ortho?4000:1000,dist*10); if(ortho){cam.near=-dist*10; cam.zoom=(ORTH_H/2)/130;} cam.updateProjectionMatrix();
+  camAnim={p0:cam.position.clone(),t0:orbit.target.clone(),p1:t1.clone().addScaledVector(dir,dist),t1,s:performance.now()};
+}
+function skSetPlane(pl){
+  if(!sk||sk.plane===pl)return; sk.plane=pl; sk.cur=null; sk.arcEnd=null; sk.sel=-1; skHelpers(); skRedraw(); skDims(); skView(); skSync();
+  msg(pl==='xy'?'Plano Frente: dibujá el perfil a la derecha del eje rojo y usá Revolucionar para girarlo.':'Plano Planta: dibujá sobre la cama y usá Extruir para darle altura.');
+}
+function skSync(){
+  if(!sk)return; sk.bar.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===sk.tool));
+  sk.bar.querySelectorAll('[data-pl]').forEach(b=>b.classList.toggle('on',b.dataset.pl===sk.plane));
+  sk.revBtn.disabled=sk.plane!=='xy'; sk.degIn.disabled=sk.plane!=='xy'; sk.revBox.style.opacity=sk.plane==='xy'?1:.45;
+}
+async function skFinish(mode){
+  if(!sk)return; if(sk.cur&&sk.cur.t==='path')skFinishPath(false);
+  if(mode==='revolve'&&sk.plane!=='xy'){msg('Para Revolucionar cambiá al plano Frente.'); return;}
+  const params={plane:sk.plane,shapes:skClone(sk.shapes),mode,h:Math.max(0.1,sk.h),deg:Math.min(360,Math.max(1,sk.deg))};
+  if(!skPolys(params.shapes).length){msg('Dibujá al menos una forma cerrada (rectángulo, círculo o una línea que vuelva al primer punto).'); return;}
+  const open=sk.shapes.filter(s=>!skIsClosed(s)).length, edit=sk.edit;
+  if(edit){skExit(); await fxEdit(edit,0,params); return;}
+  await busyOn('Creando la forma…');
+  try{
+    await loadManifold(); if(!MF)throw new Error('mf');
+    const r=sketchBuild(params); if(r.err){msg(r.err); return;}
+    const m=addMesh(r.geo,undefined,newName('Boceto')); m.position.setFromMatrixPosition(r.W);
+    m.updateMatrix(); m.userData.fx={id:++fxId,k:'sketch',params,items:[],res0:m.matrix.toArray()};
+    skExit(); select([m]); updateDims(); commit();
+    msg((mode==='revolve'?'Forma revolucionada':'Forma extruida')+(open?' (los trazos abiertos se ignoraron)':'')+'. Podés cambiar los valores o volver a editar el boceto desde el Historial.');
+  }catch(err){console.error(err); msg('No se pudo crear la forma.');}
+  finally{busyOff();}
+}
+function skExit(){
+  if(!sk)return; const s=sk; sk=null;
+  scene.remove(s.g); skClear(s.lines); skClear(s.help); s.bar.remove(); s.lab.remove();
+  orbit.enableRotate=true; tc.enabled=!scaleUI; $('#wrap').classList.remove('sketching'); $('#skbtn').classList.remove('on'); fxShown=''; updateDims();
+}
+function skStart(o={}){
+  if(sk)return; if(typeof splitting!=='undefined'&&splitting)endSplit();
+  select([]); tc.enabled=false; orbit.enableRotate=false; down=null; $('#skbtn').classList.add('on');
+  const bar=document.createElement('div'); bar.id='skbar'; bar.innerHTML=
+    '<div class="skr"><b>Sketch</b>'+
+    '<span class="skg">'+[['path','Línea'],['arc','Arco'],['rect','Rectángulo'],['circ','Círculo'],['sel','Elegir']].map(([k,l])=>'<button type="button" data-t="'+k+'">'+l+'</button>').join('')+'</span>'+
+    '<span class="skg"><button type="button" data-pl="xz" title="Dibujar sobre la cama">Planta</button><button type="button" data-pl="xy" title="Dibujar en vertical, para revolucionar">Frente</button></span>'+
+    '<label>Imán <select id="skiman"><option value="0">libre</option><option value="0.5">0,5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="10">10 mm</option></select></label></div>'+
+    '<div class="skr"><span class="skg2"><label>Altura <input id="skh" type="number" min="0.1" step="0.5"> mm</label><button type="button" id="skext" class="pri">Extruir</button></span>'+
+    '<span class="skg2" id="skrevbox"><label>Giro <input id="skdeg" type="number" min="1" max="360" step="5"> °</label><button type="button" id="skrev" class="pri">Revolucionar</button></span>'+
+    '<button type="button" id="skcancel">Cancelar</button></div><div class="skr skd" id="skdims" hidden></div>';
+  const lab=document.createElement('div'); lab.id='skdim'; lab.hidden=true; $('#wrap').appendChild(lab); $('#wrap').appendChild(bar); $('#wrap').classList.add('sketching');
+  const g=new THREE.Group(), lines=new THREE.Group(), help=new THREE.Group(); g.add(help,lines); scene.add(g);
+  sk={plane:o.plane||'xz',shapes:o.shapes?skClone(o.shapes):[],tool:o.shapes&&o.shapes.length?'sel':'path',cur:null,arcEnd:null,sel:-1,snap:1,mouse:null,me:null,hist:[],edit:o.piece||null,h:o.h||10,deg:o.deg||360,g,lines,help,bar,lab,
+    dimsEl:bar.querySelector('#skdims'),revBtn:bar.querySelector('#skrev'),degIn:bar.querySelector('#skdeg'),revBox:bar.querySelector('#skrevbox')};
+  bar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const keep=['path','arc'].includes(sk.tool)&&['path','arc'].includes(b.dataset.t)&&sk.cur&&sk.cur.t==='path'; sk.tool=b.dataset.t; if(!keep)sk.cur=null; sk.arcEnd=null; skRedraw(); skSync(); msg({path:'Línea: tocá los puntos; tocá el primero para cerrar, o doble toque / Enter para terminar abierta.',arc:'Arco: tocá el inicio, después el final y por último un punto por donde pasa el arco.',rect:'Rectángulo: tocá una esquina y la opuesta.',circ:'Círculo: tocá el centro y después un punto del borde.',sel:'Elegir: tocá una forma para cambiar sus cotas o borrarla.'}[sk.tool]);});
+  bar.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>skSetPlane(b.dataset.pl));
+  bar.querySelector('#skiman').onchange=e=>sk.snap=parseFloat(e.target.value);
+  bar.querySelector('#skh').value=sk.h; bar.querySelector('#skh').onchange=e=>{const x=parseFloat(e.target.value); if(x>0)sk.h=x; else e.target.value=sk.h;};
+  sk.degIn.value=sk.deg; sk.degIn.onchange=e=>{const x=parseFloat(e.target.value); if(x>=1&&x<=360)sk.deg=x; else e.target.value=sk.deg;};
+  bar.querySelector('#skext').onclick=()=>skFinish('extrude'); sk.revBtn.onclick=()=>skFinish('revolve'); bar.querySelector('#skcancel').onclick=()=>{skExit(); msg('Sketch cancelado.');};
+  skHelpers(); skRedraw(); skSync(); skView();
+  msg(o.piece?'Editando el boceto: cambiá las formas y tocá Extruir o Revolucionar para aplicar.':'Sketch: dibujá con Línea, Arco, Rectángulo o Círculo. Una forma dentro de otra queda como hueco.');
+}
+canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; skClick(e); },true);
+canvas.addEventListener('pointermove',e=>{ if(!sk)return; const p=skPt(e); if(!p)return; sk.mouse=p; sk.me={x:e.clientX,y:e.clientY}; if(sk.cur)skRedraw(); else sk.lab.hidden=true; });
+canvas.addEventListener('dblclick',e=>{ if(sk&&sk.cur&&sk.cur.t==='path'){e.preventDefault(); const v=sk.cur.v; if(v.length>=2&&Math.hypot(v[v.length-1].x-v[v.length-2].x,v[v.length-1].y-v[v.length-2].y)<1e-6)v.pop(); skFinishPath(false);} });
+addEventListener('keydown',e=>{
+  if(!sk)return; const inp=e.target&&e.target.closest&&e.target.closest('input,select,textarea'); if(inp)return;
+  if(e.key==='Escape'){e.stopImmediatePropagation(); e.preventDefault(); if(sk.cur){sk.cur=null; sk.arcEnd=null; skRedraw();} else if(sk.sel>=0){sk.sel=-1; skRedraw(); skDims();} else {skExit(); msg('Sketch cancelado.');} return;}
+  if(e.key==='Enter'){e.stopImmediatePropagation(); e.preventDefault(); if(sk.cur&&sk.cur.t==='path')skFinishPath(false); return;}
+  if((e.key==='Delete'||e.key==='Backspace')&&sk.sel>=0){e.stopImmediatePropagation(); e.preventDefault(); skPush(); sk.shapes.splice(sk.sel,1); sk.sel=-1; skRedraw(); skDims(); return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.stopImmediatePropagation(); e.preventDefault(); skUndo(); return;}
+  if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.length===1)e.stopImmediatePropagation();
+},true);
+(function(){const b=document.createElement('button'); b.id='skbtn'; b.type='button'; b.title='Sketch 2D: dibujar un perfil y extruirlo o revolucionarlo';
+  b.innerHTML='<svg viewBox="0 0 24 24"><path class="f a" d="M4 17V9l5-4h6l5 4v8l-5 3H9z"/><path class="d" d="M4 9l5 4h6l5-4M9 13v7M15 13v7"/></svg>Sketch';
+  b.onclick=()=>{ if(sk){skExit(); return;} skStart(); };
+  const h=document.createElement('div'); h.hidden=true; h.appendChild(b); document.body.appendChild(h);})();
 
 // ===== Revisión general: rail plegable, acciones rápidas, vistas y zoom =====
 setTimeout(()=>{
@@ -2974,7 +3235,7 @@ idbGet().then(s=>{
       const hd=document.createElement('button'); hd.className='ghead'; hd.type='button'; hd.title=names[i]||'';
       const ic=els.find(e=>e.querySelector&&e.querySelector('svg')); hd.innerHTML=(ic?ic.querySelector('svg').outerHTML:'')+(names[i]||'')+' ▾';
       hd.onclick=e=>{e.stopPropagation(); const was=openDrop===d; closeDrop(); if(was)return; d.classList.add('open'); openDrop=d;
-        const r=hd.getBoundingClientRect(); row.style.left='8px'; row.style.top=(r.bottom+4)+'px'; const w=row.offsetWidth; row.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';};
+        const r=hd.getBoundingClientRect(), z=zf(); row.style.left='8px'; row.style.top=(r.bottom/z+4)+'px'; const w=row.offsetWidth; row.style.left=Math.max(8,Math.min(r.left/z,innerWidth/z-w-8))+'px';};
       row.addEventListener('click',e=>{if(d.classList.contains('col')&&e.target.closest('button'))setTimeout(closeDrop,0);});
       d.append(hd,row,l); bar.appendChild(d);
     });
@@ -3054,7 +3315,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
     if(b.closest('#trail')){x=r.right+10; y=r.top+r.height/2-h/2;}
     else if(b.closest('#topbar')){x=r.left+r.width/2-w/2; y=r.bottom+8;}
     else{x=r.left+r.width/2-w/2; y=r.top-h-8;}
-    tip.style.left=Math.max(8,Math.min(x,innerWidth-w-8))+'px'; tip.style.top=Math.max(8,y)+'px';
+    { const z=zf(); tip.style.left=Math.max(8,Math.min(x/z,innerWidth/z-w-8))+'px'; tip.style.top=Math.max(8,y/z)+'px'; }
   });
   document.addEventListener('pointerdown',hideTip,true); document.addEventListener('scroll',hideTip,true);
 
@@ -3068,7 +3329,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
 
   // --- cinta con pestañas ---
   const TABS=[
-   ['crear','Crear',[['Formas básicas',[['[data-add="box"]','Cubo'],['[data-add="sphere"]','Esfera'],['[data-add="cylinder"]','Cilindro'],['[data-add="cone"]','Cono'],['[data-add="torus"]','Toroide'],['[data-add="tube"]','Tubo'],['[data-add="hemi"]','Media esfera'],['[data-add="pyramid"]','Pirámide'],['[data-add="hex"]','Prisma hex.'],['[data-add="wedge"]','Cuña']]],['Más',[['#shpbtn','Más formas'],['#textbtn','Texto 3D'],['#svgbtn','SVG']]],['Archivo',[['#imp','Importar']]]]],
+   ['crear','Crear',[['Formas básicas',[['[data-add="box"]','Cubo'],['[data-add="sphere"]','Esfera'],['[data-add="cylinder"]','Cilindro'],['[data-add="cone"]','Cono'],['[data-add="torus"]','Toroide'],['[data-add="tube"]','Tubo'],['[data-add="hemi"]','Media esfera'],['[data-add="pyramid"]','Pirámide'],['[data-add="hex"]','Prisma hex.'],['[data-add="wedge"]','Cuña']]],['Más',[['#shpbtn','Más formas'],['#textbtn','Texto 3D'],['#svgbtn','SVG']]],['Boceto',[['#skbtn','Sketch 2D']]],['Archivo',[['#imp','Importar']]]]],
    ['transformar','Transformar',[['Mover',[['[data-mode="translate"]','Mover'],['[data-mode="rotate"]','Rotar'],['[data-mode="scale"]','Escalar']]],['Alinear',[['#alinear','Alinear'],['#ground','Apoyar'],['#face','Cara abajo']]],['Repetir',[['#pattern','Patrón'],['#dup','Duplicar'],['#del','Borrar']]],['Ayudas',[['#snap','Snap'],['#multi','Selección'],['#measure','Medir']]]]],
    ['modificar','Modificar',[['Combinar',[['[data-op="union"]','Unir'],['[data-op="subtract"]','Restar'],['[data-op="intersect"]','Intersectar'],['#hole','Agujero']]],['Dar forma',[['#shellbtn','Vaciar'],['#rndbtn','Redondear'],['#fuzzbtn','Textura']]],['Dividir',[['#dividir','Dividir']]]]],
    ['acabados','Acabados',[['Vista',[['#lookbtn','Aspecto'],['#ghost','Transparente']]]]],
@@ -3120,7 +3381,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
     ['Herramienta','Mover','[data-mode="translate"]'],['Herramienta','Rotar','[data-mode="rotate"]'],['Herramienta','Escalar','[data-mode="scale"]'],['Herramienta','Snap (mover de a pasos)','#snap'],['Herramienta','Selección múltiple','#multi'],
     ['Combinar','Unir','[data-op="union"]'],['Combinar','Restar','[data-op="subtract"]'],['Combinar','Intersectar','[data-op="intersect"]'],['Combinar','Marcar como agujero','#hole'],
     ['Combinar','Vaciar','#shellbtn'],['Combinar','Textura (fuzzy skin)','#fuzzbtn'],['Combinar','Redondear o achaflanar','#rndbtn'],['Combinar','Cortar para la cama','#fitbtn'],['Combinar','Dividir con un plano','#dividir'],
-    ['Editar','Alinear y reflejar','#alinear'],['Editar','Apoyar en la cama','#ground'],['Editar','Apoyar por una cara','#face'],['Editar','Patrón (repetir)','#pattern'],['Editar','Medir','#measure'],['Editar','Duplicar','#dup'],['Editar','Borrar','#del'],
+    ['Crear','Sketch 2D (extruir y revolucionar)','#skbtn'],['Editar','Alinear y reflejar','#alinear'],['Editar','Apoyar en la cama','#ground'],['Editar','Apoyar por una cara','#face'],['Editar','Patrón (repetir)','#pattern'],['Editar','Medir','#measure'],['Editar','Duplicar','#dup'],['Editar','Borrar','#del'],
     ['Agregar','Cubo','[data-add="box"]'],['Agregar','Esfera','[data-add="sphere"]'],['Agregar','Cilindro','[data-add="cylinder"]'],['Agregar','Cono','[data-add="cone"]'],['Agregar','Toroide','[data-add="torus"]'],
     ['Agregar','Tubo','[data-add="tube"]'],['Agregar','Media esfera','[data-add="hemi"]'],['Agregar','Pirámide','[data-add="pyramid"]'],['Agregar','Prisma hexagonal','[data-add="hex"]'],['Agregar','Cuña','[data-add="wedge"]'],
     ['Agregar','Más formas (biblioteca)','#shpbtn'],['Agregar','Texto 3D','#textbtn'],['Agregar','Importar SVG','#svgbtn'],
