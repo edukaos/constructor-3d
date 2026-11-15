@@ -729,7 +729,7 @@ body #shpp #shpcats select{width:100%;max-width:none}
   :root[data-theme="light"] #vcube .vcf{background:rgba(228,234,242,.9)}
 }
 /* Sketch 2D */
-#skbar{position:absolute;z-index:9;top:calc(var(--top) + 8px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:var(--r-l,14px);background:rgba(22,34,58,.88);border:1px solid rgba(245,196,81,.35);box-shadow:0 10px 30px rgba(0,0,0,.35);width:max-content;max-width:min(860px,calc(100% - 40px));max-height:calc(100% - var(--top) - 24px);overflow:auto;font-size:12px;color:var(--tx)}
+#skbar{position:absolute;z-index:9;top:calc(var(--top) + 96px);right:var(--g,10px);display:flex;flex-direction:column;gap:8px;padding:8px 10px 10px;border-radius:var(--r-l,14px);background:rgba(22,34,58,.92);border:1px solid rgba(245,196,81,.35);box-shadow:0 10px 30px rgba(0,0,0,.35);width:300px;max-height:calc(100% - var(--top) - 110px);overflow:auto;font-size:12px;color:var(--tx)}
 #skbar .skr{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
 #skbar b{color:#F5C451;font-weight:650}
 #skbar .skgp{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:4px 6px 3px;background:rgba(255,255,255,.04);display:flex;flex-direction:column}
@@ -751,29 +751,37 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #skbar .skg2{display:inline-flex;align-items:center;gap:8px}
 #skbar .skctx{align-items:center;padding:6px 10px;border-radius:10px;background:rgba(245,196,81,.1);border:1px solid rgba(245,196,81,.3)}
 #skbar .skctx span{color:var(--tx-2)}
-#skbar .skd{align-items:flex-start;max-height:210px;overflow:auto}
-#skbar .skc{flex:1 1 220px;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;background:rgba(10,20,45,.45);display:flex;flex-direction:column;gap:6px}
+#skbar .skd{align-items:flex-start;flex-direction:column;flex-wrap:nowrap}
+#skbar .skc{align-self:stretch;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;background:rgba(10,20,45,.45);display:flex;flex-direction:column;gap:6px}
 #skbar .skc h4{margin:0;font-size:12px;color:#F5C451;font-weight:650}
 #skbar .skc small{color:var(--tx-2);font-size:11px}
 #skbar .skf{display:flex;align-items:center;gap:6px;color:var(--tx);white-space:nowrap}
 #skbar .skbt{display:flex;gap:6px;flex-wrap:wrap}
 #skbar .skf i{width:20px;height:20px;border-radius:5px;background:rgba(156,192,255,.18);color:#9CC0FF;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;flex:none}
-#skbar .skd input[type=number]{width:62px}
-#skbar .sklist{max-height:120px;overflow:auto;display:flex;flex-direction:column;gap:5px}
+#skbar .skd input[type=number]{width:58px}
+#skbar .sklist{max-height:120px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:5px}
 #skbar .skc button{border-color:rgba(255,255,255,.2);align-self:flex-start}
 #skbar .skdel{color:#FF9A9A}
+#skbar .skhd{display:flex;align-items:center;gap:8px;cursor:grab;user-select:none;touch-action:none;padding:2px 2px 4px;border-bottom:1px solid rgba(255,255,255,.1);color:#F5C451;font-weight:650}
+#skbar .skhd small{color:var(--tx-2);font-weight:400;font-size:10.5px;flex:1}
+#skbar .skhd button{height:22px;width:26px;padding:0;border-color:rgba(255,255,255,.2)}
+#skbar.drag .skhd{cursor:grabbing}
+#skbar.min .skmain,#skbar.min .skctx,#skbar.min .skd{display:none}
 #skbar .skfin{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 14px;border-radius:12px;border:2px solid #F5C451;background:linear-gradient(90deg,rgba(90,70,10,.55),rgba(22,48,92,.55))}
-#skbar .skft{display:flex;flex-direction:column;gap:2px;color:#F5D36B;font-size:11px;line-height:1.3}
+#skbar .skft{flex:1 1 100%;display:flex;flex-direction:column;gap:2px;color:#F5D36B;font-size:11px;line-height:1.3}
 #skbar .skft b{font-size:12px}
 #skbar .skfin button.big{height:38px;padding:0 22px;font-size:14px;border-radius:10px;box-shadow:0 0 16px rgba(245,196,81,.5)}
 #skbar .skor{color:var(--tx-2)}
 #skbar #skrev{border-color:rgba(255,255,255,.25)}
 #skbar #skcancel{border-color:rgba(255,255,255,.2);margin-left:auto}
-@media (max-width:760px),(pointer:coarse){#skbar button.skt{width:54px}#skbar .skfin button.big{box-shadow:none}#skbar .skgp small{display:none}}
+@media (max-width:760px),(pointer:coarse){#skbar{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;transform:none!important;width:auto;max-height:55%}#skbar .skhd small{display:none}#skbar button.skt{width:54px}#skbar .skfin button.big{box-shadow:none}#skbar .skgp small{display:none}}
 #skbar[hidden],#skbar .skd[hidden],#skbar .skctx[hidden]{display:none}
 #skdim{position:absolute;z-index:10;pointer-events:none;padding:3px 8px;border-radius:7px;background:rgba(22,34,58,.9);border:1px solid rgba(245,196,81,.5);color:#fff;font-size:12px;white-space:nowrap}
 #skdim[hidden]{display:none}
 #wrap.sketching canvas{cursor:crosshair}
+#wrap.sketching.sksel canvas{cursor:default}
+#wrap.sketching.skcor canvas{cursor:pointer}
+#wrap.sketching #insp{display:none}
 #skwarn{position:absolute;left:50%;top:38%;transform:translateX(-50%);max-width:min(420px,86%);z-index:60;background:#2a1d00;color:#ffd77a;border:1px solid #f5c451;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.35;text-align:center;pointer-events:none;box-shadow:none}
 #skwarn[hidden]{display:none}
 html body .rplus{position:absolute;z-index:8;top:calc(6px + 44px + 4px + 16px);left:calc(var(--g) + 16px);width:calc(var(--rh) - 32px);height:calc(var(--rh) - 32px);box-sizing:border-box;padding:0;border:0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:inherit;font-size:15px;font-weight:800;background:radial-gradient(120% 90% at 30% 15%,#FFF0BF 0%,#FFD36B 45%,#F0A834 100%);color:#8A5516;letter-spacing:.3px;box-shadow:0 0 0 1px rgba(255,236,170,.5),0 0 16px rgba(255,205,90,.35)}
@@ -2837,7 +2845,7 @@ function skLine(pts,color,closed){
 }
 function skDots(pts,color){
   const g=new THREE.BufferGeometry().setFromPoints(pts.map(p=>skW(p[0],p[1])));
-  const d=new THREE.Points(g,new THREE.PointsMaterial({color,size:7,sizeAttenuation:false,depthTest:false})); d.renderOrder=21; return d;
+  const d=new THREE.Points(g,new THREE.PointsMaterial({color,size:10,sizeAttenuation:false,depthTest:false})); d.renderOrder=21; return d;
 }
 function skClear(grp){while(grp.children.length){const c=grp.children.pop(); if(c.geometry)c.geometry.dispose(); if(c.material)c.material.dispose();}}
 const skVerts=s=>s.t==='rect'?[[s.x,s.y],[s.x+s.w,s.y],[s.x+s.w,s.y+s.h],[s.x,s.y+s.h]]:s.t==='circ'?[[s.x,s.y]]:s.v.map(v=>[v.x,v.y]);
@@ -3004,7 +3012,7 @@ function skSync(){
   sk.bar.querySelectorAll('[data-pl]').forEach(b=>b.classList.toggle('on',b.dataset.pl===sk.plane));
   sk.revBtn.disabled=sk.plane!=='xy'; sk.degIn.disabled=sk.plane!=='xy'; sk.revBox.style.opacity=sk.plane==='xy'?1:.45;
   const q=sk.shapes[sk.sel]; sk.bar.querySelector('#skoffb').disabled=!(q&&skIsClosed(q)); sk.bar.querySelector('#skmirb').disabled=!q;
-  sk.bar.querySelector('#skctx').hidden=sk.tool!=='corner';
+  sk.bar.querySelector('#skctx').hidden=sk.tool!=='corner'; const wp=$('#wrap'); wp.classList.toggle('sksel',sk.tool==='sel'); wp.classList.toggle('skcor',sk.tool==='corner');
 }
 function skSetCr(x,from){ sk.cr=x; sk.bar.querySelectorAll('[data-cr]').forEach(i=>{ if(i!==from)i.value=x; }); }
 function skCrBind(root){ root.querySelectorAll('[data-cr]').forEach(i=>{ i.value=sk.cr; i.oninput=()=>{const x=parseFloat(i.value); if(x>=0)skSetCr(x,i);}; i.onchange=()=>{const x=parseFloat(i.value); if(!(x>=0))i.value=sk.cr;}; }); }
@@ -3032,7 +3040,7 @@ async function skFinish(mode){
 function skExit(){
   if(!sk)return; const s=sk; sk=null;
   scene.remove(s.g); skClear(s.lines); skClear(s.help); s.bar.remove(); s.lab.remove();
-  orbit.enableRotate=true; tc.enabled=!scaleUI; $('#wrap').classList.remove('sketching'); $('#skbtn').classList.remove('on'); fxShown=''; updateDims();
+  orbit.enableRotate=true; tc.enabled=!scaleUI; $('#wrap').classList.remove('sketching','sksel','skcor'); $('#skbtn').classList.remove('on'); fxShown=''; updateDims();
 }
 function skStart(o={}){
   if(sk)return; if(typeof splitting!=='undefined'&&splitting)endSplit();
@@ -3040,6 +3048,7 @@ function skStart(o={}){
   const IC={path:'<path d="M4 20L20 4"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="4" r="2"/>',arc:'<path d="M4 18A12 12 0 0 1 20 18"/>',rect:'<rect x="4" y="6" width="16" height="12"/>',circ:'<circle cx="12" cy="12" r="8"/>',corner:'<path d="M5 20V10a5 5 0 0 1 5-5h10"/>',off:'<rect x="3.5" y="3.5" width="17" height="17"/><rect x="8" y="8" width="8" height="8"/>',mir:'<path d="M12 3v18" stroke-dasharray="3 2"/><path d="M9 7L4 12l5 5zM15 7l5 5-5 5z"/>',sel:'<path d="M5 3l14 8-6 2-2 6z"/>',xz:'<path d="M3 15l9-5 9 5-9 5z"/>',xy:'<rect x="5" y="4" width="14" height="14"/>'};
   const tb=(k,l,attr,t)=>'<button type="button" class="skt" '+attr+' title="'+t+'"><svg viewBox="0 0 24 24">'+IC[k]+'</svg><span>'+l+'</span></button>';
   const bar=document.createElement('div'); bar.id='skbar'; bar.innerHTML=
+    '<div class="skhd" title="Arrastrá para mover el panel"><span>⠿ Sketch</span><small>arrastrá para mover</small><button type="button" id="skmin" title="Achicar o agrandar el panel">–</button></div>'+
     '<div class="skr skmain">'+
     '<div class="skgp"><small>Dibujar</small><span class="skg">'+tb('path','Línea','data-t="path"','Línea: tocá los puntos')+tb('arc','Arco','data-t="arc"','Arco: inicio, final y un punto por donde pasa')+tb('rect','Rectángulo','data-t="rect"','Rectángulo: arrastrá o tocá dos esquinas')+tb('circ','Círculo','data-t="circ"','Círculo: centro y un punto del borde')+'</span></div>'+
     '<div class="skgp"><small>Modificar</small><span class="skg">'+tb('corner','Empalme','data-t="corner"','Empalme: redondear una esquina')+tb('off','Desfase','id="skoffb"','Desfase: agrega un contorno paralelo a la forma seleccionada')+tb('mir','Simetría','id="skmirb"','Simetría: copia espejada de la forma seleccionada')+'</span></div>'+
@@ -3059,6 +3068,13 @@ function skStart(o={}){
   bar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const keep=['path','arc'].includes(sk.tool)&&['path','arc'].includes(b.dataset.t)&&sk.cur&&sk.cur.t==='path'; sk.tool=b.dataset.t; if(!keep)sk.cur=null; sk.arcEnd=null; skRedraw(); skSync(); msg({path:'Línea: tocá los puntos; tocá el primero para cerrar, o doble toque / Enter para terminar abierta.',arc:'Arco: tocá el inicio, después el final y por último un punto por donde pasa el arco.',rect:'Rectángulo: tocá una esquina y la opuesta.',circ:'Círculo: tocá el centro y después un punto del borde.',corner:'Empalme: poné el radio y tocá una esquina recta para redondearla. Para cambiarla, tocala de nuevo con otro radio (0 la vuelve recta).',sel:'Seleccionar: tocá una forma para cambiar sus medidas o borrarla.'}[sk.tool]);});
   bar.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>skSetPlane(b.dataset.pl));
   bar.querySelector('#skiman').onchange=e=>sk.snap=parseFloat(e.target.value);
+  { const hd=bar.querySelector('.skhd'), wr=$('#wrap'); let pos=null; try{pos=JSON.parse(localStorage.getItem('c3d_skpos')||'null');}catch(e){}
+    const place=(l,t)=>{ const mw=wr.clientWidth-bar.offsetWidth, mh=wr.clientHeight-40; l=Math.max(0,Math.min(mw,l)); t=Math.max(0,Math.min(mh,t)); bar.style.left=l+'px'; bar.style.top=t+'px'; bar.style.right='auto'; bar.style.bottom='auto'; bar.style.transform='none'; return [l,t]; };
+    if(pos&&matchMedia('(min-width:761px) and (pointer:fine)').matches)requestAnimationFrame(()=>{ if(sk&&sk.bar===bar)place(pos[0],pos[1]); });
+    hd.onpointerdown=e=>{ if(e.target.closest('button')||e.button!==0)return; e.preventDefault(); e.stopPropagation(); const z=zf(), sx=e.clientX, sy=e.clientY, l0=bar.offsetLeft, t0=bar.offsetTop; hd.setPointerCapture(e.pointerId); bar.classList.add('drag');
+      hd.onpointermove=ev=>{ pos=place(l0+(ev.clientX-sx)/z, t0+(ev.clientY-sy)/z); };
+      hd.onpointerup=ev=>{ hd.onpointermove=null; hd.onpointerup=null; bar.classList.remove('drag'); try{localStorage.setItem('c3d_skpos',JSON.stringify(pos));}catch(e2){} }; };
+    bar.querySelector('#skmin').onclick=()=>{ const m=bar.classList.toggle('min'); bar.querySelector('#skmin').textContent=m?'+':'–'; }; }
   skCrBind(bar); bar.querySelector('#skoffb').onclick=()=>{const q=sk.shapes[sk.sel]; if(q&&skIsClosed(q))skOffset(q,sk.off);}; bar.querySelector('#skmirb').onclick=()=>{const q=sk.shapes[sk.sel]; if(q)skMirror(q);};
   bar.querySelector('#skh').value=sk.h; bar.querySelector('#skh').onchange=e=>{const x=parseFloat(e.target.value); if(x>0)sk.h=x; else e.target.value=sk.h;};
   sk.degIn.value=sk.deg; sk.degIn.onchange=e=>{const x=parseFloat(e.target.value); if(x>=1&&x<=360)sk.deg=x; else e.target.value=sk.deg;};
