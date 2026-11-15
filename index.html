@@ -2765,10 +2765,27 @@ function skDims(){
   if(s.t==='rect'){fld('X',()=>s.x,x=>s.x=x); fld('Y',()=>s.y,x=>s.y=x); fld('Ancho',()=>s.w,x=>s.w=x,0.01); fld('Alto',()=>s.h,x=>s.h=x,0.01);}
   else if(s.t==='circ'){fld('X',()=>s.x,x=>s.x=x); fld('Y',()=>s.y,x=>s.y=x); fld('Radio',()=>s.r,x=>s.r=x,0.01);}
   else s.v.forEach((q,i)=>{fld('P'+(i+1)+' X',()=>q.x,x=>q.x=x); fld('Y',()=>q.y,x=>q.y=x);});
+  if(skIsClosed(s)){
+    const ol=document.createElement('label'); const oi=document.createElement('input'); oi.type='number'; oi.step='0.5'; oi.value=sk.off; oi.onchange=()=>{const x=parseFloat(oi.value); if(isNaN(x)||x===0)oi.value=sk.off; else sk.off=x;}; ol.title='Negativo: achica. Positivo: agranda.'; ol.append('Desfase ',oi); box.appendChild(ol);
+    const ob=document.createElement('button'); ob.type='button'; ob.textContent='Desfasar copia'; ob.title='Agrega un contorno paralelo a esa distancia (mm)'; ob.onclick=()=>skOffset(s,sk.off); box.appendChild(ob);
+  }
   const mr=document.createElement('button'); mr.type='button'; mr.textContent='Espejar copia'; mr.title='Agrega una copia espejada respecto del eje rojo vertical';
   mr.onclick=()=>{ skPush(); const c=skClone([s])[0]; if(c.t==='rect')c.x=-(c.x+c.w); else if(c.t==='circ')c.x=-c.x; else c.v.forEach(q=>{q.x=-q.x; q.b=-(q.b||0);}); sk.shapes.push(c); sk.sel=sk.shapes.length-1; skRedraw(); skDims(); msg('Copia espejada agregada. Si se superpone con la original, esa zona queda como hueco: separalas o dibujá la mitad de un lado del eje.'); };
   box.appendChild(mr);
   const d=document.createElement('button'); d.type='button'; d.textContent='Eliminar forma'; d.onclick=()=>{skPush(); sk.shapes.splice(sk.sel,1); sk.sel=-1; skRedraw(); skDims();}; box.appendChild(d);
+}
+async function skOffset(s,d){
+  if(!sk||!d)return;
+  if(s.t==='circ'){ if(s.r+d<=0.01){skWarn('El desfase es mayor que el círculo: probá con un valor más chico.'); return;} skPush(); sk.shapes.push({t:'circ',x:s.x,y:s.y,r:s.r+d}); sk.sel=sk.shapes.length-1; skRedraw(); skDims(); return; }
+  await loadManifold(); if(!MF){skWarn('El desfase necesita el motor de formas, que no cargó. Recargá la página o usá la versión de GitHub Pages.'); return;}
+  const cs=new MF.CrossSection([skTess(s)],'EvenOdd'); let o;
+  try{
+    o=cs.offset(d,'Round',2,48); const polys=o.toPolygons().filter(q=>q.length>=3);
+    if(!polys.length){skWarn('El desfase es mayor que la forma: probá con un valor más chico.'); return;}
+    skPush(); polys.forEach(q=>sk.shapes.push({t:'path',v:q.map(v=>({x:v[0],y:v[1],b:0})),closed:true})); sk.sel=sk.shapes.length-1; skRedraw(); skDims();
+    msg('Contorno desfasado agregado ('+(d>0?'+':'')+d+' mm). Si queda dentro del original, al extruir es un hueco.');
+  }catch(e){console.error(e); skWarn('No se pudo desfasar esta forma.');}
+  finally{cs.delete(); if(o)o.delete();}
 }
 function skHelpers(){
   skClear(sk.help); const gold=0xF5C451;
@@ -2833,7 +2850,7 @@ function skStart(o={}){
     '<button type="button" id="skcancel">Cancelar</button></div><div class="skr skd" id="skdims" hidden></div>';
   const lab=document.createElement('div'); lab.id='skdim'; lab.hidden=true; $('#wrap').appendChild(lab); $('#wrap').appendChild(bar); $('#wrap').classList.add('sketching');
   const g=new THREE.Group(), lines=new THREE.Group(), help=new THREE.Group(); g.add(help,lines); scene.add(g);
-  sk={plane:o.plane||'xz',shapes:o.shapes?skClone(o.shapes):[],tool:o.shapes&&o.shapes.length?'sel':'path',cur:null,arcEnd:null,sel:-1,snap:1,mouse:null,me:null,hist:[],edit:o.piece||null,h:o.h||10,deg:o.deg||360,g,lines,help,bar,lab,
+  sk={plane:o.plane||'xz',shapes:o.shapes?skClone(o.shapes):[],tool:o.shapes&&o.shapes.length?'sel':'path',cur:null,arcEnd:null,sel:-1,snap:1,mouse:null,me:null,hist:[],edit:o.piece||null,off:-2,h:o.h||10,deg:o.deg||360,g,lines,help,bar,lab,
     dimsEl:bar.querySelector('#skdims'),revBtn:bar.querySelector('#skrev'),degIn:bar.querySelector('#skdeg'),revBox:bar.querySelector('#skrevbox')};
   bar.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const keep=['path','arc'].includes(sk.tool)&&['path','arc'].includes(b.dataset.t)&&sk.cur&&sk.cur.t==='path'; sk.tool=b.dataset.t; if(!keep)sk.cur=null; sk.arcEnd=null; skRedraw(); skSync(); msg({path:'Línea: tocá los puntos; tocá el primero para cerrar, o doble toque / Enter para terminar abierta.',arc:'Arco: tocá el inicio, después el final y por último un punto por donde pasa el arco.',rect:'Rectángulo: tocá una esquina y la opuesta.',circ:'Círculo: tocá el centro y después un punto del borde.',sel:'Elegir: tocá una forma para cambiar sus cotas o borrarla.'}[sk.tool]);});
   bar.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>skSetPlane(b.dataset.pl));
