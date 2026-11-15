@@ -755,6 +755,9 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #ribbon .rplus svg{width:22px;height:22px;stroke:#1A1405!important;fill:none!important}
 #ribbon .rplus svg path{stroke:#1A1405!important;fill:none!important}
 #ribbon .rplus.on{outline:2px solid #fff3}
+#ribbon .rplus.hint{animation:plusPulse 1.6s ease-in-out infinite}
+@keyframes plusPulse{0%,100%{box-shadow:0 2px 10px rgba(245,196,81,.35),0 0 0 0 rgba(245,196,81,.55)}50%{box-shadow:0 2px 14px rgba(245,196,81,.6),0 0 0 9px rgba(245,196,81,0)}}
+@media (prefers-reduced-motion:reduce){#ribbon .rplus.hint{animation:none;box-shadow:0 0 0 3px rgba(245,196,81,.55)}}
 #plusmenu{position:fixed;z-index:250;background:#101d33;border:1px solid #27395a;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 #plusmenu[hidden]{display:none}
 #plusmenu .pmgrid{display:grid;grid-template-columns:repeat(5,76px);gap:4px}
@@ -3538,8 +3541,10 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
   const pmenu=mkEl('div','plusmenu'); pmenu.hidden=true; pmenu.setAttribute('role','menu'); const pgrid=mkEl('div',null,'pmgrid'); pmenu.appendChild(pgrid);
   [['box','Cubo'],['sphere','Esfera'],['cylinder','Cilindro'],['cone','Cono'],['torus','Toroide'],['tube','Tubo'],['hemi','Media esfera'],['pyramid','Pirámide'],['hex','Prisma hex.'],['wedge','Cuña']].forEach(([k,l])=>addProxy(pgrid,'[data-add="'+k+'"]',l));
   addProxy(pmenu,'#shpbtn','Más formas',false,'pmmore'); document.body.appendChild(pmenu);
+  let plusSeen=false; try{plusSeen=localStorage.getItem('c3d_plusseen')==='1';}catch(e){} if(!plusSeen)plus.classList.add('hint');
+  const plusUsed=()=>{ if(plus.classList.contains('hint')){plus.classList.remove('hint'); try{localStorage.setItem('c3d_plusseen','1');}catch(e){}} };
   const plusClose=()=>{pmenu.hidden=true; plus.setAttribute('aria-expanded','false'); plus.classList.remove('on');};
-  const plusOpen=()=>{ const r=plus.getBoundingClientRect(), z=zf(); pmenu.style.left=r.left/z+'px'; pmenu.style.top=(r.bottom+6)/z+'px'; pmenu.hidden=false; plus.setAttribute('aria-expanded','true'); plus.classList.add('on'); };
+  const plusOpen=()=>{ plusUsed(); const r=plus.getBoundingClientRect(), z=zf(); pmenu.style.left=r.left/z+'px'; pmenu.style.top=(r.bottom+6)/z+'px'; pmenu.hidden=false; plus.setAttribute('aria-expanded','true'); plus.classList.add('on'); };
   plus.onclick=e=>{e.stopPropagation(); pmenu.hidden?plusOpen():plusClose();};
   pmenu.addEventListener('click',()=>setTimeout(plusClose,0));
   document.addEventListener('pointerdown',e=>{ if(!pmenu.hidden&&!pmenu.contains(e.target)&&e.target!==plus&&!plus.contains(e.target))plusClose(); },true);
