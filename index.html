@@ -749,6 +749,8 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #skdim{position:absolute;z-index:10;pointer-events:none;padding:3px 8px;border-radius:7px;background:rgba(22,34,58,.9);border:1px solid rgba(245,196,81,.5);color:#fff;font-size:12px;white-space:nowrap}
 #skdim[hidden]{display:none}
 #wrap.sketching canvas{cursor:crosshair}
+#skwarn{position:absolute;left:50%;top:38%;transform:translateX(-50%);max-width:min(420px,86%);z-index:60;background:#2a1d00;color:#ffd77a;border:1px solid #f5c451;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.35;text-align:center;pointer-events:none;box-shadow:none}
+#skwarn[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -2751,22 +2753,24 @@ function skSync(){
   sk.bar.querySelectorAll('[data-pl]').forEach(b=>b.classList.toggle('on',b.dataset.pl===sk.plane));
   sk.revBtn.disabled=sk.plane!=='xy'; sk.degIn.disabled=sk.plane!=='xy'; sk.revBox.style.opacity=sk.plane==='xy'?1:.45;
 }
+function skWarn(t){ msg(t); let w=$('#skwarn'); if(!w){w=document.createElement('div'); w.id='skwarn'; $('#wrap').appendChild(w);} w.textContent=t; w.hidden=false; clearTimeout(skWarn.t); skWarn.t=setTimeout(()=>{w.hidden=true;},4500); }
 async function skFinish(mode){
   if(!sk)return; if(sk.cur&&sk.cur.t==='path')skFinishPath(false);
-  if(mode==='revolve'&&sk.plane!=='xy'){msg('Para Revolucionar cambiá al plano Frente.'); return;}
+  if(sk.cur&&(sk.cur.t==='rect'||sk.cur.t==='circ')&&sk.mouse){ const q=skCurShape(); if(q.t==='rect'&&Math.abs(q.w)>=0.01&&Math.abs(q.h)>=0.01)skAdd({t:'rect',x:Math.min(q.x,q.x+q.w),y:Math.min(q.y,q.y+q.h),w:Math.abs(q.w),h:Math.abs(q.h)}); else if(q.t==='circ'&&q.r>=0.01)skAdd(q); else {sk.cur=null; skRedraw();} }
+  if(mode==='revolve'&&sk.plane!=='xy'){skWarn('Para Revolucionar cambiá al plano Frente.'); return;}
   const params={plane:sk.plane,shapes:skClone(sk.shapes),mode,h:Math.max(0.1,sk.h),deg:Math.min(360,Math.max(1,sk.deg))};
-  if(!skPolys(params.shapes).length){msg('Dibujá al menos una forma cerrada (rectángulo, círculo o una línea que vuelva al primer punto).'); return;}
+  if(!skPolys(params.shapes).length){skWarn('Primero dibujá una forma cerrada: rectángulo o círculo (arrastrá, o tocá dos veces), o una línea que vuelva a tocar su primer punto.'); return;}
   const open=sk.shapes.filter(s=>!skIsClosed(s)).length, edit=sk.edit;
   if(edit){skExit(); await fxEdit(edit,0,params); return;}
   await busyOn('Creando la forma…');
   try{
     await loadManifold(); if(!MF)throw new Error('mf');
-    const r=sketchBuild(params); if(r.err){msg(r.err); return;}
+    const r=sketchBuild(params); if(r.err){skWarn(r.err); return;}
     const m=addMesh(r.geo,undefined,newName('Boceto')); m.position.setFromMatrixPosition(r.W);
     m.updateMatrix(); m.userData.fx={id:++fxId,k:'sketch',params,items:[],res0:m.matrix.toArray()};
     skExit(); select([m]); updateDims(); commit();
     msg((mode==='revolve'?'Forma revolucionada':'Forma extruida')+(open?' (los trazos abiertos se ignoraron)':'')+'. Podés cambiar los valores o volver a editar el boceto desde el Historial.');
-  }catch(err){console.error(err); msg('No se pudo crear la forma.');}
+  }catch(err){console.error(err); skWarn('No se pudo crear la forma.');}
   finally{busyOff();}
 }
 function skExit(){
@@ -2798,7 +2802,8 @@ function skStart(o={}){
   skHelpers(); skRedraw(); skSync(); skView();
   msg(o.piece?'Editando el boceto: cambiá las formas y tocá Extruir o Revolucionar para aplicar.':'Sketch: dibujá con Línea, Arco, Rectángulo o Círculo. Una forma dentro de otra queda como hueco.');
 }
-canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; skClick(e); },true);
+canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; const had=!!sk.cur; skClick(e); sk.dn=(!had&&sk.cur&&(sk.cur.t==='rect'||sk.cur.t==='circ'))?{x:e.clientX,y:e.clientY}:null; },true);
+addEventListener('pointerup',e=>{ if(!sk||!sk.dn)return; const d=sk.dn; sk.dn=null; if(e.button!==0||!sk.cur||Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return; skClick(e); });
 canvas.addEventListener('pointermove',e=>{ if(!sk)return; const p=skPt(e); if(!p)return; sk.mouse=p; sk.me={x:e.clientX,y:e.clientY}; if(sk.cur)skRedraw(); else sk.lab.hidden=true; });
 canvas.addEventListener('dblclick',e=>{ if(sk&&sk.cur&&sk.cur.t==='path'){e.preventDefault(); const v=sk.cur.v; if(v.length>=2&&Math.hypot(v[v.length-1].x-v[v.length-2].x,v[v.length-1].y-v[v.length-2].y)<1e-6)v.pop(); skFinishPath(false);} });
 addEventListener('keydown',e=>{
