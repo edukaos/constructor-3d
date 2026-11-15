@@ -766,6 +766,7 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #skbar .skhd small{color:var(--tx-2);font-weight:400;font-size:10.5px;flex:1}
 #skbar .skhd button{height:22px;width:26px;padding:0;border-color:rgba(255,255,255,.2)}
 #skbar.drag .skhd{cursor:grabbing}
+#skbar .skhint{font-size:12px;line-height:1.35;color:#F5D36B;background:rgba(245,196,81,.1);border:1px solid rgba(245,196,81,.25);border-radius:8px;padding:6px 9px}
 #skbar.min .skmain,#skbar.min .skctx,#skbar.min .skd{display:none}
 #skbar .skfin{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 14px;border-radius:12px;border:2px solid #F5C451;background:linear-gradient(90deg,rgba(90,70,10,.55),rgba(22,48,92,.55))}
 #skbar .skft{flex:1 1 100%;display:flex;flex-direction:column;gap:2px;color:#F5D36B;font-size:11px;line-height:1.3}
@@ -2839,13 +2840,55 @@ function sketchBuild(p){
   finally{del.forEach(x=>{try{x.delete();}catch(_){}});}
 }
 const skW=(u,v)=>sk.plane==='xz'?new THREE.Vector3(u,0.06,-v):new THREE.Vector3(u,v,0.06);
-function skLine(pts,color,closed){
-  const a=pts.map(p=>skW(p[0],p[1])); if(closed&&a.length)a.push(a[0].clone());
-  const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(a),new THREE.LineBasicMaterial({color,depthTest:false,transparent:true})); l.renderOrder=20; return l;
+function skLine(pts,color,closed,op,du,dv){
+  const a=pts.map(p=>skW(p[0]+(du||0),p[1]+(dv||0))); if(closed&&a.length)a.push(a[0].clone());
+  const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(a),new THREE.LineBasicMaterial({color,depthTest:false,transparent:true,opacity:op==null?1:op})); l.renderOrder=20; return l;
 }
-function skDots(pts,color){
+function skDots(pts,color,size){
   const g=new THREE.BufferGeometry().setFromPoints(pts.map(p=>skW(p[0],p[1])));
-  const d=new THREE.Points(g,new THREE.PointsMaterial({color,size:10,sizeAttenuation:false,depthTest:false})); d.renderOrder=21; return d;
+  const d=new THREE.Points(g,new THREE.PointsMaterial({color,size:size||10,sizeAttenuation:false,depthTest:false})); d.renderOrder=size>10?23:21; return d;
+}
+function skFill(pts){
+  try{ const sh=new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1]))), g=new THREE.ShapeGeometry(sh);
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x8db9ff,transparent:true,opacity:.16,depthTest:false,side:THREE.DoubleSide,depthWrite:false}));
+    if(sk.plane==='xz'){m.rotation.x=-Math.PI/2; m.position.y=0.05;} else m.position.z=0.05; m.renderOrder=18; return m; }catch(e){return null;}
+}
+function skNodeAt(e,onlyCorners){
+  const r=canvas.getBoundingClientRect(), sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
+  let best=13, hit=null;
+  sk.shapes.forEach((s,si)=>{ if(onlyCorners&&s.t==='circ')return; skVerts(s).forEach((q,i)=>{ if(onlyCorners&&!skIsClosed(s)&&s.t==='path'&&(i===0||i===s.v.length-1))return; const c=sc(q), d=Math.hypot(c[0]-e.clientX,c[1]-e.clientY)-(si===sk.sel?3:0); if(d<best){best=d; hit={si,i};} }); });
+  return hit;
+}
+function skHint(){
+  if(!sk)return; const el=sk.bar.querySelector('#skhint'); if(!el)return; const t=sk.tool, s=sk.shapes[sk.sel]; let h;
+  if(t==='path')h=sk.cur?'Seguí tocando puntos. Tocá el primero para cerrar la forma, o Enter para terminar.':'Línea: tocá en el plano para poner el primer punto.';
+  else if(t==='arc')h=!sk.cur?'Arco: tocá el punto de inicio.':sk.arcEnd?'Ahora tocá un punto por donde pasa el arco.':'Tocá el punto final del arco.';
+  else if(t==='rect')h=sk.cur?'Soltá o tocá la esquina opuesta.':'Rectángulo: arrastrá en el plano de una esquina a la opuesta.';
+  else if(t==='circ')h=sk.cur?'Soltá o tocá un punto del borde.':'Círculo: arrastrá desde el centro hasta el borde.';
+  else if(t==='corner')h='Empalme: poné el radio y tocá una esquina (cuadradito) para redondearla.';
+  else if(!s)h='Seleccionar: tocá una forma o un cuadradito (nodo) para elegirlo.';
+  else if(sk.node>=0&&s.t==='circ')h='Centro seleccionado (naranja): arrastralo para mover el círculo.';
+  else if(sk.node>=0)h='Nodo seleccionado (naranja): arrastralo para moverlo, o usá el deslizador para redondear esa esquina.';
+  else h='Forma seleccionada: cambiá sus medidas abajo, tocá un nodo para moverlo, o usá el deslizador para redondear todas las esquinas.';
+  el.textContent=h;
+}
+function skDragMove(e){
+  const d=sk.drag; if(!d.moved){ if(Math.hypot(e.clientX-d.x0,e.clientY-d.y0)<4)return; d.moved=true; skPush(); }
+  const p=skPt(e,{si:d.si,i:d.i}); if(!p)return; const s=sk.shapes[d.si]; let t='X '+p.x+' · Y '+p.y;
+  if(s.t==='path')s.v[d.i].x=p.x, s.v[d.i].y=p.y;
+  else if(s.t==='circ')s.x=p.x, s.y=p.y;
+  else { const oldV=skVerts(s), D=oldV[d.i], O=oldV[(d.i+2)%4];
+    let w=Math.abs(p.x-d.opp.x), h=Math.abs(p.y-d.opp.y); if(w<0.01||h<0.01)return;
+    const x0=Math.min(p.x,d.opp.x), y0=Math.min(p.y,d.opp.y), idx=(nx,ny)=>{const ix=nx>x0+w/2?1:0, iy=ny>y0+h/2?1:0; return [[0,3],[1,2]][ix][iy];};
+    if(s.cr){ const nc=[0,0,0,0]; oldV.forEach((q,k)=>{ const nx=q[0]===D[0]?p.x:O[0], ny=q[1]===D[1]?p.y:O[1]; nc[idx(nx,ny)]=s.cr[k]||0; }); s.cr=nc; }
+    d.i=idx(p.x,p.y); sk.node=d.i; s.x=x0; s.y=y0; s.w=w; s.h=h; t+='  ·  '+(Math.round(w*100)/100)+' × '+(Math.round(h*100)/100)+' mm'; }
+  sk.dragTxt=t; skRedraw();
+}
+function skLiveCr(rr){
+  const s=sk.shapes[sk.sel]; if(!s||s.t==='circ')return; if(!sk.crLive){skPush(); sk.crLive=true;}
+  const P=s.t==='rect'?skRectP(s):s.v, cl=skIsClosed(s), idxs=(sk.node>=0&&sk.node<P.length)?[sk.node]:P.map((_,i)=>i);
+  idxs.forEach(i=>{ if(!cl&&(i===0||i===P.length-1))return; if(rr>0){const c=skCorner(P,i,rr,cl); if(!c||c.bad)return;} if(s.t==='rect'){s.cr=s.cr||[0,0,0,0]; s.cr[i]=rr;} else if(rr>0)s.v[i].cr=rr; else delete s.v[i].cr; });
+  skRedraw();
 }
 function skClear(grp){while(grp.children.length){const c=grp.children.pop(); if(c.geometry)c.geometry.dispose(); if(c.material)c.material.dispose();}}
 const skVerts=s=>s.t==='rect'?[[s.x,s.y],[s.x+s.w,s.y],[s.x+s.w,s.y+s.h],[s.x,s.y+s.h]]:s.t==='circ'?[[s.x,s.y]]:s.v.map(v=>[v.x,v.y]);
@@ -2861,16 +2904,24 @@ function skCurShape(){ // forma en curso (con el cursor como último punto)
   return null;
 }
 function skRedraw(){
-  if(!sk)return; skClear(sk.lines);
+  if(!sk)return; skClear(sk.lines); if(sk.sel<0||!sk.shapes[sk.sel])sk.node=-1;
   sk.shapes.forEach((s,i)=>{
-    const col=i===sk.sel?0x8db9ff:skIsClosed(s)?0xF5C451:0xff8c6b;
-    sk.lines.add(skLine(skTess(s),col,skIsClosed(s))); sk.lines.add(skDots(skVerts(s),col));
+    const isSel=i===sk.sel, dim=sk.sel>=0&&!isSel, cl=skIsClosed(s), pts=skTess(s);
+    const col=isSel?0xBFE0FF:cl?0xF5C451:0xff8c6b, op=dim?.5:1;
+    if(isSel){
+      if(cl){const f=skFill(pts); if(f)sk.lines.add(f);}
+      [[0,0],[.3,0],[-.3,0],[0,.3],[0,-.3]].forEach(o=>sk.lines.add(skLine(pts,col,cl,1,o[0],o[1])));
+    } else sk.lines.add(skLine(pts,col,cl,op));
+    sk.lines.add(skDots(skVerts(s),isSel?0x8db9ff:col,10));
   });
-  const p=skCurShape(); if(p){sk.lines.add(skLine(skTess(p),0xffffff,false)); sk.lines.add(skDots(skVerts(p),0xffffff));}
-  skLabel();
+  if(sk.hover&&sk.shapes[sk.hover.si]&&!(sk.hover.si===sk.sel&&sk.hover.i===sk.node)){const q=skVerts(sk.shapes[sk.hover.si])[sk.hover.i]; if(q)sk.lines.add(skDots([q],0x5CF2FF,15));}
+  if(sk.node>=0&&sk.shapes[sk.sel]){const q=skVerts(sk.shapes[sk.sel])[sk.node]; if(q)sk.lines.add(skDots([q],0xFF7A1A,16));}
+  const p=skCurShape(); if(p){sk.lines.add(skLine(skTess(p),0xffffff,false)); sk.lines.add(skDots(skVerts(p),0xffffff,10));}
+  skLabel(); skHint();
 }
 function skLabel(){
-  const el=sk.lab, p=skCurShape(), m=sk.mouse; if(!p||!m||!sk.me){el.hidden=true; return;}
+  const el=sk.lab; if(sk.drag&&sk.drag.moved&&sk.me){ const r=$('#wrap').getBoundingClientRect(), z=zf(); el.textContent=sk.dragTxt||''; el.hidden=false; el.style.left=((sk.me.x-r.left)/z+14)+'px'; el.style.top=((sk.me.y-r.top)/z+14)+'px'; return; }
+  const p=skCurShape(), m=sk.mouse; if(!p||!m||!sk.me){el.hidden=true; return;}
   let t=''; const f=x=>(Math.round(x*100)/100).toString().replace('.',',');
   if(p.t==='rect')t=f(Math.abs(p.w))+' × '+f(Math.abs(p.h))+' mm';
   else if(p.t==='circ')t='R '+f(p.r)+' mm  ·  Ø '+f(p.r*2);
@@ -2878,12 +2929,12 @@ function skLabel(){
   const r=$('#wrap').getBoundingClientRect(), z=zf();
   el.textContent=t; el.hidden=false; el.style.left=((sk.me.x-r.left)/z+14)+'px'; el.style.top=((sk.me.y-r.top)/z+14)+'px';
 }
-function skPt(e){
+function skPt(e,skip){
   const r=canvas.getBoundingClientRect(); skV2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); skRay.setFromCamera(skV2,cam);
   const pl=sk.plane==='xz'?new THREE.Plane(new THREE.Vector3(0,1,0),0):new THREE.Plane(new THREE.Vector3(0,0,1),0), hit=new THREE.Vector3();
   if(!skRay.ray.intersectPlane(pl,hit))return null;
   let u=hit.x, v=sk.plane==='xz'?-hit.z:hit.y, snapped=false;
-  const all=[]; sk.shapes.forEach(s=>all.push(...skVerts(s))); if(sk.cur)all.push(...(sk.cur.t==='path'?sk.cur.v.map(q=>[q.x,q.y]):[[sk.cur.x,sk.cur.y]]));
+  const all=[]; sk.shapes.forEach((s,si)=>skVerts(s).forEach((q,i)=>{ if(skip&&skip.si===si&&skip.i===i)return; all.push(q); })); if(sk.cur)all.push(...(sk.cur.t==='path'?sk.cur.v.map(q=>[q.x,q.y]):[[sk.cur.x,sk.cur.y]]));
   let best=11, bp=null; const sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
   for(const q of all){const s=sc(q), d=Math.hypot(s[0]-e.clientX,s[1]-e.clientY); if(d<best){best=d; bp=q;}}
   if(bp){u=bp[0]; v=bp[1]; snapped=true;} else if(sk.snap>0){u=Math.round(u/sk.snap)*sk.snap; v=Math.round(v/sk.snap)*sk.snap;}
@@ -2916,15 +2967,17 @@ function skClick(e){
     if(!test){skWarn('Ahí no hay una esquina para redondear (los lados están alineados).'); return;}
     skPush();
     if(hit.s.t==='rect'){hit.s.cr=hit.s.cr||[0,0,0,0]; hit.s.cr[hit.i]=rr;} else if(rr>0)hit.s.v[hit.i].cr=rr; else delete hit.s.v[hit.i].cr;
-    sk.sel=hit.si; skRedraw(); skDims();
+    sk.sel=hit.si; sk.node=hit.i; skRedraw(); skDims();
     msg(rr>0?('Esquina redondeada con radio '+(Math.round(test.reff*100)/100)+' mm'+(test.clamped?' (el radio era muy grande para ese lado y se achicó)':'')+'.'):'Esquina vuelta recta.');
     return;
   }
   if(t==='sel'){
+    const h=skNodeAt(e);
+    if(h){ sk.sel=h.si; sk.node=h.i; sk.drag={si:h.si,i:h.i,x0:e.clientX,y0:e.clientY,moved:false}; const sh=sk.shapes[h.si]; if(sh.t==='rect'){const V=skVerts(sh)[(h.i+2)%4]; sk.drag.opp={x:V[0],y:V[1]};} skRedraw(); skDims(); return; }
     let best=1e9, bi=-1; const r=canvas.getBoundingClientRect(), sc=q=>{const w=skW(q[0],q[1]).project(cam); return [r.left+(w.x+1)/2*r.width, r.top+(1-w.y)/2*r.height];};
     sk.shapes.forEach((s,i)=>{const pts=skTess(s).map(sc), n=pts.length, cl=skIsClosed(s);
       for(let k=0;k<(cl?n:n-1);k++){const a=pts[k], b=pts[(k+1)%n], dx=b[0]-a[0], dy=b[1]-a[1], L=dx*dx+dy*dy||1, u=Math.max(0,Math.min(1,((e.clientX-a[0])*dx+(e.clientY-a[1])*dy)/L)), d=Math.hypot(a[0]+u*dx-e.clientX,a[1]+u*dy-e.clientY); if(d<best){best=d; bi=i;}}});
-    sk.sel=best<14?bi:-1; skRedraw(); skDims(); return;
+    sk.sel=best<14?bi:-1; sk.node=-1; skRedraw(); skDims(); return;
   }
   if(t==='rect'||t==='circ'){
     if(!sk.cur){sk.cur={t,x:p.x,y:p.y}; skRedraw(); return;}
@@ -2963,7 +3016,7 @@ function skDims(){
     const r=document.createElement('input'); r.type='range'; r.min=0; r.max=30; r.step=0.5; r.dataset.cr='r';
     const n=document.createElement('input'); n.type='number'; n.min=0; n.step=0.5; n.dataset.cr='n';
     const sr=document.createElement('div'); sr.className='skf'; sr.append(r,n,' mm'); c.appendChild(sr); skCrBind(c);
-    const hint=document.createElement('small'); hint.textContent='Tocá una esquina del dibujo (herramienta Empalme) o usá estos botones:'; c.appendChild(hint);
+    const hint=document.createElement('small'); hint.textContent=(sk.node>=0?'El deslizador cambia solo la esquina seleccionada (nodo naranja).':'El deslizador cambia todas las esquinas de la forma, en vivo. Para una sola, tocá su nodo.')+' O usá estos botones:'; c.appendChild(hint);
     const setAll=(rr)=>{ const P=s.t==='rect'?skRectP(s):s.v, cl=skIsClosed(s); let k=0, skipped=0; skPush();
       P.forEach((q,i)=>{ if(!cl&&(i===0||i===P.length-1))return; const cc=skCorner(P,i,rr>0?rr:1,cl); if(!cc||cc.bad){skipped++; return;} k++; if(s.t==='rect'){s.cr=s.cr||[0,0,0,0]; s.cr[i]=rr;} else if(rr>0)s.v[i].cr=rr; else delete s.v[i].cr; });
       skRedraw(); skDims(); msg(rr>0?(k+' esquina(s) redondeada(s)'+(skipped?'; '+skipped+' no se pudieron (tocan un arco o están alineadas)':'')+'.'):'Esquinas vueltas rectas.'); };
@@ -3015,7 +3068,7 @@ function skSync(){
   sk.bar.querySelector('#skctx').hidden=sk.tool!=='corner'; const wp=$('#wrap'); wp.classList.toggle('sksel',sk.tool==='sel'); wp.classList.toggle('skcor',sk.tool==='corner');
 }
 function skSetCr(x,from){ sk.cr=x; sk.bar.querySelectorAll('[data-cr]').forEach(i=>{ if(i!==from)i.value=x; }); }
-function skCrBind(root){ root.querySelectorAll('[data-cr]').forEach(i=>{ i.value=sk.cr; i.oninput=()=>{const x=parseFloat(i.value); if(x>=0)skSetCr(x,i);}; i.onchange=()=>{const x=parseFloat(i.value); if(!(x>=0))i.value=sk.cr;}; }); }
+function skCrBind(root){ root.querySelectorAll('[data-cr]').forEach(i=>{ i.value=sk.cr; i.oninput=()=>{const x=parseFloat(i.value); if(!(x>=0))return; skSetCr(x,i); skLiveCr(x);}; i.onchange=()=>{const x=parseFloat(i.value); if(!(x>=0)){i.value=sk.cr; return;} if(sk.crLive){sk.crLive=false; skDims();}}; }); }
 function skWarn(t){ msg(t); let w=$('#skwarn'); if(!w){w=document.createElement('div'); w.id='skwarn'; $('#wrap').appendChild(w);} w.textContent=t; w.hidden=false; clearTimeout(skWarn.t); skWarn.t=setTimeout(()=>{w.hidden=true;},4500); }
 async function skFinish(mode){
   if(!sk)return; if(sk.cur&&sk.cur.t==='path')skFinishPath(false);
@@ -3049,6 +3102,7 @@ function skStart(o={}){
   const tb=(k,l,attr,t)=>'<button type="button" class="skt" '+attr+' title="'+t+'"><svg viewBox="0 0 24 24">'+IC[k]+'</svg><span>'+l+'</span></button>';
   const bar=document.createElement('div'); bar.id='skbar'; bar.innerHTML=
     '<div class="skhd" title="Arrastrá para mover el panel"><span>⠿ Sketch</span><small>arrastrá para mover</small><button type="button" id="skmin" title="Achicar o agrandar el panel">–</button></div>'+
+    '<div class="skhint" id="skhint"></div>'+
     '<div class="skr skmain">'+
     '<div class="skgp"><small>Dibujar</small><span class="skg">'+tb('path','Línea','data-t="path"','Línea: tocá los puntos')+tb('arc','Arco','data-t="arc"','Arco: inicio, final y un punto por donde pasa')+tb('rect','Rectángulo','data-t="rect"','Rectángulo: arrastrá o tocá dos esquinas')+tb('circ','Círculo','data-t="circ"','Círculo: centro y un punto del borde')+'</span></div>'+
     '<div class="skgp"><small>Modificar</small><span class="skg">'+tb('corner','Empalme','data-t="corner"','Empalme: redondear una esquina')+tb('off','Desfase','id="skoffb"','Desfase: agrega un contorno paralelo a la forma seleccionada')+tb('mir','Simetría','id="skmirb"','Simetría: copia espejada de la forma seleccionada')+'</span></div>'+
@@ -3084,7 +3138,10 @@ function skStart(o={}){
 }
 canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; const had=!!sk.cur; skClick(e); sk.dn=(!had&&sk.cur&&(sk.cur.t==='rect'||sk.cur.t==='circ'))?{x:e.clientX,y:e.clientY}:null; },true);
 addEventListener('pointerup',e=>{ if(!sk||!sk.dn)return; const d=sk.dn; sk.dn=null; if(e.button!==0||!sk.cur||Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return; skClick(e); });
-canvas.addEventListener('pointermove',e=>{ if(!sk)return; const p=skPt(e); if(!p)return; sk.mouse=p; sk.me={x:e.clientX,y:e.clientY}; if(sk.cur)skRedraw(); else sk.lab.hidden=true; });
+canvas.addEventListener('pointermove',e=>{ if(!sk)return; sk.me={x:e.clientX,y:e.clientY}; if(sk.drag){skDragMove(e); return;} const p=skPt(e); if(!p)return; sk.mouse=p;
+  if(sk.tool==='sel'||sk.tool==='corner'){ const h=skNodeAt(e,sk.tool==='corner'), k=h?h.si+':'+h.i:''; if(k!==sk.hk){sk.hk=k; sk.hover=h; skRedraw();} if(sk.tool==='sel')canvas.style.cursor=h?'move':''; }
+  if(sk.cur)skRedraw(); else sk.lab.hidden=true; });
+addEventListener('pointerup',e=>{ if(!sk||!sk.drag)return; const d=sk.drag; sk.drag=null; sk.lab.hidden=true; if(d.moved){ skRedraw(); skDims(); msg('Nodo movido.'); } });
 canvas.addEventListener('dblclick',e=>{ if(sk&&sk.cur&&sk.cur.t==='path'){e.preventDefault(); const v=sk.cur.v; if(v.length>=2&&Math.hypot(v[v.length-1].x-v[v.length-2].x,v[v.length-1].y-v[v.length-2].y)<1e-6)v.pop(); skFinishPath(false);} });
 addEventListener('keydown',e=>{
   if(!sk)return; const inp=e.target&&e.target.closest&&e.target.closest('input,select,textarea'); if(inp)return;
