@@ -32,6 +32,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Botón + amarillo** a la izquierda de las pestañas (o tecla A): menú con las formas básicas y Más formas, disponible en cualquier pestaña. La pestaña Crear queda con Texto 3D, SVG, Sketch 2D, Importar y Biblioteca.
 - **Recorrido inicial** la primera vez que abrís la app (se vuelve a ver desde la ayuda, ?).
 - **Cortar unificado**: un solo botón con dos modos, en partes iguales con uniones o con un plano. En el celular queda solo Dividir.
 - **Celular simplificado**: se ocultan las funciones avanzadas. Aspecto sin la calidad Máxima y panel de medidas sin Más/Menos.
