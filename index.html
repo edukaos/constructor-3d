@@ -751,13 +751,14 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #wrap.sketching canvas{cursor:crosshair}
 #skwarn{position:absolute;left:50%;top:38%;transform:translateX(-50%);max-width:min(420px,86%);z-index:60;background:#2a1d00;color:#ffd77a;border:1px solid #f5c451;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.35;text-align:center;pointer-events:none;box-shadow:none}
 #skwarn[hidden]{display:none}
-#ribbon .rplus{align-self:center;flex:none;width:36px;height:36px;margin:0 8px 0 2px;padding:0!important;border:0!important;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(135deg,#F5C451,#FFD979)!important;color:#1A1405!important;box-shadow:0 2px 10px rgba(245,196,81,.35)}
-#ribbon .rplus svg{width:22px;height:22px;stroke:#1A1405!important;fill:none!important}
-#ribbon .rplus svg path{stroke:#1A1405!important;fill:none!important}
-#ribbon .rplus.on{outline:2px solid #fff3}
-#ribbon .rplus.hint{animation:plusPulse 1.6s ease-in-out infinite}
+html body .rplus{position:absolute;z-index:8;top:calc(6px + 44px + 4px);left:var(--g);width:84px;height:var(--rh);box-sizing:border-box;padding:0;border:0;border-radius:var(--r-xl,18px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;font:inherit;font-size:13px;font-weight:650;background:linear-gradient(135deg,#F5C451,#FFD979);color:#1A1405;box-shadow:0 2px 10px rgba(245,196,81,.35)}
+html body .rplus svg{width:44px;height:44px;stroke:#1A1405;fill:none}
+html body .rplus svg path{stroke:#1A1405;fill:none}
+html body .rplus.on{outline:2px solid rgba(255,255,255,.3)}
+html body #ribbon{left:calc(var(--g) + 84px + 8px)}
+.rplus.hint{animation:plusPulse 1.6s ease-in-out infinite}
 @keyframes plusPulse{0%,100%{box-shadow:0 2px 10px rgba(245,196,81,.35),0 0 0 0 rgba(245,196,81,.55)}50%{box-shadow:0 2px 14px rgba(245,196,81,.6),0 0 0 9px rgba(245,196,81,0)}}
-@media (prefers-reduced-motion:reduce){#ribbon .rplus.hint{animation:none;box-shadow:0 0 0 3px rgba(245,196,81,.55)}}
+@media (prefers-reduced-motion:reduce){.rplus.hint{animation:none;box-shadow:0 0 0 3px rgba(245,196,81,.55)}}
 #plusmenu{position:fixed;z-index:250;background:#101d33;border:1px solid #27395a;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 #plusmenu[hidden]{display:none}
 #plusmenu .pmgrid{display:grid;grid-template-columns:repeat(5,76px);gap:4px}
@@ -2640,7 +2641,7 @@ $('#sparts').onclick=()=>{ endSplit(); setTimeout(()=>$('#fitbtn').click(),0); }
 // ===== Recorrido inicial =====
 const TOUR_STEPS=[
   {t:'Bienvenido a Constructor 3D',x:'Te muestro lo básico en menos de un minuto. Podés saltearlo cuando quieras y volver a verlo desde la ayuda (?).'},
-  {q:['#ribbon .rplus','#ribbon','#shapes','#quick'],t:'Agregá formas',x:'Tocá el + amarillo para elegir una forma y ponerla en el centro de la cama (también con la tecla A). En la pestaña Crear están el Texto 3D, el SVG, el Sketch 2D y tu Biblioteca.'},
+  {q:['.rplus','#ribbon','#shapes','#quick'],t:'Agregá formas',x:'Tocá el + amarillo para elegir una forma y ponerla en el centro de la cama (también con la tecla A). En la pestaña Crear están el Texto 3D, el SVG, el Sketch 2D y tu Biblioteca.'},
   {q:['#trail','#lrail'],t:'Mové, rotá y escalá',x:'Elegí una pieza y usá estos botones, o arrastrá las flechas de colores que aparecen sobre ella.'},
   {q:['#ribbon .rtabs [data-t=modificar]','[data-op=union]'],t:'Combiná y dá forma',x:'Unir, Restar e Intersectar combinan piezas. Con Agujero una pieza se resta. Vaciar, Redondear y Cortar le dan forma.'},
   {q:['#insp #dims','#dims'],t:'Medidas exactas',x:'Con la pieza elegida podés escribir medidas, posición, rotación y color en números.'},
@@ -3537,7 +3538,7 @@ msg(matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-trans
 
   // --- botón + (formas), siempre a mano en cualquier pestaña ---
   const plus=mkEl('button',null,'rplus'); plus.type='button'; plus.title='Agregar una forma (A)'; plus.setAttribute('aria-haspopup','true'); plus.setAttribute('aria-expanded','false'); plus.setAttribute('aria-label','Agregar una forma');
-  plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'; rtabs.insertBefore(plus,rtabs.firstChild);
+  plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg><span>Agregar</span>'; body.appendChild(plus);
   const pmenu=mkEl('div','plusmenu'); pmenu.hidden=true; pmenu.setAttribute('role','menu'); const pgrid=mkEl('div',null,'pmgrid'); pmenu.appendChild(pgrid);
   [['box','Cubo'],['sphere','Esfera'],['cylinder','Cilindro'],['cone','Cono'],['torus','Toroide'],['tube','Tubo'],['hemi','Media esfera'],['pyramid','Pirámide'],['hex','Prisma hex.'],['wedge','Cuña']].forEach(([k,l])=>addProxy(pgrid,'[data-add="'+k+'"]',l));
   addProxy(pmenu,'#shpbtn','Más formas',false,'pmmore'); document.body.appendChild(pmenu);
