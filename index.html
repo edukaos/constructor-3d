@@ -1261,19 +1261,41 @@ const sh=[];
   const nz=(x!==0)+(y!==0)+(z!==0); if(nz===0||nz===2)return;
   const face=nz===1;
   const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:face?0xff8a3d:0xF5C451,depthTest:false,transparent:true}));
-  m.renderOrder=999; m.visible=false; m.userData={s:new THREE.Vector3(x,y,z),face}; scene.add(m); sh.push(m);
+  m.renderOrder=999; m.visible=false; m.material.visible=false; m.userData={s:new THREE.Vector3(x,y,z),face}; scene.add(m); sh.push(m);
 })));
-// --- Manipular: anillo de rotación, flecha para subir ---
-const frRing=new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({length:97},(_,i)=>new THREE.Vector3(Math.cos(i/96*Math.PI*2),0,Math.sin(i/96*Math.PI*2)))),new THREE.LineBasicMaterial({color:0xF5C451,depthTest:false,transparent:true,opacity:.9}));
-frRing.renderOrder=997; frRing.visible=false; scene.add(frRing);
-const frKnobs=[0,1,2,3].map(()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:0xF5C451,depthTest:false,transparent:true})); m.renderOrder=999; m.visible=false; scene.add(m); return m;});
+const hvArr=new Float32Array(sh.length*3), hvAttr=new THREE.BufferAttribute(hvArr,3);
+const mkHv=(col,size,ro)=>{const g=new THREE.BufferGeometry(); g.setAttribute('position',hvAttr); const p=new THREE.Points(g,new THREE.PointsMaterial({color:col,size,sizeAttenuation:false,depthTest:false,transparent:true})); p.renderOrder=ro; p.frustumCulled=false; p.visible=false; scene.add(p); return p;};
+const hvBack=mkHv(0x10203a,11,998), hvFront=mkHv(0xffffff,7.5,999);
+// --- Manipular: flechas curvas de rotación, flecha para subir, anillo al rotar, cotas al origen ---
 const frArrow=new THREE.Mesh(new THREE.ConeGeometry(1,2,18),new THREE.MeshBasicMaterial({color:0xF5C451,depthTest:false,transparent:true})); frArrow.renderOrder=999; frArrow.visible=false; scene.add(frArrow);
+const rotTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=96; const g=c.getContext('2d'); g.lineCap='round'; g.lineJoin='round';
+  const cx=48, cy=60, R=26, t0=Math.PI*1.12, t1=Math.PI*1.88, P=t=>[cx+R*Math.cos(t),cy+R*Math.sin(t)];
+  const head=(t,dir)=>{const [x,y]=P(t), tx=-Math.sin(t)*dir, ty=Math.cos(t)*dir, nx=Math.cos(t), ny=Math.sin(t); g.beginPath(); g.moveTo(x+tx*13,y+ty*13); g.lineTo(x+nx*9,y+ny*9); g.lineTo(x-nx*9,y-ny*9); g.closePath();};
+  [['#0b1a33',12],['#ffffff',5]].forEach(([col,w])=>{ g.strokeStyle=col; g.fillStyle=col; g.lineWidth=w; g.beginPath(); g.arc(cx,cy,R,t0,t1); g.stroke(); head(t0,-1); g.lineWidth=w>6?10:3; g.fill(); g.stroke(); head(t1,1); g.fill(); g.stroke(); });
+  const tx=new THREE.CanvasTexture(c); return tx; })();
+const frRot=[0,1].map(()=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:rotTex,depthTest:false,transparent:true,sizeAttenuation:false})); sp.scale.set(0.06,0.06,1); sp.renderOrder=999; sp.visible=false; scene.add(sp);
+  const pk=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({visible:false})); pk.visible=false; scene.add(pk); sp.userData.pk=pk; return sp;});
+const rotFx=new THREE.Group(); rotFx.visible=false; scene.add(rotFx);
+{ const ring=new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({length:97},(_,i)=>new THREE.Vector3(Math.cos(i/96*Math.PI*2),0,Math.sin(i/96*Math.PI*2)))),new THREE.LineBasicMaterial({color:0x6ad0ff,depthTest:false,transparent:true})); ring.renderOrder=996; rotFx.add(ring);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMaterial({color:0x6ad0ff,transparent:true,opacity:.12,depthTest:false,depthWrite:false,side:THREE.DoubleSide})); disc.rotation.x=-Math.PI/2; disc.renderOrder=995; rotFx.add(disc);
+  const pts=[]; for(let i=0;i<24;i++){const a=i/24*Math.PI*2, r0=i%3===0?0.86:0.93; pts.push(new THREE.Vector3(Math.cos(a)*r0,0,Math.sin(a)*r0),new THREE.Vector3(Math.cos(a),0,Math.sin(a)));}
+  const ticks=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x9fe4ff,depthTest:false,transparent:true})); ticks.renderOrder=996; rotFx.add(ticks);
+  const wedge=new THREE.Mesh(new THREE.CircleGeometry(1,2),new THREE.MeshBasicMaterial({color:0xFF9A3D,transparent:true,opacity:.4,depthTest:false,depthWrite:false,side:THREE.DoubleSide})); wedge.rotation.x=-Math.PI/2; wedge.renderOrder=997; rotFx.add(wedge); rotFx.userData.wedge=wedge; }
+function rotWedge(a0,dl){ const w=rotFx.userData.wedge; w.geometry.dispose(); const st=dl>=0?a0:a0+dl, len=Math.max(0.001,Math.abs(dl)); w.geometry=new THREE.CircleGeometry(1,Math.max(2,Math.ceil(len/0.1)),st,len); }
+const mvLines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffffff,depthTest:false,transparent:true,opacity:.9})); mvLines.renderOrder=997; mvLines.frustumCulled=false; mvLines.visible=false; scene.add(mvLines);
+function showMoveDims(o){
+  const bb=bbox(o), px=(bb.min.x+bb.max.x)/2<0?bb.max.x:bb.min.x, pz=(bb.min.z+bb.max.z)/2<0?bb.max.z:bb.min.z, y=0.15, V=THREE.Vector3;
+  const P=mvLines.geometry.attributes.position; [new V(px,y,pz),new V(0,y,pz),new V(px,y,pz),new V(px,y,0)].forEach((v,i)=>P.setXYZ(i,v.x,v.y,v.z)); P.needsUpdate=true; mvLines.visible=true;
+  const f=v=>Math.abs(v).toLocaleString('es-AR',{maximumFractionDigits:1})+' mm';
+  [['#cx',new V(px/2,y,pz),px],['#cz',new V(px,y,pz/2),pz]].forEach(([id,pt,val])=>{const el=$(id); el.hidden=false; el.textContent=f(val); place(el,pt);});
+  $('#cy').hidden=true;
+}
 function updateFreeUI(o,on){
-  frRing.visible=on; frArrow.visible=on; frKnobs.forEach(k=>k.visible=on); if(!on)return;
-  const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), r=0.5*Math.hypot(bb.max.x-bb.min.x,bb.max.z-bb.min.z)+10;
-  frRing.position.set(c.x,bb.min.y+0.15,c.z); frRing.scale.set(r,1,r);
-  frKnobs.forEach((k,i)=>{const a=Math.PI/4+i*Math.PI/2; k.position.set(c.x+Math.cos(a)*r,bb.min.y+0.15,c.z+Math.sin(a)*r); k.scale.setScalar(camK(k.position)*0.012);});
-  const k=camK(new THREE.Vector3(c.x,bb.max.y,c.z)); frArrow.position.set(c.x,bb.max.y+k*0.075,c.z); frArrow.scale.setScalar(k*0.014);
+  frArrow.visible=on; frRot.forEach(r=>{r.visible=on; r.userData.pk.visible=on;}); if(!on)return;
+  const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
+  frArrow.position.set(c.x,bb.max.y+k*0.075,c.z); frArrow.scale.setScalar(k*0.011);
+  const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.19,c.z),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z)];
+  frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.024);});
 }
 function updateScaleUI(){
   const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!M_(o).l&&!placing&&(!freeUI||sel.length===1));
@@ -1281,7 +1303,7 @@ function updateScaleUI(){
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
   updateFreeUI(o,on&&freeUI);
-  if(!on){hideCotas();return;}
+  if(!on){hideCotas(); mvLines.visible=false; hvBack.visible=hvFront.visible=false; return;}
   if(sgCache.g!==o.geometry){o.geometry.computeBoundingBox(); sgCache.g=o.geometry; sgCache.min=o.geometry.boundingBox.min.clone(); sgCache.max=o.geometry.boundingBox.max.clone();}
   const mn=sgCache.min, mx=sgCache.max, c=mn.clone().add(mx).multiplyScalar(0.5);
   sg.position.copy(o.position); sg.quaternion.copy(o.quaternion); sg.scale.copy(o.scale);
@@ -1289,9 +1311,10 @@ function updateScaleUI(){
   sh.forEach(h=>{
     const s=h.userData.s, lp=new THREE.Vector3(s.x>0?mx.x:s.x<0?mn.x:c.x, s.y>0?mx.y:s.y<0?mn.y:c.y, s.z>0?mx.z:s.z<0?mn.z:c.z);
     h.position.copy(lp.multiply(o.scale).applyQuaternion(o.quaternion).add(o.position));
-    h.scale.setScalar(camK(h.position)*(h.userData.face?0.011:0.015));
+    h.scale.setScalar(camK(h.position)*0.016);
   });
-  showCotas(o,mn,mx);
+  sh.forEach((h,i)=>{hvArr[i*3]=h.position.x; hvArr[i*3+1]=h.position.y; hvArr[i*3+2]=h.position.z;}); hvAttr.needsUpdate=true; hvBack.visible=hvFront.visible=true;
+  if(sdrag)showCotas(o,mn,mx,{x:sdrag.s.x!==0,y:sdrag.s.y!==0,z:sdrag.s.z!==0}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
 }
 const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
 const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
@@ -2091,11 +2114,11 @@ function place(el,p){
   el.style.visibility=''; el.style.left=x+'px'; el.style.top=y+'px';
 }
 function hideCotas(){['#cx','#cy','#cz'].forEach(i=>{$(i).hidden=true;});}
-function showCotas(o,mn,mx){
+function showCotas(o,mn,mx,axes){
   o.updateMatrixWorld(true); const V=THREE.Vector3, W=v=>v.applyMatrix4(o.matrixWorld), s=mx.clone().sub(mn).multiply(o.scale);
   const f=v=>Math.abs(v).toLocaleString('es-AR',{maximumFractionDigits:1})+' mm';
   [[new V(mn.x,mn.y,mx.z),new V(mx.x,mn.y,mx.z),'#cx',s.x],[new V(mx.x,mn.y,mx.z),new V(mx.x,mx.y,mx.z),'#cy',s.y],[new V(mx.x,mn.y,mn.z),new V(mx.x,mn.y,mx.z),'#cz',s.z]]
-    .forEach(([a,b,id,val])=>{const el=$(id); el.hidden=false; if(!el.dataset.edit)el.textContent=f(val); place(el,W(a).add(W(b)).multiplyScalar(0.5));});
+    .forEach(([a,b,id,val],i)=>{const el=$(id); if(axes&&!axes['xyz'[i]]){el.hidden=true; return;} el.hidden=false; if(!el.dataset.edit)el.textContent=f(val); place(el,W(a).add(W(b)).multiplyScalar(0.5));});
 }
 function updateOverlays(){
   if(!meas.g.children.length)return;
@@ -2173,8 +2196,7 @@ function freeOk(e){return freeUI&&!placing&&!splitting&&!tool&&!sk&&!(e.shiftKey
 function freePick(e){
   setRay(e); const o=sel[sel.length-1], single=sel.length===1&&o&&!M_(o).l;
   if(single){
-    const lt=ray2.params.Line.threshold; ray2.params.Line.threshold=camK(frRing.position)*0.018;
-    const hr=ray2.intersectObjects([frArrow,...frKnobs,frRing].filter(h=>h.visible),false)[0]; ray2.params.Line.threshold=lt;
+    const hr=ray2.intersectObjects([frArrow,...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
     if(hr)return {k:hr.object===frArrow?'lift':'rot',o};
   }
   const hp=ray2.intersectObjects(pickable(),false)[0]; if(hp)return {k:'body',o:hp.object,point:hp.point.clone()};
@@ -2186,7 +2208,8 @@ canvas.addEventListener('pointerdown',e=>{
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
   const o=h.o; let d={k:h.k,o,moved:false,x0:e.clientX,y0:e.clientY};
   if(h.k==='body'){ if(!sel.includes(o))select([o]); d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone()); }
-  else if(h.k==='rot'){ const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone(); }
+  else if(h.k==='rot'){ const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone();
+    const r=0.5*Math.hypot(bb.max.x-bb.min.x,bb.max.z-bb.min.z)+14; rotFx.position.set(c.x,bb.min.y+0.15,c.z); rotFx.scale.setScalar(r); rotWedge(d.a0,0); rotFx.visible=true; }
   else { const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), n=new THREE.Vector3(cam.position.x-c.x,0,cam.position.z-c.z); if(n.lengthSq()<1e-6)n.set(0,0,1); n.normalize(); d.pl=new THREE.Plane(n,-n.dot(c)); const P=fPlane(e,d.pl)||c; d.y0=P.y; d.p0=o.position.y; }
   fdrag=d;
 },true);
@@ -2201,7 +2224,8 @@ canvas.addEventListener('pointermove',e=>{
     flabShow(e,'X '+(Math.round(o.position.x*10)/10)+' · Z '+(Math.round(o.position.z*10)/10)); updateDims();
   } else if(d.k==='rot'){
     const P=fPlane(e,d.pl); if(!P)return; let dl=Math.atan2(-(P.z-d.c.z),P.x-d.c.x)-d.a0;
-    if(snapOn){const s15=Math.PI/12; dl=Math.round(dl/s15)*s15;}
+    if(e.shiftKey){const s45=Math.PI/4; dl=Math.round(dl/s45)*s45;} else if(snapOn){const s15=Math.PI/12; dl=Math.round(dl/s15)*s15;}
+    rotWedge(d.a0,dl);
     o.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(fUp,dl).multiply(d.q0));
     let deg=Math.round(dl*180/Math.PI); deg=((deg+180)%360+360)%360-180; flabShow(e,(deg>0?'+':'')+deg+'°'); updateDims();
   } else {
@@ -2210,7 +2234,7 @@ canvas.addEventListener('pointermove',e=>{
     flabShow(e,'Altura del piso: '+(Math.round(bbox(o).min.y*10)/10)+' mm'); updateDims();
   }
 });
-const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; orbit.enabled=true; if(d.moved){updateDims(); commit();} };
+const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved){updateDims(); commit();} };
 canvas.addEventListener('pointerup',endFree); canvas.addEventListener('pointercancel',endFree);
 
 // ===== Selección bien marcada: contorno brillante + cartel con la cantidad =====
