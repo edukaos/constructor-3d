@@ -2161,7 +2161,7 @@ function finishPlace(){
   placeMark.visible=false; placeBar.hidden=true; canvas.style.cursor='';
   select([m]); updateDims(); commit();
   const sb=document.querySelector('[data-mode=free]'); if(sb)sb.click();
-  msg('Pieza apoyada. Arrastrala para moverla, usá los puntos para escalar, el anillo para rotar y la flecha amarilla para subirla. Clic en una cota para escribir la medida.');
+  msg('Pieza apoyada. Arrastrala para moverla, usá los puntos para escalar, las flechas curvas para rotar (un clic en ellas abre los 3 anillos) y la flecha amarilla para subirla. Clic en una cota para escribir la medida.');
 }
 function cancelPlace(silent){
   if(!placing)return; const m=placing.m; placing=null;
@@ -2234,7 +2234,7 @@ canvas.addEventListener('pointermove',e=>{
     flabShow(e,'Altura del piso: '+(Math.round(bbox(o).min.y*10)/10)+' mm'); updateDims();
   }
 });
-const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved){updateDims(); commit();} };
+const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved){updateDims(); commit();} else if(d.k==='rot'){ const rb=document.querySelector('[data-mode=rotate]'); if(rb){rb.click(); msg('Rotar: arrastrá un anillo de color (X rojo, Y verde, Z azul). Para volver, tocá Manipular.');} } };
 canvas.addEventListener('pointerup',endFree); canvas.addEventListener('pointercancel',endFree);
 
 // ===== Selección bien marcada: contorno brillante + cartel con la cantidad =====
