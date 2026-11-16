@@ -801,6 +801,10 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #wrap.sketching.sksel canvas{cursor:default}
 #wrap.sketching.skcor canvas{cursor:pointer}
 #wrap.sketching #insp{display:none}
+#selbadge{position:absolute;left:50%;top:calc(var(--top,8px) + 8px);transform:translateX(-50%);z-index:8;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 14px;border-radius:12px;background:rgba(40,30,6,.92);border:1px solid #F5C451;color:#F5D36B;font-size:12px;pointer-events:none;max-width:60%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#selbadge b{color:#fff;font-size:13px}
+#selbadge span{opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#selbadge[hidden]{display:none}
 #placebar{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);z-index:9;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(22,34,58,.94);border:1px solid #F5C451;color:#F5D36B;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:nowrap}
 #placebar[hidden]{display:none}
 #placebar button{height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:inherit;cursor:pointer}
@@ -989,12 +993,13 @@ function refreshBtns(){
   {const hb=document.querySelector('#hole'); if(hb)hb.classList.toggle('on',sel.length>0&&sel.every(o=>M_(o).k));}
   set('#dup',!sel.length); set('#dividir',!sel.length); set('#ground',!sel.length); set('#alinear',!sel.length); set('#del',!sel.length); set('#stl',!objs.length); set('#chk',!objs.length);
 }
-let ghostOn=false;
+let ghostOn=false, dimOn=!matchMedia('(pointer:coarse)').matches;
 function applyGhost(){
   objs.forEach(o=>{
-    const mm=M_(o), k=mm.k, g=ghostOn&&sel.length>0&&!sel.includes(o), m=o.material, tr=g||k;
+    if(typeof placing!=='undefined'&&placing&&placing.m===o)return;
+    const mm=M_(o), k=mm.k, dim=!ghostOn&&dimOn&&sel.length>0&&objs.length>1&&!sel.includes(o), g=(ghostOn&&sel.length>0&&!sel.includes(o))||dim, m=o.material, tr=g||k;
     if(m.transparent!==tr){m.transparent=tr;m.needsUpdate=true;}
-    m.opacity=k?(g?0.15:0.4):g?0.25:1; m.depthWrite=!tr;
+    m.opacity=k?(g?0.15:0.4):dim?0.55:g?0.25:1; m.depthWrite=dim?true:!tr;
     o.visible=!mm.h; holeEdges(o,k);
   });
 }
@@ -2207,6 +2212,41 @@ canvas.addEventListener('pointermove',e=>{
 });
 const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; orbit.enabled=true; if(d.moved){updateDims(); commit();} };
 canvas.addEventListener('pointerup',endFree); canvas.addEventListener('pointercancel',endFree);
+
+// ===== Selección bien marcada: contorno brillante + cartel con la cantidad =====
+const hullGeos=new WeakMap(), hulls=new Map();
+const hullMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{uPx:{value:3},uRes:{value:new THREE.Vector2(1,1)},uCol:{value:new THREE.Color(0xFFD23F)}},
+  vertexShader:'attribute vec3 aNorm; uniform float uPx; uniform vec2 uRes; void main(){ vec4 clip=projectionMatrix*modelViewMatrix*vec4(position,1.0); vec3 nv=normalize(normalMatrix*aNorm); vec2 nd=(projectionMatrix*vec4(nv,0.0)).xy; float l=length(nd); if(l>1e-5)nd/=l; clip.xy+=nd*(uPx*2.0/uRes)*clip.w; gl_Position=clip; }',
+  fragmentShader:'uniform vec3 uCol; void main(){ gl_FragColor=vec4(uCol,1.0); }'});
+function hullGeo(g){
+  if(hullGeos.has(g))return hullGeos.get(g);
+  const pos=g.attributes.position, idx=g.index, n=idx?idx.count:pos.count; let out=null;
+  if(n/3<=150000){
+    const key=i=>Math.round(pos.getX(i)*1000)+','+Math.round(pos.getY(i)*1000)+','+Math.round(pos.getZ(i)*1000), acc=new Map(), A=new THREE.Vector3(), B=new THREE.Vector3(), C=new THREE.Vector3(), N=new THREE.Vector3();
+    const vi=t=>idx?idx.getX(t):t;
+    for(let t=0;t<n;t+=3){ const a=vi(t),b=vi(t+1),c=vi(t+2); A.fromBufferAttribute(pos,a); B.fromBufferAttribute(pos,b); C.fromBufferAttribute(pos,c); N.crossVectors(B.clone().sub(A),C.clone().sub(A));
+      [a,b,c].forEach(v=>{const k=key(v); const s0=acc.get(k); if(s0)s0.add(N); else acc.set(k,N.clone());}); }
+    const nr=new Float32Array(pos.count*3), T=new THREE.Vector3();
+    for(let i=0;i<pos.count;i++){ T.copy(acc.get(key(i))||N.set(0,1,0)).normalize(); nr[i*3]=T.x; nr[i*3+1]=T.y; nr[i*3+2]=T.z; }
+    out=new THREE.BufferGeometry(); out.setAttribute('position',pos); if(idx)out.setIndex(idx); out.setAttribute('aNorm',new THREE.BufferAttribute(nr,3));
+  }
+  hullGeos.set(g,out); return out;
+}
+const selBadge=document.createElement('div'); selBadge.id='selbadge'; selBadge.hidden=true; $('#wrap').appendChild(selBadge);
+let badgeKey='';
+function updateSelFx(){
+  const want=new Set(placing?[]:sel);
+  hulls.forEach((m,o)=>{ if(!want.has(o)||!objs.includes(o)||m.userData.g!==o.geometry){scene.remove(m); hulls.delete(o);} });
+  const dpr=canvas.width/Math.max(1,canvas.clientWidth); hullMat.uniforms.uRes.value.set(canvas.width,canvas.height); hullMat.uniforms.uPx.value=4.5*dpr;
+  want.forEach(o=>{
+    if(!o.visible)return; let m=hulls.get(o);
+    if(!m){ const hg=hullGeo(o.geometry); if(!hg)return; m=new THREE.Mesh(hg,hullMat); m.frustumCulled=false; m.matrixAutoUpdate=false; m.renderOrder=1; m.userData.g=o.geometry; scene.add(m); hulls.set(o,m); }
+    o.updateMatrixWorld(); m.matrix.copy(o.matrixWorld);
+  });
+  const k=placing?'':sel.map(o=>o.id+M_(o).n).join('|');
+  if(k!==badgeKey){ badgeKey=k;
+    if(sel.length>=2&&!placing){ const nm=sel.map(o=>M_(o).n), shown=nm.slice(0,4).join(' · ')+(nm.length>4?' · +'+(nm.length-4)+' más':''); selBadge.innerHTML='<b>'+sel.length+' piezas seleccionadas</b><span>'+shown.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'; selBadge.hidden=false; } else selBadge.hidden=true; }
+}
 
 // ===== Selección con rectángulo (Shift + arrastrar en vacío, o en modo Multi) =====
 let rsel=null;
@@ -3753,7 +3793,7 @@ addEventListener('keydown',e=>{
 
 function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);if(composer)composer.setSize(w,h);camP.aspect=w/h;camP.updateProjectionMatrix();camO.left=-ORTH_H/2*w/h;camO.right=ORTH_H/2*w/h;camO.top=ORTH_H/2;camO.bottom=-ORTH_H/2;camO.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(wrap); resize();
-renderer.setAnimationLoop(()=>{stepCam();orbit.update();vcube.tick();fitPreviewTick();updateScaleUI();updateOverlays();renderFrame();});
+renderer.setAnimationLoop(()=>{stepCam();orbit.update();vcube.tick();fitPreviewTick();updateScaleUI();updateSelFx();updateOverlays();renderFrame();});
 {const P0={t:'box',w:25,h:25,d:25,r:0,soft:true}; const m0=addMesh(buildGeo(P0)); m0.userData.p={...P0}; m0.position.y=12.5; updateDims(); cur=snap();}
 loadBed(); buildBed(); checkBed();
 idbGet().then(s=>{
