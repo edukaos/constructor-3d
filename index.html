@@ -785,6 +785,13 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #skbar #skcancel{border-color:rgba(255,255,255,.2);margin-left:auto}
 @media (max-width:760px),(pointer:coarse){#skbar{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;transform:none!important;width:auto;max-height:55%}#skbar .skhd small{display:none}#skbar button.skt{width:54px}#skbar .skfin button.big{box-shadow:none}#skbar .skgp small{display:none}}
 #skbar[hidden],#skbar .skd[hidden],#skbar .skctx[hidden]{display:none}
+#skbar .skimg{flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;background:rgba(245,196,81,.08);border:1px solid rgba(245,196,81,.25)}
+#skbar .skimg[hidden],#skbar .skimg [hidden]{display:none}
+#skbar .skimg label{display:flex;align-items:center;gap:6px;justify-content:space-between}
+#skbar .skimg input[type=number]{width:62px}
+#skbar .skimg #skiopts{display:flex;flex-direction:column;gap:6px}
+#skbar .skimg .skic{border-top:1px solid rgba(245,196,81,.25);padding-top:6px;display:flex;flex-direction:column;gap:6px}
+#skbar.min .skimg{display:none}
 #skdim{position:absolute;z-index:10;pointer-events:none;padding:3px 8px;border-radius:7px;background:rgba(22,34,58,.9);border:1px solid rgba(245,196,81,.5);color:#fff;font-size:12px;white-space:nowrap}
 #skdim[hidden]{display:none}
 #wrap.sketching canvas{cursor:crosshair}
@@ -3194,7 +3201,7 @@ function skRedraw(){
   if(sk.hover&&sk.shapes[sk.hover.si]&&!(sk.hover.si===sk.sel&&sk.hover.i===sk.node)){const q=skVerts(sk.shapes[sk.hover.si])[sk.hover.i]; if(q)sk.lines.add(skDots([q],0x5CF2FF,15));}
   if(sk.node>=0&&sk.shapes[sk.sel]){const q=skVerts(sk.shapes[sk.sel])[sk.node]; if(q)sk.lines.add(skDots([q],0xFF7A1A,16));}
   const p=skCurShape(); if(p){sk.lines.add(skLine(skTess(p),0xffffff,false)); sk.lines.add(skDots(skVerts(p),0xffffff,10));}
-  skLabel(); skHint();
+  skImgHandles(); skLabel(); skHint();
 }
 function skLabel(){
   const el=sk.lab; if(sk.drag&&sk.drag.moved&&sk.me){ const r=$('#wrap').getBoundingClientRect(), z=zf(); el.textContent=sk.dragTxt||''; el.hidden=false; el.style.left=((sk.me.x-r.left)/z+14)+'px'; el.style.top=((sk.me.y-r.top)/z+14)+'px'; return; }
@@ -3334,7 +3341,7 @@ function skView(){
   camAnim={p0:cam.position.clone(),t0:orbit.target.clone(),p1:t1.clone().addScaledVector(dir,dist),t1,s:performance.now()};
 }
 function skSetPlane(pl){
-  if(!sk||sk.plane===pl)return; sk.plane=pl; sk.cur=null; sk.arcEnd=null; sk.sel=-1; skHelpers(); skRedraw(); skDims(); skView(); skSync();
+  if(!sk||sk.plane===pl)return; sk.plane=pl; sk.cur=null; sk.arcEnd=null; sk.sel=-1; skImgPlace(); skHelpers(); skRedraw(); skDims(); skView(); skSync();
   msg(pl==='xy'?'Plano Frente: dibujá el perfil a la derecha del eje rojo y usá Revolucionar para girarlo.':'Plano Planta: dibujá sobre la cama y usá Extruir para darle altura.');
 }
 function skSync(){
@@ -3369,13 +3376,124 @@ async function skFinish(mode){
 }
 function skExit(){
   if(!sk)return; const s=sk; sk=null;
+  if(s.img){s.img.tex.dispose(); s.img.mesh.material.dispose(); s.img.mesh.geometry.dispose();}
   scene.remove(s.g); skClear(s.lines); skClear(s.help); s.bar.remove(); s.lab.remove();
   orbit.enableRotate=true; tc.enabled=!scaleUI; $('#wrap').classList.remove('sketching','sksel','skcor'); $('#skbtn').classList.remove('on'); fxShown=''; updateDims();
+}
+
+// ===== Calcar una imagen en el Sketch (fondo + contorno automático) =====
+function skRawPt(e){
+  const r=canvas.getBoundingClientRect(); skV2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); skRay.setFromCamera(skV2,cam);
+  const pl=sk.plane==='xz'?new THREE.Plane(new THREE.Vector3(0,1,0),0):new THREE.Plane(new THREE.Vector3(0,0,1),0), hit=new THREE.Vector3();
+  if(!skRay.ray.intersectPlane(pl,hit))return null; return {x:hit.x,y:sk.plane==='xz'?-hit.z:hit.y};
+}
+function skImgPlace(){
+  const I=sk&&sk.img; if(!I)return; const m=I.mesh; m.scale.set(I.w,I.w/I.asp,1);
+  if(sk.plane==='xz'){m.rotation.set(-Math.PI/2,0,0); m.position.set(I.x,0.02,-I.y);} else {m.rotation.set(0,0,0); m.position.set(I.x,I.y,0.02);}
+  m.material.opacity=I.op;
+}
+function skImgSync(){
+  const I=sk.img, b=sk.bar; if(!I)return; skImgPlace();
+  const set=(q,v)=>{const el=b.querySelector(q); if(document.activeElement!==el)el.value=v;};
+  set('#skiw',+I.w.toFixed(2)); set('#skix',+I.x.toFixed(2)); set('#skiy',+I.y.toFixed(2)); set('#skio',Math.round(I.op*100));
+  b.querySelector('#skimv').textContent=I.edit?'✔ Listo (bloquear imagen)':'✥ Mover imagen'; b.querySelector('#skimv').classList.toggle('pri',I.edit);
+}
+function skImgHandles(){
+  const I=sk.img; if(!I||!I.edit)return; const h=I.w/I.asp, cs=[[I.x-I.w/2,I.y-h/2],[I.x+I.w/2,I.y-h/2],[I.x+I.w/2,I.y+h/2],[I.x-I.w/2,I.y+h/2]];
+  sk.lines.add(skLine(cs,0xffffff,true,.9)); sk.lines.add(skDots(cs,0xffffff,13));
+}
+function skImgDown(e){
+  const I=sk.img; if(!I||!I.edit)return false; const p=skRawPt(e); if(!p)return true;
+  const h=I.w/I.asp, cs=[[I.x-I.w/2,I.y-h/2],[I.x+I.w/2,I.y-h/2],[I.x+I.w/2,I.y+h/2],[I.x-I.w/2,I.y+h/2]], r=canvas.getBoundingClientRect();
+  let best=18, ci=-1; cs.forEach((q,i)=>{const w=skW(q[0],q[1]).project(cam), d=Math.hypot(r.left+(w.x+1)/2*r.width-e.clientX,r.top+(1-w.y)/2*r.height-e.clientY); if(d<best){best=d; ci=i;}});
+  if(ci>=0)I.drag={k:'scale',d0:Math.hypot(cs[ci][0]-I.x,cs[ci][1]-I.y),w0:I.w};
+  else if(Math.abs(p.x-I.x)<=I.w/2&&Math.abs(p.y-I.y)<=h/2)I.drag={k:'move',dx:p.x-I.x,dy:p.y-I.y};
+  return true;
+}
+addEventListener('pointermove',e=>{
+  const I=sk&&sk.img; if(!I||!I.drag)return; const p=skRawPt(e); if(!p)return;
+  if(I.drag.k==='move'){I.x=p.x-I.drag.dx; I.y=p.y-I.drag.dy;} else I.w=Math.max(2,I.drag.w0*Math.hypot(p.x-I.x,p.y-I.y)/I.drag.d0);
+  skImgSync(); skRedraw();
+},true);
+addEventListener('pointerup',()=>{ if(sk&&sk.img)sk.img.drag=null; },true);
+function skImgRemove(){ const I=sk.img; if(!I)return; I.tex.dispose(); I.mesh.material.dispose(); I.mesh.geometry.dispose(); sk.g.remove(I.mesh); sk.img=null; const b=sk.bar; b.querySelector('#skiopts').hidden=true; b.querySelector('#skirm').hidden=true; b.querySelector('#skiload').textContent='🖼 Cargar imagen'; skRedraw(); }
+function skImgLoad(file){
+  const url=URL.createObjectURL(file), im=new Image();
+  im.onerror=()=>{URL.revokeObjectURL(url); msg('No se pudo abrir esa imagen. Probá con JPG, PNG o WebP.');};
+  im.onload=()=>{
+    URL.revokeObjectURL(url); if(!sk)return;
+    const k=Math.min(1,1024/Math.max(im.width,im.height)), W=Math.max(1,Math.round(im.width*k)), H=Math.max(1,Math.round(im.height*k));
+    const disp=document.createElement('canvas'); disp.width=W; disp.height=H; disp.getContext('2d').drawImage(im,0,0,W,H);
+    const ana=document.createElement('canvas'); ana.width=W; ana.height=H; const ag=ana.getContext('2d'); ag.fillStyle='#fff'; ag.fillRect(0,0,W,H); ag.drawImage(im,0,0,W,H);
+    if(sk.img)skImgRemove();
+    const tex=new THREE.CanvasTexture(disp); tex.colorSpace=THREE.SRGBColorSpace;
+    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:.5,depthTest:false,depthWrite:false,side:THREE.DoubleSide})); mesh.renderOrder=2; mesh.raycast=()=>{}; sk.g.add(mesh);
+    const asp=W/H, w=Math.min(100,Math.max(20,200/Math.max(1,asp>1?1:1/asp)*0.5));
+    sk.img={mesh,tex,cv:ana,asp,w,x:0,y:sk.plane==='xy'?w/asp/2:0,op:.5,edit:true,drag:null};
+    const b=sk.bar; b.querySelector('#skiopts').hidden=false; b.querySelector('#skirm').hidden=false; b.querySelector('#skiload').textContent='🖼 Cambiar imagen';
+    skImgSync(); skRedraw();
+    msg('Imagen cargada: arrastrala para moverla y usá los puntos blancos de las esquinas para agrandarla o achicarla. Poné el ancho real en mm y tocá Listo.');
+  };
+  im.src=url;
+}
+function skRdp(P,tol){
+  if(P.length<3)return P; const keep=new Uint8Array(P.length); keep[0]=keep[P.length-1]=1; const st=[[0,P.length-1]];
+  while(st.length){const [a,b]=st.pop(); let md=0,mi=-1; const ax=P[a][0],ay=P[a][1],dx=P[b][0]-ax,dy=P[b][1]-ay,L=Math.hypot(dx,dy)||1e-9;
+    for(let i=a+1;i<b;i++){const d=Math.abs((P[i][0]-ax)*dy-(P[i][1]-ay)*dx)/L; if(d>md){md=d; mi=i;}}
+    if(md>tol&&mi>0){keep[mi]=1; st.push([a,mi],[mi,b]);}}
+  return P.filter((_,i)=>keep[i]);
+}
+function skRdpClosed(P,tol){
+  let k=0,md=-1; for(let i=1;i<P.length;i++){const d=Math.hypot(P[i][0]-P[0][0],P[i][1]-P[0][1]); if(d>md){md=d; k=i;}}
+  const A=skRdp(P.slice(0,k+1),tol), B=skRdp(P.slice(k).concat([P[0]]),tol); return A.concat(B.slice(1,-1));
+}
+function skImgContour(){
+  const I=sk.img; if(!I)return; const cv=I.cv, w0=cv.width, h0=cv.height, W=w0+2, H=h0+2, d=cv.getContext('2d').getImageData(0,0,w0,h0).data, b=sk.bar;
+  const thr=parseFloat(b.querySelector('#skith').value)/100, inv=b.querySelector('#skiinv').checked, det=parseFloat(b.querySelector('#skidt').value)/100;
+  let G=new Float32Array(W*H).fill(1);
+  for(let y=0;y<h0;y++)for(let x=0;x<w0;x++){const i=(y*w0+x)*4, g=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])/255; G[(y+1)*W+x+1]=inv?1-g:g;}
+  for(let pass=0;pass<2;pass++){ const G2=new Float32Array(W*H).fill(1); for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){let t=0; for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++)t+=G[(y+j)*W+x+i]; G2[y*W+x]=t/9;} G=G2; }
+  const val=(x,y)=>G[y*W+x], pos=new Map(), segs=[], tt=(a,c)=>{const dn=c-a; return Math.abs(dn)<1e-9?.5:Math.max(0,Math.min(1,(thr-a)/dn));};
+  const eH=(x,y)=>{const k=(y*W+x)*2; if(!pos.has(k))pos.set(k,[x+tt(val(x,y),val(x+1,y)),y]); return k;}, eV=(x,y)=>{const k=(y*W+x)*2+1; if(!pos.has(k))pos.set(k,[x,y+tt(val(x,y),val(x,y+1))]); return k;};
+  for(let y=0;y<H-1;y++)for(let x=0;x<W-1;x++){
+    const c=(val(x,y)<thr?8:0)|(val(x+1,y)<thr?4:0)|(val(x+1,y+1)<thr?2:0)|(val(x,y+1)<thr?1:0); if(c===0||c===15)continue;
+    const T=()=>eH(x,y), B=()=>eH(x,y+1), L=()=>eV(x,y), R=()=>eV(x+1,y);
+    switch(c){case 1:case 14:segs.push([L(),B()]); break; case 2:case 13:segs.push([B(),R()]); break; case 3:case 12:segs.push([L(),R()]); break; case 4:case 11:segs.push([T(),R()]); break;
+      case 5:segs.push([T(),R()],[L(),B()]); break; case 6:case 9:segs.push([T(),B()]); break; case 7:case 8:segs.push([T(),L()]); break; case 10:segs.push([T(),L()],[B(),R()]); break;}
+  }
+  const adj=new Map(); segs.forEach((sg,i)=>sg.forEach(e=>{if(!adj.has(e))adj.set(e,[]); adj.get(e).push(i);}));
+  const used=new Uint8Array(segs.length), loops=[];
+  for(let i=0;i<segs.length;i++){
+    if(used[i])continue; const loop=[pos.get(segs[i][0])]; let cur=i, to=segs[i][1];
+    for(;;){used[cur]=1; loop.push(pos.get(to)); const nx=adj.get(to).find(j=>j!==cur&&!used[j]); if(nx===undefined)break; cur=nx; const sg=segs[cur]; to=sg[0]===to?sg[1]:sg[0];}
+    loop.pop(); loops.push(loop);
+  }
+  const hmm=I.w/I.asp, tolPx=(I.w*(0.001+(1-det)*0.008))/(I.w/w0), minA=0.0003*w0*h0;
+  const area=P=>{let a=0; for(let i=0;i<P.length;i++){const q=P[(i+1)%P.length]; a+=P[i][0]*q[1]-q[0]*P[i][1];} return Math.abs(a)/2;};
+  const out=loops.map(P=>({P,a:area(P)})).filter(o=>o.P.length>=4&&o.a>=minA).sort((a,c)=>c.a-a.a).slice(0,60).map(o=>{
+    let tol=tolPx, R=skRdpClosed(o.P,tol); while(R.length>400){tol*=1.4; R=skRdpClosed(o.P,tol);} return R;
+  }).filter(R=>R.length>=3);
+  if(!out.length){msg('No se encontró ninguna forma. Probá mover el umbral o tocar «Invertir».'); return;}
+  skPush();
+  out.forEach(R=>sk.shapes.push({t:'path',closed:true,v:R.map(([px,py])=>({x:+(I.x+((px-1+0.5)/w0-0.5)*I.w).toFixed(3),y:+(I.y-((py-1+0.5)/h0-0.5)*hmm).toFixed(3),b:0}))}));
+  sk.sel=-1; sk.cur=null; skRedraw(); skDims();
+  msg('Contorno creado: '+out.length+(out.length===1?' forma':' formas')+'. Si no te gusta, Ctrl+Z y probá otro umbral o detalle. Una forma dentro de otra queda como hueco.');
+}
+function skImgInit(){
+  const b=sk.bar, q=s=>b.querySelector(s); sk.img=null;
+  q('#skibtn').onclick=()=>{const p=q('#skimg'); p.hidden=!p.hidden; q('#skibtn').classList.toggle('on',!p.hidden);};
+  q('#skiload').onclick=()=>q('#skifile').click();
+  q('#skifile').onchange=e=>{const f=e.target.files[0]; e.target.value=''; if(f)skImgLoad(f);};
+  q('#skirm').onclick=()=>{skImgRemove(); msg('Imagen quitada.');};
+  q('#skimv').onclick=()=>{const I=sk.img; if(!I)return; I.edit=!I.edit; skImgSync(); skRedraw(); msg(I.edit?'Mové la imagen arrastrándola y escalala con los puntos blancos. Tocá Listo para bloquearla y dibujar.':'Imagen bloqueada: ya podés dibujar encima.');};
+  const num=(id,fn)=>q(id).addEventListener('input',e=>{const v=parseFloat(e.target.value); if(sk.img&&!isNaN(v)){fn(sk.img,v); skImgPlace(); skRedraw();}});
+  num('#skiw',(I,v)=>{if(v>=1)I.w=v;}); num('#skix',(I,v)=>{I.x=v;}); num('#skiy',(I,v)=>{I.y=v;}); num('#skio',(I,v)=>{I.op=Math.max(.1,Math.min(1,v/100));});
+  q('#skiauto').onclick=skImgContour;
 }
 function skStart(o={}){
   if(sk)return; if(typeof splitting!=='undefined'&&splitting)endSplit();
   select([]); tc.enabled=false; orbit.enableRotate=false; down=null; $('#skbtn').classList.add('on');
-  const IC={path:'<path d="M4 20L20 4"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="4" r="2"/>',arc:'<path d="M4 18A12 12 0 0 1 20 18"/>',rect:'<rect x="4" y="6" width="16" height="12"/>',circ:'<circle cx="12" cy="12" r="8"/>',corner:'<path d="M5 20V10a5 5 0 0 1 5-5h10"/>',off:'<rect x="3.5" y="3.5" width="17" height="17"/><rect x="8" y="8" width="8" height="8"/>',mir:'<path d="M12 3v18" stroke-dasharray="3 2"/><path d="M9 7L4 12l5 5zM15 7l5 5-5 5z"/>',sel:'<path d="M5 3l14 8-6 2-2 6z"/>',xz:'<path d="M3 15l9-5 9 5-9 5z"/>',xy:'<rect x="5" y="4" width="14" height="14"/>'};
+  const IC={path:'<path d="M4 20L20 4"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="4" r="2"/>',arc:'<path d="M4 18A12 12 0 0 1 20 18"/>',rect:'<rect x="4" y="6" width="16" height="12"/>',circ:'<circle cx="12" cy="12" r="8"/>',corner:'<path d="M5 20V10a5 5 0 0 1 5-5h10"/>',off:'<rect x="3.5" y="3.5" width="17" height="17"/><rect x="8" y="8" width="8" height="8"/>',mir:'<path d="M12 3v18" stroke-dasharray="3 2"/><path d="M9 7L4 12l5 5zM15 7l5 5-5 5z"/>',sel:'<path d="M5 3l14 8-6 2-2 6z"/>',xz:'<path d="M3 15l9-5 9 5-9 5z"/>',xy:'<rect x="5" y="4" width="14" height="14"/>',img:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-5 4 4 3-3 4 4"/>'};
   const tb=(k,l,attr,t)=>'<button type="button" class="skt" '+attr+' title="'+t+'"><svg viewBox="0 0 24 24">'+IC[k]+'</svg><span>'+l+'</span></button>';
   const bar=document.createElement('div'); bar.id='skbar'; bar.innerHTML=
     '<div class="skhd" title="Arrastrá para mover el panel"><span>⠿ Sketch</span><small>arrastrá para mover</small><button type="button" id="skmin" title="Achicar o agrandar el panel">–</button></div>'+
@@ -3385,8 +3503,10 @@ function skStart(o={}){
     '<div class="skgp"><small>Modificar</small><span class="skg">'+tb('corner','Empalme','data-t="corner"','Empalme: redondear una esquina')+tb('off','Desfase','id="skoffb"','Desfase: agrega un contorno paralelo a la forma seleccionada')+tb('mir','Simetría','id="skmirb"','Simetría: copia espejada de la forma seleccionada')+'</span></div>'+
     '<div class="skgp"><small>Elegir</small><span class="skg">'+tb('sel','Seleccionar','data-t="sel"','Seleccionar una forma para cambiar sus medidas')+'</span></div>'+
     '<div class="skgp"><small>Plano</small><span class="skg">'+tb('xz','Planta','data-pl="xz"','Dibujar sobre la cama')+tb('xy','Frente','data-pl="xy"','Dibujar en vertical, para revolucionar')+'</span></div>'+
+    '<div class="skgp"><small>Imagen</small><span class="skg">'+tb('img','Calcar','id="skibtn"','Calcar una imagen: ponela de fondo y dibujá encima')+'</span></div>'+
     '<div class="skgp"><small>Imán</small><select id="skiman" title="De a cuánto se mueven los puntos"><option value="0">libre</option><option value="0.5">0,5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="10">10 mm</option></select></div></div>'+
     '<div class="skr skctx" id="skctx" hidden><b>Radio del empalme</b><input type="range" data-cr="r" min="0" max="30" step="0.5"><input type="number" data-cr="n" min="0" step="0.5"> mm<span>Tocá una esquina del dibujo para redondearla</span></div>'+
+    '<div class="skr skimg" id="skimg" hidden><b>Imagen de fondo</b><div class="skir"><button type="button" id="skiload">🖼 Cargar imagen</button><input type="file" id="skifile" accept="image/*" hidden><button type="button" id="skirm" hidden>Quitar imagen</button></div><div id="skiopts" hidden><label>Ancho real <span><input id="skiw" type="number" min="1" step="1"> mm</span></label><label>Posición X <span><input id="skix" type="number" step="1"> Y <input id="skiy" type="number" step="1"></span></label><label>Transparencia <input id="skio" type="range" min="10" max="100" value="50"></label><button type="button" id="skimv">✥ Mover imagen</button><div class="skic"><b>Contorno automático</b><label>Umbral (claro/oscuro) <input id="skith" type="range" min="5" max="95" value="50"></label><label>Detalle <input id="skidt" type="range" min="0" max="100" value="40"></label><label>Invertir (forma clara sobre fondo oscuro) <input id="skiinv" type="checkbox"></label><button type="button" id="skiauto" class="pri">✨ Crear contorno</button></div></div></div>'+
     '<div class="skr skd" id="skdims" hidden></div>'+
     '<div class="skfin"><div class="skft"><b>ÚLTIMO PASO</b><span>Cuando termines de dibujar,<br>dale volumen a tu dibujo</span></div>'+
     '<label>Altura <input id="skh" type="number" min="0.1" step="0.5"> mm</label><button type="button" id="skext" class="pri big" title="Convertir el dibujo en una pieza 3D">⬆ Extruir</button>'+
@@ -3410,10 +3530,10 @@ function skStart(o={}){
   bar.querySelector('#skh').value=sk.h; bar.querySelector('#skh').onchange=e=>{const x=parseFloat(e.target.value); if(x>0)sk.h=x; else e.target.value=sk.h;};
   sk.degIn.value=sk.deg; sk.degIn.onchange=e=>{const x=parseFloat(e.target.value); if(x>=1&&x<=360)sk.deg=x; else e.target.value=sk.deg;};
   bar.querySelector('#skext').onclick=()=>skFinish('extrude'); sk.revBtn.onclick=()=>skFinish('revolve'); bar.querySelector('#skcancel').onclick=()=>{skExit(); msg('Sketch cancelado.');};
-  skHelpers(); skRedraw(); skSync(); skView();
+  skImgInit(); skHelpers(); skRedraw(); skSync(); skView();
   msg(o.piece?'Editando el boceto: cambiá las formas y tocá Extruir o Revolucionar para aplicar.':'Sketch: dibujá con Línea, Arco, Rectángulo o Círculo. Una forma dentro de otra queda como hueco.');
 }
-canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; const had=!!sk.cur; skClick(e); sk.dn=(!had&&sk.cur&&(sk.cur.t==='rect'||sk.cur.t==='circ'))?{x:e.clientX,y:e.clientY}:null; },true);
+canvas.addEventListener('pointerdown',e=>{ if(!sk||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; if(skImgDown(e))return; const had=!!sk.cur; skClick(e); sk.dn=(!had&&sk.cur&&(sk.cur.t==='rect'||sk.cur.t==='circ'))?{x:e.clientX,y:e.clientY}:null; },true);
 addEventListener('pointerup',e=>{ if(!sk||!sk.dn)return; const d=sk.dn; sk.dn=null; if(e.button!==0||!sk.cur||Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return; skClick(e); });
 canvas.addEventListener('pointermove',e=>{ if(!sk)return; sk.me={x:e.clientX,y:e.clientY}; if(sk.drag){skDragMove(e); return;} const p=skPt(e); if(!p)return; sk.mouse=p;
   if(sk.tool==='sel'||sk.tool==='corner'){ const h=skNodeAt(e,sk.tool==='corner'), k=h?h.si+':'+h.i:''; if(k!==sk.hk){sk.hk=k; sk.hover=h; skRedraw();} if(sk.tool==='sel')canvas.style.cursor=h?'move':''; }

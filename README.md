@@ -32,6 +32,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Calcar una imagen** (Sketch 2D → Calcar): ponés una foto o dibujo de fondo (se mueve y escala arrastrando, con ancho real en mm y transparencia) y dibujás encima, o tocás «Crear contorno» para que detecte la silueta sola. La imagen no se guarda en el proyecto.
 - **Estimar impresión** (Preparar): volumen, peso, filamento, tiempo y costo del material de las piezas elegidas (o todas), con material, precio por kg, relleno y velocidad editables. Es una estimación.
 - **Acomodar en la cama** (Editar → Alinear): ordena las piezas una al lado de la otra con la separación que elijas, girando 90° si entran mejor. Las piezas que se tocan se mueven juntas. Se puede deshacer.
 - **Vista en sección** (Aspecto): un plano (X, Y o Z) corta la vista y la cara cortada se ve rellena, para mirar por dentro. No modifica las piezas.
