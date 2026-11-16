@@ -801,6 +801,10 @@ body #shpp #shpcats select{width:100%;max-width:none}
 #wrap.sketching.sksel canvas{cursor:default}
 #wrap.sketching.skcor canvas{cursor:pointer}
 #wrap.sketching #insp{display:none}
+#placebar{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);z-index:9;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(22,34,58,.94);border:1px solid #F5C451;color:#F5D36B;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:nowrap}
+#placebar[hidden]{display:none}
+#placebar button{height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:inherit;cursor:pointer}
+#placebar button.pri{background:linear-gradient(180deg,rgba(255,217,121,.98),rgba(236,178,52,.96));color:#1A1405;font-weight:700;border-color:transparent}
 #skwarn{position:absolute;left:50%;top:38%;transform:translateX(-50%);max-width:min(420px,86%);z-index:60;background:#2a1d00;color:#ffd77a;border:1px solid #f5c451;border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.35;text-align:center;pointer-events:none;box-shadow:none}
 #skwarn[hidden]{display:none}
 html body .rplus{position:absolute;z-index:8;top:calc(6px + 44px + 4px + 16px);left:calc(var(--g) + 16px);width:calc(var(--rh) - 32px);height:calc(var(--rh) - 32px);box-sizing:border-box;padding:0;border:0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:inherit;font-size:15px;font-weight:800;background:radial-gradient(120% 90% at 30% 15%,#FFF0BF 0%,#FFD36B 45%,#F0A834 100%);color:#8A5516;letter-spacing:.3px;box-shadow:0 0 0 1px rgba(255,236,170,.5),0 0 16px rgba(255,205,90,.35)}
@@ -958,8 +962,8 @@ function select(list){
 
 document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
   const t=b.dataset.add, P={box:{t:'box',w:25,h:25,d:25,r:0,soft:true},cylinder:{t:'cyl',w:25,h:25,d:25,r:0,soft:true}}[t]; const m=addMesh(P?buildGeo(P):shapes[t](),undefined,newName(SHAPE_NAMES[t]||'Pieza')); if(P){m.userData.p={...P};updateDims();} m.geometry.computeBoundingBox(); const hb=m.geometry.boundingBox;
-  // aparece en el centro de la cama, apoyada sobre la base
-  m.position.set(0,-hb.min.y,0); updateDims(); commit();
+  // aparece como fantasma que sigue al cursor hasta que se apoya (ver 'Ubicar pieza nueva')
+  m.position.set(0,-hb.min.y,0); updateDims(); startPlace(m);
 });
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
   scaleUI=b.dataset.mode==='scale'; tc.setMode(scaleUI?'translate':b.dataset.mode); tc.enabled=!scaleUI; if(scaleUI)msg('Escalar: arrastrá los puntos de las esquinas (proporcional) o los de las caras (un solo eje).');
@@ -1243,7 +1247,7 @@ function recenter(m){
 
 // al tocar el visor se suelta el campo numérico que tenía el foco, así el panel de medidas siempre se actualiza
 canvas.addEventListener('pointerdown',()=>{const a=document.activeElement; if(a&&a!==document.body&&a.closest&&a.closest('#dims'))a.blur();},true);
-let scaleUI=false, sdrag=null; const sgCache={g:null,min:null,max:null};
+let scaleUI=false, sdrag=null, placing=null, placeSkip=false; const sgCache={g:null,min:null,max:null};
 const sg=new THREE.Group(); sg.visible=false; scene.add(sg);
 const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0xF5C451,depthTest:false,transparent:true}));
 edges.renderOrder=998; sg.add(edges);
@@ -1255,7 +1259,7 @@ const sh=[];
   m.renderOrder=999; m.visible=false; m.userData={s:new THREE.Vector3(x,y,z),face}; scene.add(m); sh.push(m);
 })));
 function updateScaleUI(){
-  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!M_(o).l);
+  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!M_(o).l&&!placing);
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
   if(!on){hideCotas();return;}
@@ -1374,7 +1378,7 @@ function scheduleSave(){
     try{idbSet(JSON.stringify(projectData()));}catch(e){}
   },400);
 }
-function resetTransient(){ clearMeasure(); if(tool)setTool(tool); }
+function resetTransient(){ clearMeasure(); if(tool)setTool(tool); if(placing)cancelPlace(true); }
 $('#pnew').onclick=()=>{
   objs.forEach(o=>scene.remove(o)); objs.length=0; sel=[]; tc.detach(); resetTransient(); updateDims(); commit();
   msg('Proyecto nuevo. Ctrl+Z para volver atrás.');
@@ -2072,13 +2076,75 @@ function showCotas(o,mn,mx){
   o.updateMatrixWorld(true); const V=THREE.Vector3, W=v=>v.applyMatrix4(o.matrixWorld), s=mx.clone().sub(mn).multiply(o.scale);
   const f=v=>Math.abs(v).toLocaleString('es-AR',{maximumFractionDigits:1})+' mm';
   [[new V(mn.x,mn.y,mx.z),new V(mx.x,mn.y,mx.z),'#cx',s.x],[new V(mx.x,mn.y,mx.z),new V(mx.x,mx.y,mx.z),'#cy',s.y],[new V(mx.x,mn.y,mn.z),new V(mx.x,mn.y,mx.z),'#cz',s.z]]
-    .forEach(([a,b,id,val])=>{const el=$(id); el.hidden=false; el.textContent=f(val); place(el,W(a).add(W(b)).multiplyScalar(0.5));});
+    .forEach(([a,b,id,val])=>{const el=$(id); el.hidden=false; if(!el.dataset.edit)el.textContent=f(val); place(el,W(a).add(W(b)).multiplyScalar(0.5));});
 }
 function updateOverlays(){
   if(!meas.g.children.length)return;
   meas.g.children.forEach(c=>{if(c.userData.dot)c.scale.setScalar(camK(c.position)*0.008);});
   if(meas.pts.length===2)place($('#mlabel'),meas.pts[0].clone().add(meas.pts[1]).multiplyScalar(0.5));
 }
+
+// ===== Ubicar pieza nueva: fantasma que sigue al cursor, después manijas y cotas =====
+const placeMark=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xF5C451,transparent:true,opacity:.22,depthTest:false,depthWrite:false,side:THREE.DoubleSide}));
+placeMark.rotation.x=-Math.PI/2; placeMark.renderOrder=5; placeMark.visible=false;
+placeMark.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1,1)),new THREE.LineBasicMaterial({color:0xF5C451,depthTest:false,transparent:true}))); scene.add(placeMark);
+const placeBar=document.createElement('div'); placeBar.id='placebar'; placeBar.hidden=true;
+placeBar.innerHTML='<span id="placetxt"></span><button type="button" id="placeok" class="pri">✔ Apoyar aquí</button><button type="button" id="placeno">✕ Cancelar</button>';
+$('#wrap').appendChild(placeBar);
+function startPlace(m){
+  if(placing)cancelPlace(true);
+  const mt=m.material; placing={m,orig:{t:mt.transparent,o:mt.opacity,w:mt.depthWrite,e:mt.emissive.getHex()}};
+  mt.transparent=true; mt.opacity=.45; mt.depthWrite=false; mt.emissive.setHex(0x16396b);
+  tc.detach(); m.geometry.computeBoundingBox(); placeUpdateMark(m);
+  const touch=matchMedia('(pointer:coarse)').matches;
+  $('#placetxt').textContent=touch?'Tocá dónde ponerla y confirmá':'Clic para apoyar · Esc cancela';
+  placeBar.hidden=false; canvas.style.cursor='copy'; updateDims();
+  msg(touch?'Tocá el lugar donde querés la pieza y después "Apoyar aquí".':'Mové el mouse para ubicar la pieza. Clic para apoyarla, Esc para cancelar. Se apoya sobre la cama o arriba de otra pieza.');
+}
+function placeUpdateMark(m){
+  const bb=m.geometry.boundingBox, w=Math.max(0.5,bb.max.x-bb.min.x), d=Math.max(0.5,bb.max.z-bb.min.z);
+  placeMark.scale.set(w,d,1); placeMark.position.set(m.position.x+(bb.max.x+bb.min.x)/2,m.position.y+bb.min.y+0.06,m.position.z+(bb.max.z+bb.min.z)/2); placeMark.visible=true;
+}
+function placeAt(e){
+  const m=placing.m, bb=m.geometry.boundingBox; setRay(e);
+  const hit=ray2.intersectObjects(objs.filter(o=>o!==m&&o.visible),false)[0]; let pt=null, y0=0;
+  if(hit&&hit.face){const n=hit.face.normal.clone().transformDirection(hit.object.matrixWorld); if(n.y>0.7){pt=hit.point.clone(); y0=hit.point.y;}}
+  if(!pt){pt=new THREE.Vector3(); if(!ray2.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),pt))return;}
+  let x=pt.x, z=pt.z; if($('#snap').classList.contains('on')){const st=snapStep(); x=Math.round(x/st)*st; z=Math.round(z/st)*st;}
+  m.position.set(x,y0-bb.min.y,z); placeUpdateMark(m);
+}
+function finishPlace(){
+  if(!placing)return; const {m,orig}=placing, mt=m.material; placing=null;
+  mt.transparent=orig.t; mt.opacity=orig.o; mt.depthWrite=orig.w; mt.emissive.setHex(0x5a4410);
+  placeMark.visible=false; placeBar.hidden=true; canvas.style.cursor='';
+  select([m]); updateDims(); commit();
+  const sb=document.querySelector('[data-mode=scale]'); if(sb)sb.click();
+  msg('Pieza apoyada. Arrastrá los puntos para escalarla (los naranjas, de un solo lado, como el de arriba para el alto), o hacé clic en una cota para escribir la medida. Para moverla, tocá Mover.');
+}
+function cancelPlace(silent){
+  if(!placing)return; const m=placing.m; placing=null;
+  scene.remove(m); const i=objs.indexOf(m); if(i>=0)objs.splice(i,1);
+  placeMark.visible=false; placeBar.hidden=true; canvas.style.cursor=''; select([]); if(!silent)msg('Cancelado: la pieza no se agregó.');
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(!placing||e.button!==0)return; e.stopImmediatePropagation(); e.preventDefault(); down=null; placeAt(e);
+  if(e.pointerType==='mouse'){finishPlace(); placeSkip=true;}
+},true);
+canvas.addEventListener('pointerup',e=>{ if(placeSkip||placing){ placeSkip=false; e.stopImmediatePropagation(); } },true);
+canvas.addEventListener('pointermove',e=>{ if(placing&&e.pointerType==='mouse')placeAt(e); });
+$('#placeok').onclick=()=>finishPlace(); $('#placeno').onclick=()=>cancelPlace();
+addEventListener('keydown',e=>{ if(placing&&e.key==='Escape'){e.stopImmediatePropagation(); e.preventDefault(); cancelPlace();} },true);
+// cotas con clic: escribir la medida exacta
+['#cx','#cy','#cz'].forEach((id,i)=>{
+  const el=$(id); el.style.pointerEvents='auto'; el.style.cursor='text'; el.title='Clic para escribir la medida';
+  el.addEventListener('pointerdown',e=>e.stopPropagation());
+  el.addEventListener('click',()=>{
+    const o=sel[sel.length-1]; if(!o||el.dataset.edit)return; const k=['x','y','z'][i], real=$('#d'+k);
+    el.dataset.edit='1'; const inp=document.createElement('input'); inp.type='number'; inp.step='0.1'; inp.min='0.01'; inp.value=real.value; inp.style.cssText='width:64px;font:inherit;font-weight:600'; el.textContent=''; el.append(inp,' mm'); inp.focus(); inp.select();
+    const end=ok=>{ if(!el.dataset.edit)return; delete el.dataset.edit; if(ok){const v=parseFloat(inp.value); if(v>0){real.value=v; real.dispatchEvent(new Event('input',{bubbles:true})); real.dispatchEvent(new Event('change',{bubbles:true}));}} };
+    inp.onkeydown=ev=>{ev.stopPropagation(); if(ev.key==='Enter')end(true); else if(ev.key==='Escape')end(false);}; inp.onblur=()=>end(true);
+  });
+});
 
 // ===== Selección con rectángulo (Shift + arrastrar en vacío, o en modo Multi) =====
 let rsel=null;
