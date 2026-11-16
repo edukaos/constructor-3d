@@ -32,6 +32,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Manipular (V)**, modo por defecto: con la pieza seleccionada se mueve arrastrándola, se escala con los puntos, se rota con el anillo de abajo y se sube con la flecha amarilla, con las cotas siempre a la vista. Mover, Rotar y Escalar siguen para trabajar con precisión por ejes.
 - **Pieza nueva con fantasma**: al elegir una forma aparece translúcida siguiendo al cursor (sobre la cama o arriba de otra pieza); un clic la apoya y quedan las manijas de escala con cotas, donde se puede escribir la medida exacta. Esc cancela.
 - **Botón + amarillo** a la izquierda de las pestañas (o tecla A): menú con las formas básicas y Más formas, disponible en cualquier pestaña. La pestaña Crear queda con Texto 3D, SVG, Sketch 2D, Importar y Biblioteca.
 - **Recorrido inicial** la primera vez que abrís la app (se vuelve a ver desde la ayuda, ?).
