@@ -32,6 +32,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Estimar impresión** (Preparar): volumen, peso, filamento, tiempo y costo del material de las piezas elegidas (o todas), con material, precio por kg, relleno y velocidad editables. Es una estimación.
 - **Acomodar en la cama** (Editar → Alinear): ordena las piezas una al lado de la otra con la separación que elijas, girando 90° si entran mejor. Las piezas que se tocan se mueven juntas. Se puede deshacer.
 - **Vista en sección** (Aspecto): un plano (X, Y o Z) corta la vista y la cara cortada se ve rellena, para mirar por dentro. No modifica las piezas.
 - **Más liviana:** dibuja solo cuando hay actividad (menos batería y calor), resolución limitada a 2×, y libera memoria de video de piezas viejas del historial.
