@@ -7,7 +7,7 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 - **Texto 3D:** 7 tipografías con ñ y acentos, acostado o parado, alto de letra y espesor en mm. Se puede editar después.
 - **Mover, rotar y escalar** (escalado con caja exterior y cotas en mm), con snap opcional.
 - **Unir, restar, intersectar y dividir** con el motor Manifold: los resultados salen siempre cerrados. Unir e Intersectar aceptan varias piezas a la vez.
-- **Agujero**, como en Tinkercad: una pieza marcada como agujero se resta al unirla con otras.
+- **Hueco**, como en Tinkercad: una pieza marcada como hueco se resta al unirla con otras.
 - **Lista de piezas:** elegir, renombrar, ocultar y bloquear.
 - **Apoyar** en la base o sobre la pieza de abajo, y **apoyar por una cara**.
 - **Patrón:** copias en línea, en grilla o en círculo.
@@ -17,12 +17,12 @@ App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
 - **Encuadrar** con F y vistas de cámara desde el menú Cámara.
 - Cama de impresión configurable, con aviso si una pieza sobresale.
 - **Revisar malla:** detecta huecos, caras dadas vuelta, caras repetidas y uniones de espesor cero, muestra los bordes abiertos y calcula volumen y peso aproximado en PLA. Reparar tapa huecos, da vuelta las caras y borra las sobrantes.
-- **Importar STL. Exportar** a STL (todo junto o una pieza por archivo) o a 3MF con nombres, colores y posición en la cama. Las piezas ocultas y los agujeros no se exportan.
+- **Importar STL. Exportar** a STL (todo junto o una pieza por archivo) o a 3MF con nombres, colores y posición en la cama. Las piezas ocultas y los huecos no se exportan.
 - Guardar y abrir proyecto (JSON), autoguardado en el navegador, deshacer y rehacer.
-- Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Agujero, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
+- Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Hueco, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
 
 ## Atajos
-1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H agujero · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
+1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend.
@@ -46,7 +46,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Reparación automática** al Vaciar y Redondear, con mensajes claros si la malla no se puede arreglar.
 - **SVG a 3D**: importa un SVG con áreas rellenas y le da espesor y ancho en mm.
 - **Vaciar**: deja una pieza hueca con paredes del grosor elegido (opcional: abierta arriba).
-- **Cortar para la cama**: divide una pieza grande en partes que entren, con espigas y agujeros de encastre.
+- **Cortar para la cama**: divide una pieza grande en partes que entren, con espigas y huecos de encastre.
 - **Colores**: paleta rápida junto al selector de color.
 - **Importar OBJ y 3MF** además de STL.
 - **Regla** sobre la cama (en mm) e **imán** configurable de 1, 5 o 10 mm (panel Cama).
@@ -64,7 +64,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Cinta con pestañas** (pantalla ancha): Crear, Transformar, Modificar, Acabados y Preparar, con botones grandes agrupados; riel de Mover/Rotar/Escalar a la izquierda e inspector con pestañas Propiedades y Piezas, donde se acopla el panel de la herramienta activa. Tablet y celular no cambian.
 - **Cámara ortográfica** (botón en la barra de vista o tecla O): Frente, Arriba y Lado sin perspectiva y 3D como isométrica.
 - **Imán de rotación**: al rotar con el gizmo la pieza se pega a los múltiplos de 45° (Shift lo desactiva).
-- **Engranaje y tuerca paramétricos** (Más formas › Taller): dientes, profundidad y agujero; rosca M2–M12.
+- **Engranaje y tuerca paramétricos** (Más formas › Taller): dientes, profundidad y hueco; rosca M2–M12.
 - **Vista previa de Cortar para la cama**: planos dorados que muestran dónde se corta.
 - Se quitaron "Ejemplos" y la integración con Tripo.
 - **Pruebas**: carpeta `tests/`.
