@@ -442,7 +442,7 @@ function updateScaleUI(){
 const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
 const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
 canvas.addEventListener('pointerdown',e=>{
-  const o=sel[sel.length-1]; if(e.button!==0||!scaleUI||!o||splitting||!sgCache.min)return;
+  const o=sel[sel.length-1]; if(e.button!==0||!scaleUI||!o||splitting||tool||!sgCache.min)return;
   setRay(e);
   const hit=ray2.intersectObjects(sh.filter(h=>h.visible),false)[0]; if(!hit)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);

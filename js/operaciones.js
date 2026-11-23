@@ -274,7 +274,7 @@ $('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi);
 canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4||tc.dragging||splitting)return;
-  if(tool==='measure'){measureClick(e);return;} if(tool==='face'){faceClick(e);return;}
+  if(tool==='measure'){measureClick(e);return;} if(tool==='face'){faceClick(e);return;} if(tool==='wp'){wpClick(e);return;}
   const r=canvas.getBoundingClientRect();
   p.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(p,cam);
