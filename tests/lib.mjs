@@ -31,7 +31,4 @@ export async function exportStl(page){
 }
 
 // Clic que sirve con el layout ancho: si el botón original está oculto (porque hay un botón espejo en otra barra, o el menú Agregar está cerrado), se lo acciona igual.
-export async function clk(page,sel){
-  const vis=await page.$eval(sel,e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';}).catch(()=>false);
-  if(vis) await page.click(sel); else await page.$eval(sel,e=>e.click());
-}
+export async function clk(page,sel){ await page.click(sel); }  // harness.mjs ya resuelve botones ocultos y piezas fantasma

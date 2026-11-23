@@ -1,23 +1,29 @@
 import {open,check,msg,saveProj,summary,clk} from './lib.mjs';
-const {browser,page,errs}=await open('/home/claude/constructor-3d/index.html',{w:1280,h:800});
+const {browser,page,errs}=await open(undefined,{w:1280,h:800});
 const cnt=async()=> (await saveProj(page)).objs.length;
-// disposición
+// disposición (pantalla ancha con cinta de pestañas)
 const box=async s=>page.$eval(s,e=>{const r=e.getBoundingClientRect();return {x:r.x,w:r.width,y:r.y,h:r.height};});
-const L=await box('#lrail'), I=await box('#insp'), W=await box('#wrap'), T=await box('#topbar');
-check('Herramientas a la IZQUIERDA (riel de íconos)',L.x+L.w<=W.x+W.w/3&&L.w<130&&/Transformar|Mover/.test(await page.$eval('#lrail',e=>e.textContent+[...e.querySelectorAll('button')].map(b=>b.title).join(' '))));
-check('Inspector (Piezas y Propiedades) a la DERECHA',I.x>=W.x+W.w/2&&I.w>=280&&await page.$eval('#insp #listp',e=>e.offsetHeight>0));
-// Agregar: menú de formas junto al riel
-check('Menú Agregar cerrado al inicio',await page.$eval('#rrail',e=>getComputedStyle(e).display==='none'));
-await page.click('#addbtn'); await page.waitForTimeout(200);
-const adds=await page.$$eval('#rrail [data-add],#rrail #textbtn',b=>b.map(x=>({v:x.getBoundingClientRect().height>0,k:x.dataset.add||'texto'})));
-check('11 formas/herramientas visibles en Agregar',adds.length===11&&adds.every(a=>a.v),adds.map(a=>a.k).join(','));
-await page.click('[data-add=sphere]'); await page.waitForTimeout(200);
-check('Agregar se cierra al elegir una forma',await page.$eval('#rrail',e=>getComputedStyle(e).display==='none'));
-// barra superior: buscador al centro y Exportar a la derecha
+const vis=s=>page.locator(s).first().isVisible();
+const R=await box('#trail'), I=await box('#insp'), W=await box('#wrap');
+check('Riel Mover/Rotar/Escalar a la IZQUIERDA',R.x+R.w<=W.x+W.w/3&&R.w<130);
+check('Inspector (Propiedades y Piezas) a la DERECHA',I.x>=W.x+W.w/2&&I.w>=280);
+const tabs=await page.$$eval('#ribbon .rtabs button',b=>b.map(x=>x.textContent.trim()));
+check('Cinta con pestañas Crear, Objeto, Editar, Aspecto, Preparar',tabs.join(',')==='Crear,Objeto,Editar,Aspecto,Preparar',tabs.join(','));
+await page.click('#ribbon .rtabs [data-t=modificar]'); await page.waitForTimeout(150);
+const grps=await page.$$eval('#ribbon .rpane.on .rgt',g=>g.map(x=>x.textContent.trim()));
+check('Pestaña Editar tiene el grupo Dividir',grps.includes('Dividir'),grps.join(','));
+// Agregar: botón + con el menú de formas
+check('Menú de formas cerrado al inicio',await page.$eval('#plusmenu',e=>e.hidden));
+await page.click('.rplus'); await page.waitForTimeout(200);
+const adds=await page.$$eval('#plusmenu .pmgrid button',b=>b.map(x=>x.getBoundingClientRect().height>0));
+check('10 formas visibles en el menú +',adds.length===10&&adds.every(Boolean),String(adds.length));
+await page.click('#plusmenu .pmgrid button:first-child'); await page.waitForTimeout(250);
+check('El menú + se cierra al elegir una forma',await page.$eval('#plusmenu',e=>e.hidden));
+// barra superior: buscador y Exportar a la derecha
 const sb=await box('#cmdbtn'), ex=await box('#stl');
-check('Barra superior: buscador centrado y Exportar a la derecha',Math.abs(sb.x+sb.w/2-640)<260&&ex.x>900);
-// barra de acciones, barra de vista y pie de estado
-check('Barra de acciones visible con una pieza elegida',await page.$eval('#ctx',e=>!e.hidden&&e.offsetHeight>0));
+check('Barra superior: buscador y Exportar a la derecha',sb.x>500&&ex.x>900);
+// con una pieza elegida: medidas en el inspector, barra de vista y pie de estado
+check('Medidas visibles con una pieza elegida',await vis('#dx'));
 check('Barra de vista y pie de estado visibles',await page.$eval('#vbar',e=>e.offsetHeight>0)&&await page.$eval('#status',e=>/triángulos/.test(e.textContent)));
 // buscador Ctrl K
 await page.keyboard.press('Control+k'); await page.waitForTimeout(200);

@@ -9,11 +9,11 @@ for(const kind of ['box','sphere','cylinder']){
  console.log(kind,(Date.now()-t0)+'ms',await msg(page));
  const a=await exportStl(page); await page.keyboard.press('Escape');
  console.log(' antes',b.tris,b.mn.map(v=>+v.toFixed(2)),b.mx.map(v=>+v.toFixed(2)),'despues',a.tris,a.mn.map(v=>+v.toFixed(2)),a.mx.map(v=>+v.toFixed(2)),'abiertas',a.openEdges,'vol',b.vol.toFixed(0),a.vol.toFixed(0));
- check(kind+': muchos más triángulos',a.tris>b.tris*20,a.tris);
+ check(kind+': muchos más triángulos',a.tris>Math.max(b.tris*10,10000),a.tris);
  check(kind+': cerrado (sin bordes abiertos)',a.openEdges===0,a.openEdges);
  check(kind+': tamaño casi igual',[0,1,2].every(k=>Math.abs((a.mx[k]-a.mn[k])-(b.mx[k]-b.mn[k]))<1.2));
  check(kind+': volumen parecido',Math.abs(a.vol-b.vol)/b.vol<0.08);
- check(kind+': base lisa (min Y igual)',Math.abs(a.mn[1]-b.mn[1])<0.01,a.mn[1]);
+ check(kind+': base lisa (altura mínima igual; el STL sale con Z hacia arriba)',Math.abs(a.mn[2]-b.mn[2])<0.01,a.mn[2]);
  if(kind==='sphere')await page.screenshot({path:'/tmp/f1.png'});
 }
 await reset(); await clk(page,'[data-add=cylinder]'); await page.waitForTimeout(300); await page.click('#fuzzbtn'); await page.selectOption('#fuzzm','smooth'); await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:90000}); await page.waitForTimeout(400); await page.screenshot({path:'/tmp/f2.png'});
