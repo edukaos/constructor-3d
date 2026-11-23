@@ -2,7 +2,7 @@
 // Constructor 3D: paneles, lista, vistas, selección, herramientas, texto y patrón.
 // Los scripts de js/ comparten el ámbito global y se cargan en orden desde index.html.
 // ===== Paneles: uno a la vez a la derecha =====
-const PANELS=['#estp','#arrp','#secp','#libp','#toolp','#bedp','#chkp','#textp','#patp','#expp','#svgp','#shellp','#fuzzp','#rndp','#shpp','#fitp','#lookp'];
+const PANELS=['#estp','#arrp','#secp','#libp','#toolp','#bedp','#chkp','#textp','#patp','#expp','#svgp','#shellp','#fuzzp','#rndp','#shpp','#fitp','#lookp','#grpp'];
 function openPanel(id,force){
   const el=$(id), show=force!==undefined?force:el.hidden;
   PANELS.forEach(p=>{if(p!==id)$(p).hidden=true;});
@@ -35,11 +35,11 @@ const IC={eye:'<svg viewBox="0 0 24 24"><path class="f" d="M2.5 12s3.8-6.5 9.5-6
 function renderList(force){
   const p=$('#listp'); if(!p||p.hidden)return;
   if(!force&&$('#lrows').querySelector('input'))return;
-  const sig=objs.map(o=>{const m=M_(o); return o.id+'/'+m.n+'/'+m.h+'/'+m.l+'/'+m.k+'/'+o.material.color.getHex()+'/'+(sel.includes(o)?1:0);}).join('|');
+  const sig=objs.map(o=>{const m=M_(o); return o.id+'/'+m.n+'/'+m.h+'/'+m.l+'/'+m.k+'/'+(m.g||'')+'/'+o.material.color.getHex()+'/'+(sel.includes(o)?1:0);}).join('|');
   if(!force&&sig===listSig)return; listSig=sig;
   $('#lcount').textContent=objs.length;
   $('#lrows').innerHTML=objs.length?objs.map((o,i)=>{const m=M_(o);
-    return '<div class="li'+(sel.includes(o)?' on':'')+(m.h?' off':'')+'" data-i="'+i+'"><span class="sw" style="background:#'+o.material.color.getHexString()+'"></span><span class="nm" title="Doble clic para renombrar">'+esc(m.n)+'</span>'+(m.k?'<span class="tag">hueco</span>':'')+
+    return '<div class="li'+(sel.includes(o)?' on':'')+(m.h?' off':'')+'" data-i="'+i+'"><span class="sw" style="background:#'+o.material.color.getHexString()+'"></span><span class="nm" title="Doble clic para renombrar">'+esc(m.n)+'</span>'+(m.k?'<span class="tag">hueco</span>':'')+(m.g?'<span class="tag" title="Está en un grupo: se elige y se mueve junto con las otras piezas del grupo">grupo</span>':'')+
       '<button class="ic'+(m.h?' act':'')+'" data-act="h" title="'+(m.h?'Mostrar':'Ocultar')+'">'+(m.h?IC.eyeoff:IC.eye)+'</button>'+
       '<button class="ic'+(m.l?' act':'')+'" data-act="l" title="'+(m.l?'Desbloquear':'Bloquear: no se puede mover ni elegir en el visor')+'">'+(m.l?IC.lock:IC.unlock)+'</button></div>';}).join('')
     :'<small>'+(document.body.classList.contains('v2')?'No hay piezas. Tocá el + amarillo para agregar una forma.':'No hay piezas. Agregá una forma desde la barra.')+'</small>';

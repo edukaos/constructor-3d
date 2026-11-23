@@ -1,9 +1,9 @@
 // Service worker: guarda la app y las librerías para que funcione sin conexión.
-const CACHE = 'c3d-v4';
+const CACHE = 'c3d-v5';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png',
   'css/app.css', 'css/marca.css',
   'js/aviso-version.js', 'js/libs.js', 'js/nucleo.js', 'js/operaciones.js', 'js/interfaz.js', 'js/exportar.js',
-  'js/formas.js', 'js/sketch.js', 'js/acabados.js', 'js/layout.js', 'js/mudanza.js', 'js/marca.js'];
+  'js/formas.js', 'js/sketch.js', 'js/acabados.js', 'js/grupos.js', 'js/layout.js', 'js/mudanza.js', 'js/marca.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });

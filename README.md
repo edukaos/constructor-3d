@@ -22,7 +22,7 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 - Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Hueco, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
 
 ## Atajos
-1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
+1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Ctrl+G agrupar · Ctrl+Shift+G desagrupar · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend. Desde una copia local: `python3 -m http.server` en la carpeta y abrir http://localhost:8000 (abriendo el archivo con doble clic no carga, porque usa módulos).
@@ -39,6 +39,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://constructor.quiron3d.com en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Agrupar sin unir** (Objeto › Grupo, Ctrl+G): las piezas agrupadas se eligen, mueven, alinean, duplican y borran juntas sin fusionarse. El panel Grupo cambia el ancho o la escala del conjunto y lo gira 90°. Desagrupar (Ctrl+Shift+G) las vuelve independientes. Se guarda en el proyecto y en el historial.
 - **Menús renombrados**: la pestaña Editar ahora se llama **Objeto** (mover, alinear, repetir), Modificar se llama **Editar** (unir, restar, vaciar, redondear…) y Cortar se llama **Dividir**.
 - **Calcar una imagen** (Sketch 2D → Calcar): ponés una foto o dibujo de fondo (se mueve y escala arrastrando, con ancho real en mm y transparencia) y dibujás encima, o tocás «Crear contorno» para que detecte la silueta sola. La imagen no se guarda en el proyecto.
 - **Estimar impresión** (Preparar): volumen, peso, filamento, tiempo y costo del material de las piezas elegidas (o todas), con material, precio por kg, relleno y velocidad editables. Es una estimación.
