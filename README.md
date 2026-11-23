@@ -1,6 +1,6 @@
 # Constructor 3D
 
-App web simple, estilo Microsoft 3D Builder, en un solo archivo (`index.html`).
+App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://constructor.quiron3d.com** (la vieja, edukaos.github.io/constructor-3d, ofrece mudar el trabajo guardado con un clic).
 
 ## Qué hace
 - **Formas:** cubo, esfera, cilindro, cono, toroide, tubo, media esfera, pirámide, prisma hexagonal y cuña (25 mm por defecto). Aparecen en el centro de la cama.
@@ -29,12 +29,13 @@ Abrir `index.html` en un servidor web (https recomendado). No necesita build ni 
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de respaldo para mallas que no están cerradas) y las tipografías se cargan desde jsDelivr, así que hace falta conexión.
 
 ## Instalar como app
-Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
+Abrí https://constructor.quiron3d.com en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Menús renombrados**: la pestaña Editar ahora se llama **Objeto** (mover, alinear, repetir), Modificar se llama **Editar** (unir, restar, vaciar, redondear…) y Cortar se llama **Dividir**.
 - **Calcar una imagen** (Sketch 2D → Calcar): ponés una foto o dibujo de fondo (se mueve y escala arrastrando, con ancho real en mm y transparencia) y dibujás encima, o tocás «Crear contorno» para que detecte la silueta sola. La imagen no se guarda en el proyecto.
 - **Estimar impresión** (Preparar): volumen, peso, filamento, tiempo y costo del material de las piezas elegidas (o todas), con material, precio por kg, relleno y velocidad editables. Es una estimación.
-- **Acomodar en la cama** (Editar → Alinear): ordena las piezas una al lado de la otra con la separación que elijas, girando 90° si entran mejor. Las piezas que se tocan se mueven juntas. Se puede deshacer.
+- **Acomodar en la cama** (Objeto → Alinear): ordena las piezas una al lado de la otra con la separación que elijas, girando 90° si entran mejor. Las piezas que se tocan se mueven juntas. Se puede deshacer.
 - **Vista en sección** (Aspecto): un plano (X, Y o Z) corta la vista y la cara cortada se ve rellena, para mirar por dentro. No modifica las piezas.
 - **Más liviana:** dibuja solo cuando hay actividad (menos batería y calor), resolución limitada a 2×, y libera memoria de video de piezas viejas del historial.
 - **Pantallas muy chicas:** aparece un aviso de que la app es para computadora.
@@ -43,7 +44,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Pieza nueva con fantasma**: al elegir una forma aparece translúcida siguiendo al cursor (sobre la cama o arriba de otra pieza); un clic la apoya y quedan las manijas de escala con cotas, donde se puede escribir la medida exacta. Esc cancela.
 - **Botón + amarillo** a la izquierda de las pestañas (o tecla A): menú con las formas básicas y Más formas, disponible en cualquier pestaña. La pestaña Crear queda con Texto 3D, SVG, Sketch 2D, Importar y Biblioteca.
 - **Recorrido inicial** la primera vez que abrís la app (se vuelve a ver desde la ayuda, ?).
-- **Cortar unificado**: un solo botón con dos modos, en partes iguales con uniones o con un plano. En el celular queda solo Dividir.
+- **Dividir unificado** (antes «Cortar»): un solo botón con dos modos, en partes iguales con uniones o con un plano. En el celular queda solo el corte con un plano.
 - **Celular simplificado**: se ocultan las funciones avanzadas. Aspecto sin la calidad Máxima y panel de medidas sin Más/Menos.
 - **Biblioteca de piezas** (Crear › Archivo): guardá las piezas elegidas con un nombre, con su historial editable, y volvé a usarlas en cualquier proyecto. Se guarda en el navegador y se puede exportar e importar como archivo.
 - **Sketch 2D** (Crear › Boceto): dibujá con línea, arco, rectángulo y círculo en Planta o Frente, con imán y cotas editables, y dale volumen con Extruir o Revolucionar. Se puede dibujar arrastrando; el boceto queda editable desde el Historial.
@@ -70,7 +71,7 @@ Abrí https://edukaos.github.io/constructor-3d/ en Chrome/Edge y usá el ícono 
 - **Redondear / chaflán** (columna izquierda, con vista previa): redondea o achaflana todas las aristas de la pieza, hacia afuera, hacia adentro o ambos. Las piezas complejas piden "Calcular vista previa" porque tarda varios segundos.
 - **Rediseño de la interfaz** (pantalla ancha): inspector con Piezas y Propiedades, barra de acciones de la selección, barra de vista, pie de estado, menú Agregar y buscador Ctrl K, sobre la base del artefacto "Rediseño Constructor 3D", conservando el estilo liquid glass, los íconos 3D y los atajos (S = Escalar).
 - **Paleta azul y dorado** (como Qlamps), en oscuro y claro, e **íconos duotono** (línea azul, relleno translúcido, detalle dorado); las formas de Agregar siguen siendo renders 3D.
-- **Cinta con pestañas** (pantalla ancha): Crear, Transformar, Modificar, Acabados y Preparar, con botones grandes agrupados; riel de Mover/Rotar/Escalar a la izquierda e inspector con pestañas Propiedades y Piezas, donde se acopla el panel de la herramienta activa. Tablet y celular no cambian.
+- **Cinta con pestañas** (pantalla ancha): Crear, Objeto, Editar, Aspecto y Preparar, con botones grandes agrupados; riel de Mover/Rotar/Escalar a la izquierda e inspector con pestañas Propiedades y Piezas, donde se acopla el panel de la herramienta activa. Tablet y celular no cambian.
 - **Cámara ortográfica** (botón en la barra de vista o tecla O): Frente, Arriba y Lado sin perspectiva y 3D como isométrica.
 - **Imán de rotación**: al rotar con el gizmo la pieza se pega a los múltiplos de 45° (Shift lo desactiva).
 - **Engranaje y tuerca paramétricos** (Más formas › Taller): dientes, profundidad y hueco; rosca M2–M12.
