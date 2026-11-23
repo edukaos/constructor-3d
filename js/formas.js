@@ -193,6 +193,8 @@ const SHAPELIB=[
  {id:'cros',n:'Cruz',cat:'Estructurales',mk:()=>shFlat(shPoly([[-4,-15],[4,-15],[4,-4],[15,-4],[15,4],[4,4],[4,15],[-4,15],[-4,4],[-15,4],[-15,-4],[-4,-4]]),8)},
  {id:'keyc',n:'Llavero',cat:'Taller',mk:()=>{const W=20,H=10,r=6,s=new THREE.Shape(); s.moveTo(-W+r,-H); s.lineTo(W-r,-H); s.absarc(W-r,-H+r,r,-Math.PI/2,0,false); s.lineTo(W,H-r); s.absarc(W-r,H-r,r,0,Math.PI/2,false); s.lineTo(-W+r,H); s.absarc(-W+r,H-r,r,Math.PI/2,Math.PI,false); s.lineTo(-W,-H+r); s.absarc(-W+r,-H+r,r,Math.PI,Math.PI*1.5,false); shHole(s,-W+7,0,3.2); return shFlat(s,3);}},
  {id:'nut',n:'Tuerca hexagonal',cat:'Taller',p:{t:'nut',th:'M5',af:8,h:4,bore:5.2}},
+ {id:'bolt',n:'Tornillo con rosca',cat:'Taller',p:{t:'bolt',th:'M8',L:20,head:'hex'}},
+ {id:'nutt',n:'Tuerca con rosca',cat:'Taller',p:{t:'nut',th:'M8',af:13,h:6.5,bore:8.2,thr:true,cl:0.25}},
  {id:'gear',n:'Engranaje',cat:'Taller',p:{t:'gear',N:12,od:28,td:2.5,bore:8,h:6}},
  {id:'arro',n:'Flecha',cat:'Taller',mk:()=>shFlat(shPoly([[-15,-4],[2,-4],[2,-10],[15,0],[2,10],[2,4],[-15,4]]),6)},
  {id:'brac',n:'Escuadra con hueco',cat:'Taller',mk:()=>{const s=shPoly([[0,0],[30,0],[0,30]]); shHole(s,8,8,3); return shFlat(s,5);}}

@@ -39,6 +39,7 @@ Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de
 Abrí https://constructor.quiron3d.com en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
+- **Tornillos y tuercas con rosca real** (Más formas › Taller): rosca métrica ISO de paso grueso, M2 a M20, con largo y cabeza hexagonal o sin cabeza (varilla). La tuerca puede tener rosca interior con holgura ajustable (0,25 mm por defecto) para que el tornillo impreso entre. Malla cerrada, lista para imprimir; avisa que debajo de M6 las roscas impresas salen empastadas.
 - **Plano de trabajo** (Crear › Plano de trabajo › Elegir cara): tocás una cara de una pieza, de arriba, de costado o inclinada, y las piezas nuevas se apoyan sobre ella con la base mirando a la cara (con imán, sobre la grilla del plano). «Cama», tocar un espacio vacío o un proyecto nuevo vuelven a la cama.
 - **Agrupar sin unir** (Objeto › Grupo, Ctrl+G): las piezas agrupadas se eligen, mueven, alinean, duplican y borran juntas sin fusionarse. El panel Grupo cambia el ancho o la escala del conjunto y lo gira 90°. Desagrupar (Ctrl+Shift+G) las vuelve independientes. Se guarda en el proyecto y en el historial.
 - **Menús renombrados**: la pestaña Editar ahora se llama **Objeto** (mover, alinear, repetir), Modificar se llama **Editar** (unir, restar, vaciar, redondear…) y Cortar se llama **Dividir**.
