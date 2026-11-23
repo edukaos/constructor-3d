@@ -1,3 +1,4 @@
+# Nota: desde que index.html se separó en archivos, los estilos viven en css/app.css; este script es del momento en que todo estaba en index.html y habría que apuntar la parte de CSS a ese archivo antes de volver a usarlo.
 """Íconos duotono (propuesta B): línea azul + relleno translúcido + detalle dorado.
 Reemplaza el interior de los <svg> de los botones y el bloque CSS de íconos. Las 10 formas
 de "Agregar" (data-add=…) siguen siendo imágenes 3D y no se tocan.

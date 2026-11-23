@@ -1,3 +1,4 @@
+# Nota: desde que index.html se separó en archivos, los estilos viven en css/app.css; este script es del momento en que todo estaba en index.html y habría que apuntar la parte de CSS a ese archivo antes de volver a usarlo.
 import re,base64,io,glob,os
 from PIL import Image
 S=os.path.dirname(os.path.abspath(__file__))

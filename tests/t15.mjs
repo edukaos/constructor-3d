@@ -1,19 +1,20 @@
 import {open,check,summary,clk} from './lib.mjs';
 const {browser,page,errs}=await open();
 await page.setViewportSize({width:1366,height:700}); await page.waitForTimeout(300);
-const Q=await page.evaluate(()=>matchMedia('(min-width:1100px) and (pointer:fine) and (prefers-reduced-transparency:no-preference)').matches)?'#ctx':'#quick';
+// Con la cinta (pantalla ancha) las acciones de la selección están en la pestaña Objeto; en pantallas chicas, en la barra rápida.
+const RIB=await page.locator('#ribbon').isVisible();
+const Q=RIB?'#ribbon':'#quick';
 const vis=s=>page.evaluate(s=>{const e=document.querySelector(s); return !!e&&!e.hidden&&getComputedStyle(e).display!=='none'},s);
-await page.waitForTimeout(400); await page.mouse.click(300,150); await page.waitForTimeout(400); check('Acciones rápidas ocultas sin selección',!(await vis(Q)));
+await page.waitForTimeout(400); await page.mouse.click(300,150); await page.waitForTimeout(400); if(!RIB)check('Acciones rápidas ocultas sin selección',!(await vis(Q)));
 await clk(page,'[data-add=box]'); await page.waitForTimeout(500);
-check('Acciones rápidas visibles con selección',await vis(Q));
-await page.click(Q==='#ctx'?'#ctx button[data-tip="Duplicar"]':'#quick button:first-child'); await page.waitForTimeout(300);
+check('Acciones de la selección visibles',await vis(Q));
+await page.click(RIB?'#dup':'#quick button:first-child'); await page.waitForTimeout(300);
 check('Duplicar rápido crea otra pieza',(await page.evaluate(()=>document.querySelectorAll('#listp .it, #listp li').length)>=0));
-await page.click(Q==='#ctx'?'#ctx button.danger':'#quick button:last-child'); await page.waitForTimeout(300);
+await page.click(RIB?'#del':'#quick button:last-child'); await page.waitForTimeout(300);
 // riel: en el layout ancho es de íconos (sin secciones plegables); en pantallas chicas las secciones se pliegan
-if(Q==='#ctx'){
-  check('Riel de íconos: todo visible sin plegar',await page.evaluate(()=>{const r=document.querySelector('#lrail'); return r.scrollHeight<=r.clientHeight+2||getComputedStyle(r).overflowY==='auto';}));
-  const tips=await page.evaluate(()=>[...document.querySelectorAll('#lrail .grp button')].filter(b=>!b.title).length);
-  check('Todos los botones del riel tienen nombre (tooltip)',tips===0,'sin título: '+tips);
+if(RIB){
+  const tips=await page.evaluate(()=>[...document.querySelectorAll('#ribbon .rgr button, #trail button')].filter(b=>!b.title&&!b.textContent.trim()&&!b.getAttribute('aria-label')).length);
+  check('Todos los botones de la cinta y el riel tienen nombre',tips===0,'sin nombre: '+tips);
 }else{
   const h0=await page.evaluate(()=>document.querySelector('#lrail').scrollHeight);
   await page.click('#lrail .grp:nth-child(2) .lbl'); await page.waitForTimeout(200);

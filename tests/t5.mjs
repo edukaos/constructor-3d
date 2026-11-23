@@ -1,5 +1,5 @@
 import {open,check,msg,saveProj,clickObj,summary,screenOf} from './lib.mjs';
-import * as THREE from '/tmp/claude-0/-home-claude/3b0abf3c-a756-5b2f-b56e-ad418e0e5272/scratchpad/libs/node_modules/three/build/three.module.js';
+import * as THREE from 'three';
 import fs from 'fs';
 const {browser,page,errs}=await open();
 const blur=()=>page.evaluate(()=>document.activeElement&&document.activeElement.blur());

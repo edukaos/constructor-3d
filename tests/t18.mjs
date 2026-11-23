@@ -3,11 +3,11 @@ const {browser,page,errs}=await open();
 await page.setViewportSize({width:1366,height:800});
 const ids=['rbox','rcyl','hcyl','qsph','caps','elip','gota','tpri','ppri','opri','star','hear','stai','arch','roof','wash','lper','uper','cros','keyc','nut','gear','arro','brac'];
 async function reset(){ await page.click('#pnew'); await page.waitForTimeout(250); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click(); await page.waitForTimeout(150);}
-await reset(); await clk(page,'#shpbtn'); await page.waitForFunction(()=>document.querySelectorAll('#shpgrid img').length>=24,null,{timeout:30000});
-check('Panel muestra 24 miniaturas',true); await page.screenshot({path:'/tmp/L1.png'});
+await reset(); await clk(page,'#shpbtn'); await page.waitForFunction(()=>document.querySelectorAll('#shpgrid img').length>=26,null,{timeout:30000});
+check('Panel muestra 26 miniaturas',true); await page.screenshot({path:'/tmp/L1.png'});
 check('Buscador filtra',await (async()=>{await page.fill('#shpq','estre'); await page.waitForTimeout(150); const n=await page.locator('#shpgrid button').count(); await page.fill('#shpq',''); await page.waitForTimeout(150); return n===1;})());
-await page.click('#shpcats button:has-text("Taller")'); await page.waitForTimeout(150); check('Categoría Taller tiene 5',await page.locator('#shpgrid button').count()===5);
-await page.click('#shpcats button:has-text("Todas")');
+await page.selectOption('#shpcats select','Taller'); await page.waitForTimeout(150); check('Categoría Taller tiene 7',await page.locator('#shpgrid button').count()===7);
+await page.selectOption('#shpcats select','Todas');
 for(const id of ids){
   await reset(); if(await page.evaluate(()=>document.querySelector('#shpp').hidden))await clk(page,'#shpbtn'); await page.waitForSelector('#shpgrid button[data-id='+id+']');
   await page.click('#shpgrid button[data-id='+id+']'); await page.waitForTimeout(200);
