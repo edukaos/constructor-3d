@@ -1,5 +1,7 @@
 import {chromium} from 'playwright';
 import fs from 'fs';
+import http from 'http';
+import path from 'path';
 const L=process.env.C3D_LIBS||new URL('./node_modules/',import.meta.url).pathname;
 const map=[
  [/\/npm\/three@0\.160\.0\/(.*)$/, p=>L+'three/'+p],
@@ -7,9 +9,21 @@ const map=[
  [/\/npm\/three-bvh-csg@0\.0\.16\/(.*)$/, p=>L+'three-bvh-csg/'+p],
  [/\/npm\/manifold-3d@3\.5\.4\/(.*)$/, p=>L+'manifold-3d/'+p],
 ];
+// La app se sirve por http (los módulos de js/ no cargan desde file://).
+const TYPES={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.svg':'image/svg+xml','.wasm':'application/wasm'};
+let server=null;
+async function serve(root){
+  if(server)return server.port;
+  const srv=http.createServer((req,res)=>{
+    const u=decodeURIComponent(new URL(req.url,'http://x').pathname); let fp=path.join(root,u.endsWith('/')?u+'index.html':u);
+    if(!fp.startsWith(root)||!fs.existsSync(fp)){res.writeHead(404);res.end();return;}
+    res.writeHead(200,{'content-type':TYPES[path.extname(fp)]||'application/octet-stream'}); fs.createReadStream(fp).pipe(res);
+  });
+  await new Promise(r=>srv.listen(0,'127.0.0.1',r)); srv.unref(); server={port:srv.address().port}; return server.port;
+}
 export async function open(file=new URL('../index.html',import.meta.url).pathname,{w=1280,h=800}={}){
   const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
-  const ctx=await browser.newContext({viewport:{width:w,height:h},acceptDownloads:true});
+  const ctx=await browser.newContext({viewport:{width:w,height:h},acceptDownloads:true,serviceWorkers:'block'});
   const page=await ctx.newPage();
   const errs=[]; page.on('pageerror',e=>errs.push('PAGEERROR: '+e.message)); page.on('console',m=>{if(m.type()==='error')errs.push('CONSOLE: '+m.text());});
   await page.route(/cdn\.jsdelivr\.net/,route=>{
@@ -19,7 +33,8 @@ export async function open(file=new URL('../index.html',import.meta.url).pathnam
   });
   // Sin recorrido inicial ni avisos de primera vez.
   await page.addInitScript(()=>{try{localStorage.setItem('c3d_tour','1');localStorage.setItem('c3d_plusseen','1');}catch(e){}});
-  await page.goto('file://'+file);
+  const port=await serve(path.dirname(file));
+  await page.goto('http://127.0.0.1:'+port+'/'+path.basename(file));
   await page.waitForTimeout(1500);
   adaptToLayout(page);
   return {browser,page,errs};

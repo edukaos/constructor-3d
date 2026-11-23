@@ -25,7 +25,14 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
-Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend.
+Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend. Desde una copia local: `python3 -m http.server` en la carpeta y abrir http://localhost:8000 (abriendo el archivo con doble clic no carga, porque usa módulos).
+
+## Cómo está organizado el código
+- `index.html`: la estructura de la pantalla (botones, paneles) y el orden en que se cargan los scripts.
+- `css/app.css` (estilos de la app) y `css/marca.css` (marca Quirón).
+- `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
+- `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
+- `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE` y subir el número de `CACHE`.
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de respaldo para mallas que no están cerradas) y las tipografías se cargan desde jsDelivr, así que hace falta conexión.
 
 ## Instalar como app
