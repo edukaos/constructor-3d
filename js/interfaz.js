@@ -57,7 +57,7 @@ $('#lrows').addEventListener('click',e=>{
   }
   if(m.h){m.h=false; applyGhost(); commit();}
   const add=e.ctrlKey||e.metaKey||e.shiftKey||multi;
-  select(add?(sel.includes(o)?sel.filter(x=>x!==o):[...sel,o]):[o]);
+  select(add?(sel.includes(o)?selWithout(o):[...sel,o]):[o]);
 });
 $('#lrows').addEventListener('dblclick',e=>{
   const nm=e.target.closest('.nm'); if(!nm)return; const o=objs[+nm.closest('.li').dataset.i]; if(!o)return;

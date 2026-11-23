@@ -17,6 +17,9 @@ check('Se abre el panel Grupo',await page.$eval('#grpp',e=>!e.hidden));
 await page.mouse.click(40,600); await page.waitForTimeout(150);
 await page.evaluate(()=>select([objs[0]])); 
 check('Elegir una pieza del grupo elige el grupo entero',await nsel()===2);
+await page.evaluate(()=>select([objs[0]])); check('Volver a elegir una pieza del grupo lo mantiene entero',await nsel()===2);
+await page.evaluate(()=>select([...sel,objs[2]])); check('Sumar otra pieza con Shift deja el grupo y la nueva',await nsel()===3);
+await page.evaluate(()=>select(selWithout(objs[0]))); check('Sacar una pieza del grupo con Shift saca el grupo entero',await nsel()===1);
 // escalar el grupo al 200 %
 await page.evaluate(()=>{select([objs[0]]);});
 const w0=await page.evaluate(()=>groupBox().getSize(new THREE.Vector3()).x);

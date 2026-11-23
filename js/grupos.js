@@ -6,13 +6,16 @@
 
 const grpOf=o=>M_(o).g||null;
 const grpMembers=g=>objs.filter(o=>grpOf(o)===g);
+// sacar una pieza de la selección (Shift + clic): si está en un grupo, sale el grupo entero
+const selWithout=o=>sel.filter(x=>x!==o&&!(grpOf(o)&&grpOf(x)===grpOf(o)));
 const newGroupId=()=>'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
-// select() expande la selección al grupo entero. Si se saca una pieza de un grupo, sale el grupo entero.
+// select() expande la selección al grupo entero. Si se saca una pieza de un grupo (y no queda ninguna de ese grupo en la lista), sale el grupo entero;
+// con Shift + clic sobre una pieza de un grupo ya elegido, el grupo sale entero.
 {
   const selectBase=select;
   select=function(list){
-    const prev=sel.slice(), dropped=new Set(prev.filter(o=>!list.includes(o)).map(grpOf).filter(Boolean));
+    const prev=sel.slice(), kept=new Set(list.map(grpOf).filter(Boolean)), dropped=new Set(prev.filter(o=>!list.includes(o)).map(grpOf).filter(g=>g&&!kept.has(g)));
     let out=list.filter(o=>!dropped.has(grpOf(o)));
     const gs=new Set(out.map(grpOf).filter(Boolean));
     if(gs.size){

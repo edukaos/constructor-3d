@@ -282,6 +282,6 @@ canvas.addEventListener('pointerup',e=>{
   if(!hit){if(!multi)select([]);return;}
   const o=hit.object;
   const add=e.shiftKey||e.ctrlKey||e.metaKey||multi;
-  if(add) select(sel.includes(o)?sel.filter(x=>x!==o):[...sel,o]); else select([o]);
+  if(add) select(sel.includes(o)?selWithout(o):[...sel,o]); else select([o]);
   msg(sel.length===1?'1 objeto seleccionado.':sel.length+' objetos seleccionados.');
 });
