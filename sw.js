@@ -1,5 +1,5 @@
 // Service worker: guarda la app y las librerías para que funcione sin conexión.
-const CACHE = 'c3d-v11';
+const CACHE = 'c3d-v12';
 const CORE = ['./', 'index.html', 'vendor/three/three.module.js', 'vendor/three/bvh.module.js', 'vendor/three/bvh-csg.module.js', 'vendor/manifold/manifold.js', 'vendor/manifold/manifold.wasm', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png',
   'css/app.css', 'css/marca.css',
   'js/aviso-version.js', 'js/libs.js', 'js/nucleo.js', 'js/operaciones.js', 'js/interfaz.js', 'js/exportar.js',
