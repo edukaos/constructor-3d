@@ -227,9 +227,9 @@ const fUp=new THREE.Vector3(0,1,0);
 function flabShow(e,t){const r=$('#wrap').getBoundingClientRect(), z=zf(); flab.textContent=t; flab.hidden=false; flab.style.left=((e.clientX-r.left)/z+46)+'px'; flab.style.top=((e.clientY-r.top)/z-8)+'px';}
 function freeOk(e){return freeUI&&!placing&&!splitting&&!tool&&!sk&&!(e.shiftKey||e.ctrlKey||e.metaKey||multi);}
 function freePick(e){
-  setRay(e); const o=sel[sel.length-1], single=sel.length===1&&o&&!M_(o).l;
-  if(single){
-    const hr=ray2.intersectObjects([frArrow,...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
+  setRay(e); const o=sel[sel.length-1], single=sel.length===1&&o&&!M_(o).l, grp=!!(o&&!M_(o).l&&selGroup());
+  if(single||grp){
+    const hr=ray2.intersectObjects([...(single?[frArrow]:[]),...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
     if(hr)return {k:hr.object===frArrow?'lift':'rot',o};
   }
   const hp=ray2.intersectObjects(pickable(),false)[0]; if(hp)return {k:'body',o:hp.object,point:hp.point.clone()};
@@ -241,7 +241,7 @@ canvas.addEventListener('pointerdown',e=>{
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
   const o=h.o; let d={k:h.k,o,moved:false,x0:e.clientX,y0:e.clientY};
   if(h.k==='body'){ if(!sel.includes(o))select([o]); d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone()); }
-  else if(h.k==='rot'){ const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone();
+  else if(h.k==='rot'){ const grp=!!selGroup(), bb=grp?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone(); d.grp=grp?sel.map(q=>({o:q,p:q.position.clone(),q:q.quaternion.clone()})):null;
     const r=0.5*Math.hypot(bb.max.x-bb.min.x,bb.max.z-bb.min.z)+14; rotFx.position.set(c.x,bb.min.y+0.15,c.z); rotFx.scale.setScalar(r); rotWedge(d.a0,0); rotFx.visible=true; }
   else { const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), n=new THREE.Vector3(cam.position.x-c.x,0,cam.position.z-c.z); if(n.lengthSq()<1e-6)n.set(0,0,1); n.normalize(); d.pl=new THREE.Plane(n,-n.dot(c)); const P=fPlane(e,d.pl)||c; d.y0=P.y; d.p0=o.position.y; }
   fdrag=d;
@@ -256,12 +256,13 @@ canvas.addEventListener('pointermove',e=>{
     const P=fPlane(e,d.pl); if(!P)return; let dx=P.x-d.P0.x, dz=P.z-d.P0.z;
     if(snapOn){ const b0=d.base[sel.indexOf(o)]||d.base[0]; dx=Math.round((b0.x+dx)/st)*st-b0.x; dz=Math.round((b0.z+dz)/st)*st-b0.z; }
     sel.forEach((q,i)=>{q.position.x=d.base[i].x+dx; q.position.z=d.base[i].z+dz;});
-    flabShow(e,'X '+(Math.round(o.position.x*10)/10)+' · Z '+(Math.round(o.position.z*10)/10)); updateDims();
+    flabShow(e,'X '+(Math.round(o.position.x*10)/10)+' · Z '+(Math.round(o.position.z*10)/10)+'\n'+distLabel(o)); updateDims();
   } else if(d.k==='rot'){
     const P=fPlane(e,d.pl); if(!P)return; let dl=Math.atan2(-(P.z-d.c.z),P.x-d.c.x)-d.a0;
     if(e.shiftKey){const s45=Math.PI/4; dl=Math.round(dl/s45)*s45;} else if(snapOn){const s15=Math.PI/12; dl=Math.round(dl/s15)*s15;}
     rotWedge(d.a0,dl);
-    o.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(fUp,dl).multiply(d.q0));
+    if(d.grp){ const R=new THREE.Quaternion().setFromAxisAngle(fUp,dl); d.grp.forEach(g=>{g.o.position.copy(g.p).sub(d.c).applyQuaternion(R).add(d.c); g.o.quaternion.copy(R).multiply(g.q);}); }
+    else o.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(fUp,dl).multiply(d.q0));
     let deg=Math.round(dl*180/Math.PI); deg=((deg+180)%360+360)%360-180; flabShow(e,(deg>0?'+':'')+deg+'°'); updateDims();
   } else {
     const P=fPlane(e,d.pl); if(!P)return; let y=d.p0+(P.y-d.y0); if(snapOn)y=Math.round(y/st)*st;
@@ -380,7 +381,7 @@ $('#hole').onclick=()=>{
 // ===== Texto 3D =====
 const FONTS={sansb:'droid/droid_sans_bold',sans:'droid/droid_sans_regular',serifb:'droid/droid_serif_bold',serif:'droid/droid_serif_regular',gentb:'gentilis_bold',gent:'gentilis_regular',mono:'droid/droid_sans_mono_regular'};
 const fontCache={};
-const FONT_CDN=['https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/','https://fastly.jsdelivr.net/npm/three@0.160.0/examples/fonts/','https://unpkg.com/three@0.160.0/examples/fonts/'];
+const FONT_CDN=['./vendor/three/fonts/'];   // tipografías incluidas en la app (no hace falta internet)
 function loadFont(k){
   if(!fontCache[k])fontCache[k]=(async()=>{
     let err; for(let t=0;t<2;t++)for(const base of FONT_CDN){ try{ return await new FontLoader().loadAsync(base+FONTS[k]+'.typeface.json'); }catch(e){err=e;} }

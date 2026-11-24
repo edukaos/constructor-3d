@@ -415,13 +415,13 @@ function showMoveDims(o){
 }
 function updateFreeUI(o,on){
   frArrow.visible=on; frRot.forEach(r=>{r.visible=on; r.userData.pk.visible=on;}); if(!on)return;
-  const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
+  const bb=selGroup()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
   frArrow.position.set(c.x,bb.max.y+k*0.07,c.z); frArrow.scale.setScalar(k*0.007);
   const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.19,c.z),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z)];
   frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.018);});
 }
 function updateScaleUI(){
-  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!M_(o).l&&!placing&&(!freeUI||sel.length===1));
+  const o=sel[sel.length-1], grp=!!(freeUI&&selGroup()), on=!!(scaleUI&&o&&!splitting&&!M_(o).l&&!placing&&(!freeUI||sel.length===1||grp));
   if(!o){updateFreeUI(null,false);}
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
