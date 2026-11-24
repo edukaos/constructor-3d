@@ -835,3 +835,6 @@ html body #ribbon .rtabs,html body #ribbon .rbody{margin-left:calc(16px + var(--
 #newver #nvgo{background:#F5C451;color:#1A1405;border-color:#F5C451}
 /* Celular: solo lo básico; las funciones avanzadas quedan para la compu */
 @media (max-width:760px),(pointer:coarse){#libbtn,#skbtn,#fxrow,#shellbtn,#rndbtn,#fuzzbtn,#fitbtn,#pattern,#chk,#svgbtn,#textbtn,#shpbtn,#measure{display:none!important}}
+
+/* rótulo de arrastre con varias líneas (distancias) */
+#flab{white-space:pre-line}

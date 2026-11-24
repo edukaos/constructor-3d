@@ -1,0 +1,26 @@
+// Girar un grupo con el anillo del visor: las dos piezas giran juntas alrededor del centro del grupo
+import {open,check,summary,screenOf} from './lib.mjs';
+const {browser,page,errs}=await open();
+const set=async(id,v)=>{await page.fill('#'+id,String(v)); await page.waitForTimeout(80);};
+const blur=()=>page.evaluate(()=>document.activeElement&&document.activeElement.blur());
+await page.click('#pnew'); await page.waitForTimeout(200);
+await page.keyboard.press('1'); await set('px',-40); await set('pz',0); await blur();
+await page.keyboard.press('1'); await set('px',40); await set('pz',0); await blur();
+await page.evaluate(()=>{select([objs[0],objs[1]]); groupSel();});
+await page.waitForTimeout(200);
+await page.click('[data-mode=free]'); await page.waitForTimeout(200);
+const before=await page.evaluate(()=>objs.map(o=>[o.position.x,o.position.z]));
+const ring=await page.evaluate(()=>{const r=frRot[1].userData.pk; r.updateMatrixWorld(true); const v=new THREE.Vector3(); r.getWorldPosition(v); return v.toArray();});
+const s=await screenOf(page,ring);
+check('El anillo del grupo está visible',await page.evaluate(()=>frRot[1].visible));
+await page.mouse.move(s.x,s.y); await page.mouse.down();
+await page.mouse.move(s.x+30,s.y-60,{steps:10}); await page.mouse.move(s.x+60,s.y-120,{steps:10}); await page.mouse.up(); await page.waitForTimeout(300);
+const after=await page.evaluate(()=>objs.map(o=>[o.position.x,o.position.z]));
+const moved=after.map((p,i)=>Math.hypot(p[0]-before[i][0],p[1]-before[i][1]));
+check('Las dos piezas se movieron al girar',moved[0]>1&&moved[1]>1,moved.map(v=>v.toFixed(1)).join(' / '));
+const rot=await page.evaluate(()=>objs.map(o=>o.quaternion.angleTo(new THREE.Quaternion())));
+check('Las dos piezas giraron (tienen rotación)',rot.every(a=>a>0.01),rot.map(v=>v.toFixed(2)).join(' / '));
+const dist=await page.evaluate(()=>{const a=objs[0].position, b=objs[1].position; return Math.hypot(a.x-b.x,a.z-b.z);});
+check('La distancia entre las dos no cambió (80 mm)',Math.abs(dist-80)<0.5,dist.toFixed(2));
+check('Sin errores',errs.length===0,errs.join('|'));
+summary(); await browser.close();

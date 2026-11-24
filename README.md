@@ -28,18 +28,23 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend. Desde una copia local: `python3 -m http.server` en la carpeta y abrir http://localhost:8000 (abriendo el archivo con doble clic no carga, porque usa módulos).
 
 ## Cómo está organizado el código
+- `vendor/`: librerías y tipografías, copiadas tal cual (Three.js 0.160, Manifold 3.5.4, three-mesh-bvh, three-bvh-csg).
 - `index.html`: la estructura de la pantalla (botones, paneles) y el orden en que se cargan los scripts.
 - `css/app.css` (estilos de la app) y `css/marca.css` (marca Quirón).
 - `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
+- `js/grabado.js` (grabar texto), `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
 - `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
 - `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE` y subir el número de `CACHE`.
-Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg, que queda de respaldo para mallas que no están cerradas) y las tipografías se cargan desde jsDelivr, así que hace falta conexión.
+Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg) y las tipografías vienen en `vendor/` (del propio sitio, sin jsDelivr). No hace falta conexión después de la primera carga.
 
 ## Instalar como app
 Abrí https://constructor.quiron3d.com en Chrome/Edge y usá el ícono de instalar de la barra de direcciones (o menú ⋮ → Instalar). En Android/iOS: menú → "Agregar a pantalla de inicio". Después de la primera carga funciona sin conexión.
 
 ## Novedades
 - **Tornillos y tuercas con rosca real** (Más formas › Taller): rosca métrica ISO de paso grueso, M2 a M20, con largo y cabeza hexagonal o sin cabeza (varilla). La tuerca puede tener rosca interior con holgura ajustable (0,25 mm por defecto) para que el tornillo impreso entre. Malla cerrada, lista para imprimir; avisa que debajo de M6 las roscas impresas salen empastadas.
+- **Grabar texto en una pieza** (Crear › Texto 3D › Grabar en la pieza): elegís la pieza, escribís el texto y se graba en su cara de arriba (se resta con el mismo motor que Restar). Con caras curvas el texto puede salirse; conviene una cara plana.
+- **Distancias al mover**: mientras arrastrás una pieza, el rótulo muestra la distancia libre a la vecina más cercana (en X y en Z) y a los bordes de la cama.
+- **Girar un grupo con el anillo** del visor: las piezas giran juntas alrededor del centro del grupo. Escalar el grupo se hace desde el panel Grupo.
 - **Plano de trabajo** (Crear › Plano de trabajo › Elegir cara): tocás una cara de una pieza, de arriba, de costado o inclinada, y las piezas nuevas se apoyan sobre ella con la base mirando a la cara (con imán, sobre la grilla del plano). «Cama», tocar un espacio vacío o un proyecto nuevo vuelven a la cama.
 - **Agrupar sin unir** (Objeto › Grupo, Ctrl+G): las piezas agrupadas se eligen, mueven, alinean, duplican y borran juntas sin fusionarse. El panel Grupo cambia el ancho o la escala del conjunto y lo gira 90°. Desagrupar (Ctrl+Shift+G) las vuelve independientes. Se guarda en el proyecto y en el historial.
 - **Menús renombrados**: la pestaña Editar ahora se llama **Objeto** (mover, alinear, repetir), Modificar se llama **Editar** (unir, restar, vaciar, redondear…) y Cortar se llama **Dividir**.

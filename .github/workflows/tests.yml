@@ -1,0 +1,25 @@
+name: Pruebas
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependencias de pruebas
+        working-directory: tests
+        run: npm install
+      - name: Instalar Chromium
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
+      - name: Correr pruebas
+        working-directory: tests
+        run: bash run-all.sh
