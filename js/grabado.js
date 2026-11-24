@@ -70,14 +70,21 @@ async function grabConfirmar(){
 // mover: el texto sigue al puntero sobre la cara; un clic lo fija
 let grabDown=null;
 canvas.addEventListener('pointerdown',e=>{ grabDown=[e.clientX,e.clientY]; },true);
-canvas.addEventListener('pointermove',e=>{
-  if(!grab)return; const a=grabAim(e); if(a){grab.aim=a; grabPlace(grab.m,a,grab.tx.depth); grabFit();}
-});
+// sobre la cara elegida: el texto se desliza por su plano, dentro de la pieza (no salta de cara al pasar por bordes)
+function grabSlide(e){
+  setRay(e); const a=grab.aim, pl=new THREE.Plane().setFromNormalAndCoplanarPoint(a.n,a.pt), p=new THREE.Vector3();
+  if(!ray2.ray.intersectPlane(pl,p))return;
+  const b=bbox(grab.T), q=p.clone().clamp(b.min,b.max);
+  // el punto se queda sobre la cara: se proyecta de vuelta al plano
+  q.addScaledVector(a.n, -q.clone().sub(p).dot(a.n));
+  grab.aim={pt:q, n:a.n}; grabPlace(grab.m,grab.aim,grab.tx.depth); grabFit();
+}
+canvas.addEventListener('pointermove',e=>{ if(grab&&grab.aim) grabSlide(e); });
 canvas.addEventListener('pointerup',e=>{
   if(!grab||e.button!==0)return;
   if(grabDown&&Math.hypot(e.clientX-grabDown[0],e.clientY-grabDown[1])>4)return; // fue un giro de cámara
   const a=grabAim(e);
-  if(a){ // clic sobre la cara: fija la posición, sin cambiar la selección
+  if(a){ // clic sobre la pieza: fija la posición y la cara (la nueva cara si es otra), sin cambiar la selección
     e.stopImmediatePropagation(); grab.aim=a; grabPlace(grab.m,a,grab.tx.depth); grabFit(); return; }
   // clic fuera de la pieza: se cancela el grabado y el clic sigue de largo (así el visor vuelve a responder)
   grabEnd(); msg('Grabado cancelado: tocaste fuera de la pieza.');
