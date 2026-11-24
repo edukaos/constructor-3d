@@ -375,6 +375,8 @@ function recenter(m){
 // al tocar el visor se suelta el campo numérico que tenía el foco, así el panel de medidas siempre se actualiza
 canvas.addEventListener('pointerdown',()=>{const a=document.activeElement; if(a&&a!==document.body&&a.closest&&a.closest('#dims'))a.blur();},true);
 let scaleUI=true, freeUI=true, sdrag=null, placing=null, placeSkip=false, fdrag=null; const sgCache={g:null,min:null,max:null};
+// marco de la caja de escalar: la pieza, o el grupo entero (en coordenadas del mundo, con grp = sus piezas)
+let sgF=null; const IDF={matrixWorld:new THREE.Matrix4(),scale:new THREE.Vector3(1,1,1),updateMatrixWorld(){}};
 const sg=new THREE.Group(); sg.visible=false; scene.add(sg);
 const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0xF5C451,depthTest:false,transparent:true}));
 edges.renderOrder=998; sg.add(edges);
@@ -426,35 +428,40 @@ function updateScaleUI(){
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
   updateFreeUI(o,on&&freeUI);
-  if(!on){hideCotas(); mvLines.visible=false; hvBack.visible=hvFront.visible=false; return;}
+  if(!on){hideCotas(); mvLines.visible=false; hvBack.visible=hvFront.visible=false; sgF=null; return;}
   if(sgCache.g!==o.geometry){o.geometry.computeBoundingBox(); sgCache.g=o.geometry; sgCache.min=o.geometry.boundingBox.min.clone(); sgCache.max=o.geometry.boundingBox.max.clone();}
-  const mn=sgCache.min, mx=sgCache.max, c=mn.clone().add(mx).multiplyScalar(0.5);
-  sg.position.copy(o.position); sg.quaternion.copy(o.quaternion); sg.scale.copy(o.scale);
+  // con un grupo elegido, la caja es la del conjunto entero (coordenadas del mundo); si no, la de la pieza
+  if(selGroup()){const b=groupBox(); sgF={grp:[...sel], mn:b.min.clone(), mx:b.max.clone(), p:new THREE.Vector3(), q:new THREE.Quaternion(), s:new THREE.Vector3(1,1,1), cota:IDF};}
+  else sgF={grp:null, mn:sgCache.min, mx:sgCache.max, p:o.position, q:o.quaternion, s:o.scale, cota:o};
+  const {mn,mx,p:fp,q:fq,s:fs}=sgF, c=mn.clone().add(mx).multiplyScalar(0.5);
+  sg.position.copy(fp); sg.quaternion.copy(fq); sg.scale.copy(fs);
   edges.position.copy(c); edges.scale.copy(mx.clone().sub(mn));
   sh.forEach(h=>{
     const s=h.userData.s, lp=new THREE.Vector3(s.x>0?mx.x:s.x<0?mn.x:c.x, s.y>0?mx.y:s.y<0?mn.y:c.y, s.z>0?mx.z:s.z<0?mn.z:c.z);
-    h.position.copy(lp.multiply(o.scale).applyQuaternion(o.quaternion).add(o.position));
+    h.position.copy(lp.multiply(fs).applyQuaternion(fq).add(fp));
     h.scale.setScalar(camK(h.position)*0.016);
   });
   sh.forEach((h,i)=>{hvArr[i*3]=h.position.x; hvArr[i*3+1]=h.position.y; hvArr[i*3+2]=h.position.z;}); hvAttr.needsUpdate=true; hvBack.visible=hvFront.visible=true;
-  if(sdrag)showCotas(o,mn,mx,{x:sdrag.s.x!==0,y:sdrag.s.y!==0,z:sdrag.s.z!==0}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
+  if(sdrag)showCotas(sgF.cota,mn,mx,{x:sdrag.s.x!==0,y:sdrag.s.y!==0,z:sdrag.s.z!==0}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
 }
 const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
 const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
 canvas.addEventListener('pointerdown',e=>{
-  const o=sel[sel.length-1]; if(e.button!==0||!scaleUI||!o||splitting||tool||!sgCache.min)return;
+  const o=sel[sel.length-1]; if(e.button!==0||!scaleUI||!o||splitting||tool||!sgF)return;
   setRay(e);
   const hit=ray2.intersectObjects(sh.filter(h=>h.visible),false)[0]; if(!hit)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
-  const s=hit.object.userData.s, g=sgCache, c=g.min.clone().add(g.max).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
-  ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.max[k]:s[k]<0?g.min[k]:c[k]; a[k]=s[k]>0?g.min[k]:s[k]<0?g.max[k]:c[k];});
-  const hw=h.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
-  const A=a.clone().multiply(o.scale).applyQuaternion(o.quaternion).add(o.position);
+  const s=hit.object.userData.s, g=sgF, c=g.mn.clone().add(g.mx).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
+  ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.mx[k]:s[k]<0?g.mn[k]:c[k]; a[k]=s[k]>0?g.mn[k]:s[k]<0?g.mx[k]:c[k];});
+  const hw=h.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
+  const A=a.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
   const r=canvas.getBoundingClientRect(), scr=V=>{const v=V.clone().project(cam); return new THREE.Vector2(r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height);};
   const v0=scr(hw).sub(scr(A)); let len=v0.length();
   if(len<80){ if(len>1e-3)v0.multiplyScalar(80/len); else v0.set(56,-56); len=80; }
-  sdrag={o,s,h,a,A,s0:o.scale.clone(),q:o.quaternion.clone(),p0:o.position.clone(),
-    P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len};
+  const grp=g.grp;
+  sdrag={o,s,h,a,A,s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
+    P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len,
+    grp, init:grp?new Map(grp.map(m=>[m,{p:m.position.clone(),s:m.scale.clone()}])):null};
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!sdrag)return;
@@ -477,14 +484,20 @@ canvas.addEventListener('pointermove',e=>{
   }
   ['x','y','z'].forEach(k=>{f[k]=Math.max(0.001,f[k]);});
   const sn=new THREE.Vector3(s0.x*f.x,s0.y*f.y,s0.z*f.z);
-  o.scale.copy(sn);
-  o.position.copy(A).sub(a.clone().multiply(sn).applyQuaternion(q));
+  if(sdrag.grp){
+    // grupo: todas las piezas se escalan desde el punto fijo A (la manija opuesta)
+    const F=new THREE.Vector3(f.x,f.y,f.z);
+    sdrag.grp.forEach(m=>{const m0=sdrag.init.get(m); m.scale.copy(m0.s).multiply(F); m.position.copy(m0.p).sub(A).multiply(F).add(A);});
+  } else {
+    o.scale.copy(sn);
+    o.position.copy(A).sub(a.clone().multiply(sn).applyQuaternion(q));
+  }
   updateDims();
 });
 const endScale=()=>{
-  if(!sdrag)return; const o=sdrag.o; sdrag=null; orbit.enabled=true;
-  if(o.userData.p)rebuild(o);
-  updateDims(); commit();
+  if(!sdrag)return; const members=sdrag.grp||[sdrag.o]; sdrag=null; orbit.enabled=true;
+  members.forEach(m=>{if(m.userData.p)rebuild(m);});
+  updateDims(); commit(); if(members.length>1)groupPanelInfo();
 };
 canvas.addEventListener('pointerup',endScale); canvas.addEventListener('pointercancel',endScale);
 // Red de seguridad: si un arrastre quedó "pegado" (soltar fuera del visor, cancelar, cambiar de ventana,
