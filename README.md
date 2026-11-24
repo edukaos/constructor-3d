@@ -32,7 +32,7 @@ Abrir `index.html` en un servidor web (https recomendado). No necesita build ni 
 - `index.html`: la estructura de la pantalla (botones, paneles) y el orden en que se cargan los scripts.
 - `css/app.css` (estilos de la app) y `css/marca.css` (marca Quirón).
 - `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
-- `js/grabado.js` (grabar texto), `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
+- `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
 - `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
 - `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE` y subir el número de `CACHE`.
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg) y las tipografías vienen en `vendor/` (del propio sitio, sin jsDelivr). No hace falta conexión después de la primera carga.
