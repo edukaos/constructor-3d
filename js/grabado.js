@@ -18,7 +18,7 @@ function grabAim(e){
 function grabEnd(){
   if(!grab)return; const {T,m}=grab; grab=null;
   scene.remove(m); const i=objs.indexOf(m); if(i>=0)objs.splice(i,1); m.geometry.dispose();
-  grabSetUI(false); select([T]);
+  grabSetUI(false); if(objs.includes(T))select([T]);
 }
 
 async function grabarTexto(){
@@ -60,11 +60,15 @@ canvas.addEventListener('pointermove',e=>{
 });
 canvas.addEventListener('pointerup',e=>{
   if(!grab||e.button!==0)return;
-  // con el texto en curso, el clic no cambia la selección (solo fija la posición)
-  e.stopImmediatePropagation();
   if(grabDown&&Math.hypot(e.clientX-grabDown[0],e.clientY-grabDown[1])>4)return; // fue un giro de cámara
-  const a=grabAim(e); if(a){grab.aim=a; grabPlace(grab.m,a,grab.tx.depth);} else msg('Tocá la cara de la pieza elegida.');
+  const a=grabAim(e);
+  if(a){ // clic sobre la cara: fija la posición, sin cambiar la selección
+    e.stopImmediatePropagation(); grab.aim=a; grabPlace(grab.m,a,grab.tx.depth); return; }
+  // clic fuera de la pieza: se cancela el grabado y el clic sigue de largo (así el visor vuelve a responder)
+  grabEnd(); msg('Grabado cancelado: tocaste fuera de la pieza.');
 },true);
+// si se borra la pieza mientras se ubica el texto, la vista previa se descarta
+setInterval(()=>{ if(grab&&!objs.includes(grab.T))grabEnd(); },300);
 // cambiar la profundidad rehace la forma del texto sobre la misma posición
 $('#tdepth').addEventListener('input',async()=>{
   if(!grab)return; const g=grab, tx={...readTx(),lay:true};
