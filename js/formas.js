@@ -99,32 +99,71 @@ function shellCompute(A,t,open){
   }catch(e){console.error(e); try{R&&R.delete();}catch(_){} return {err:'No se pudo vaciar esta pieza.'};}
   finally{[I,H,T].forEach(x=>{try{x&&x.delete();}catch(e){}});}
 }
-// vista previa: la pieza hueca (en coordenadas del mundo) reemplaza a la original mientras el panel está abierto
+// vista previa: la pieza hueca (en coordenadas del mundo) reemplaza a la original mientras el panel está abierto.
+// Con "Ver corte por la mitad" se muestra la mitad de atrás como una pieza cerrada: afuera con el color de la pieza,
+// adentro (el hueco) en gris claro y la pared cortada tapada con un rayado, para que se lea el grosor.
+// Es solo para ver: lo que se crea al vaciar es siempre la pieza entera (vz.R).
 let vz=null, shBusy=false, shTimer=0, shErr='';
+const SH_IN=0xc9d3e3, SH_IN_ALT=0x5f7aa3, SH_CAP='#fff4dc', SH_CAP_LINE='#e9c98a';
+let shHatch=null;
+function shHatchTex(){
+  if(shHatch)return shHatch;
+  const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+  x.fillStyle=SH_CAP; x.fillRect(0,0,64,64); x.strokeStyle=SH_CAP_LINE; x.lineWidth=5;
+  for(let i=-64;i<128;i+=16){x.beginPath(); x.moveTo(i,64); x.lineTo(i+64,0); x.stroke();}
+  shHatch=new THREE.CanvasTexture(c); shHatch.wrapS=shHatch.wrapT=THREE.RepeatWrapping; shHatch.colorSpace=THREE.SRGBColorSpace; return shHatch;
+}
+// color del hueco: gris claro, salvo que la pieza ya sea clara y sin color (ahí, un azul grisáceo para que se distinga)
+function shInnerColor(c){const h={}; c.getHSL(h); return (h.s<.25&&h.l>.55)?SH_IN_ALT:SH_IN;}
+window.shPreviewOf=()=>vz&&vz.mesh?vz.o:null;
 const shVals=()=>({t:Math.max(0.2,parseFloat($('#shellt').value)||2), open:$('#shello').checked});
+function shDropMesh(){ if(vz&&vz.mesh){scene.remove(vz.mesh); vz.mesh.geometry.dispose(); [].concat(vz.mesh.material).forEach(m=>m.dispose()); vz.mesh=null;} }
 function shStop(){
   clearTimeout(shTimer);
-  if(vz){ if(vz.mesh){scene.remove(vz.mesh); vz.mesh.geometry.dispose(); vz.mesh.material.dispose();} try{vz.R&&vz.R.delete();}catch(e){} try{vz.A.delete();}catch(e){} vz.o.visible=!M_(vz.o).h; vz=null; }
+  if(vz){ shDropMesh(); try{vz.R&&vz.R.delete();}catch(e){} try{vz.A.delete();}catch(e){} vz.o.visible=!M_(vz.o).h; vz=null; }
+  $('#shelllegend').hidden=true;
 }
 async function shStart(){
   if(vz||shBusy||$('#shellp').hidden)return; const o=sel[sel.length-1]; if(!o)return; shBusy=true;
   try{
     await loadManifold(); if(!MF||$('#shellp').hidden)return;
-    shErr=''; const A=toManifoldAuto(o), bb=A.boundingBox();
+    shErr=''; const A0=toManifoldAuto(o), A=A0.asOriginal(), bb=A.boundingBox(); A0.delete(); // asOriginal: le da un número propio para distinguir sus caras de las del hueco
     vz={o,A,R:null,mesh:null,key:'',zc:(bb.min[2]+bb.max[2])/2}; shUpdate();
   }catch(err){console.error(err); shErr=(err&&err.userMsg)||'No se pudo preparar la pieza para vaciarla.'; $('#shellinfo').textContent=shErr;}
   finally{shBusy=false;}
 }
-function shCut(){ if(!vz||!vz.mesh)return; const on=$('#shellcut').checked; vz.mesh.material.clippingPlanes=on?[new THREE.Plane(new THREE.Vector3(0,0,-1),vz.zc)]:[]; vz.mesh.material.side=on?THREE.DoubleSide:THREE.FrontSide; vz.mesh.material.needsUpdate=true; }
+// arma la malla de la vista previa: entera, o la mitad de atrás cerrada con la tapa del corte
+function shCut(){
+  if(!vz||!vz.R)return; const on=$('#shellcut').checked; shDropMesh();
+  const aid=vz.A.originalID(), base=vz.R.getMesh(), inner=new Set();
+  for(const id of base.runOriginalID)if(id!==aid)inner.add(id);
+  let M=vz.R, trimmed=null;
+  if(on){try{trimmed=vz.R.trimByPlane([0,0,-1],-vz.zc); if(trimmed.isEmpty()){trimmed.delete(); trimmed=null;} else M=trimmed;}catch(e){console.error(e); trimmed=null;}}
+  const mesh=M===vz.R?base:M.getMesh(), g=fromManifold(M), ri=mesh.runIndex, ro=mesh.runOriginalID, uv=g.attributes.uv, pos=g.attributes.position;
+  g.clearGroups();
+  for(let r=0;r<ro.length;r++){
+    const a=ri[r], b=ri[r+1], k=ro[r]===aid?0:inner.has(ro[r])?1:2; if(b<=a)continue; g.addGroup(a,b-a,k);
+    if(k===2)for(let i=a;i<b;i++)uv.setXY(i,pos.getX(i)/4,pos.getY(i)/4);
+  }
+  uv.needsUpdate=true; if(trimmed)trimmed.delete();
+  const out=vz.o.material.clone(); out.emissive.setHex(0); out.clippingPlanes=[]; out.side=THREE.FrontSide;
+  const inC=shInnerColor(out.color);
+  const mats=[out,new THREE.MeshStandardMaterial({color:inC,roughness:.85,metalness:0}),new THREE.MeshBasicMaterial({map:shHatchTex()})];
+  const m=new THREE.Mesh(g,mats); m.raycast=()=>{}; m.castShadow=true; m.receiveShadow=true; m.frustumCulled=false;
+  scene.add(m); vz.mesh=m; vz.o.visible=false;
+  const lg=$('#shelllegend'); lg.hidden=!on;
+  lg.querySelector('[data-k=out]').style.background='#'+out.color.getHexString();
+  lg.querySelector('[data-k=in]').style.background='#'+new THREE.Color(inC).getHexString();
+  wake();
+}
 function shUpdate(){
   if(!vz)return; const v=shVals(), key=v.t+'|'+v.open; if(key===vz.key&&vz.mesh)return; vz.key=key;
   if(vz.R){try{vz.R.delete();}catch(e){} vz.R=null;}
-  if(vz.mesh){scene.remove(vz.mesh); vz.mesh.geometry.dispose(); vz.mesh.material.dispose(); vz.mesh=null;}
+  shDropMesh();
   const r=shellCompute(vz.A,v.t,v.open);
-  if(r.err){ vz.o.visible=!M_(vz.o).h; $('#shellinfo').textContent=r.err; return; }
+  if(r.err){ vz.o.visible=!M_(vz.o).h; $('#shelllegend').hidden=true; $('#shellinfo').textContent=r.err; return; }
   vz.R=r.R; vz.av=r.av; vz.iv=r.iv;
-  const g=fromManifold(r.R), mat=vz.o.material.clone(); mat.emissive.setHex(0); const m=new THREE.Mesh(g,mat); m.raycast=()=>{}; m.castShadow=true; m.receiveShadow=true; m.frustumCulled=false;
-  scene.add(m); vz.mesh=m; vz.o.visible=false; shCut();
+  shCut();
   $('#shellinfo').textContent='Paredes de '+v.t+' mm'+(v.open?', abierta arriba':'')+'. Ahorrás '+Math.round(100*(1-(r.av-r.iv)/r.av))+'% de material.';
 }
 renderer.localClippingEnabled=true;

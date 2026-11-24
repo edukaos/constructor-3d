@@ -295,7 +295,9 @@ function hullGeo(g){
 const selBadge=document.createElement('div'); selBadge.id='selbadge'; selBadge.hidden=true; $('#wrap').appendChild(selBadge);
 let badgeKey='';
 function updateSelFx(){
-  const want=new Set(placing||wireOn||secOn?[]:sel);
+  // mientras Vaciar muestra su vista previa, la pieza original está oculta: su contorno taparía la vista previa
+  const pv=window.shPreviewOf?window.shPreviewOf():null;
+  const want=new Set(placing||wireOn||secOn?[]:sel.filter(o=>o!==pv));
   hulls.forEach((m,o)=>{ if(!want.has(o)||!objs.includes(o)||m.userData.g!==o.geometry){scene.remove(m); hulls.delete(o);} });
   const dpr=canvas.width/Math.max(1,canvas.clientWidth); hullMat.uniforms.uRes.value.set(canvas.width,canvas.height); hullMat.uniforms.uPx.value=4.5*dpr;
   want.forEach(o=>{
