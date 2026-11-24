@@ -838,3 +838,11 @@ html body #ribbon .rtabs,html body #ribbon .rbody{margin-left:calc(16px + var(--
 
 /* rótulo de arrastre con varias líneas (distancias) */
 #flab{white-space:pre-line}
+
+/* menú contextual (clic derecho sobre el visor) */
+#ctxm{position:fixed;z-index:60;min-width:190px;display:flex;flex-direction:column;padding:5px;border-radius:12px;background:var(--bar);color:var(--tx);border:1px solid var(--glass-bd,var(--bd));box-shadow:var(--glass-sh,0 10px 30px rgba(0,0,0,.35))}
+#ctxm[hidden]{display:none}
+#ctxm button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;font:inherit;color:inherit;white-space:nowrap}
+#ctxm button:hover,#ctxm button:focus-visible{background:rgba(245,196,81,.2);outline:none}
+#ctxm .ci{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#ctxm hr{border:0;border-top:1px solid var(--bd);margin:4px 4px}

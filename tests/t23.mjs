@@ -10,7 +10,11 @@ const vBefore=await exportStl(page); await page.keyboard.press('Escape');
 await page.click('#textbtn'); await page.waitForTimeout(200);
 await page.fill('#tstr','OK');
 await page.evaluate(()=>{select([objs[0]]);});
-await page.click('#tgrab'); await page.waitForTimeout(3000);
+await page.click('#tgrab'); await page.waitForTimeout(800);   // empieza: el texto aparece sobre la pieza para ubicarlo
+// lo fijamos tocando la cara de arriba del cubo
+const top=await page.evaluate(()=>{const r=canvas.getBoundingClientRect(); const b=bbox(objs[0]); const v=new THREE.Vector3((b.min.x+b.max.x)/2,b.max.y,(b.min.z+b.max.z)/2).project(cam); return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};});
+await page.mouse.move(top.x,top.y); await page.mouse.down(); await page.mouse.up(); await page.waitForTimeout(150);
+await page.click('#tgrab'); await page.waitForTimeout(3000);   // confirma: resta el texto
 const n=await page.evaluate(()=>objs.length);
 check('Queda una sola pieza (el cubo grabado)',n===1,'n='+n);
 const name=await page.evaluate(()=>M_(objs[0]).n);

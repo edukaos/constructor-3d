@@ -490,7 +490,7 @@ function skStart(o={}){
   bar.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>skSetPlane(b.dataset.pl));
   bar.querySelector('#skiman').onchange=e=>sk.snap=parseFloat(e.target.value);
   { const hd=bar.querySelector('.skhd'), wr=$('#wrap'); let pos=null; try{pos=JSON.parse(localStorage.getItem('c3d_skpos')||'null');}catch(e){}
-    const place=(l,t)=>{ const mw=wr.clientWidth-bar.offsetWidth, mh=wr.clientHeight-40; l=Math.max(0,Math.min(mw,l)); t=Math.max(0,Math.min(mh,t)); bar.style.left=l+'px'; bar.style.top=t+'px'; bar.style.right='auto'; bar.style.bottom='auto'; bar.style.transform='none'; return [l,t]; };
+    const place=(l,t)=>{ const mw=wr.clientWidth-bar.offsetWidth, mh=wr.clientHeight-bar.offsetHeight; l=Math.max(0,Math.min(mw,l)); t=Math.max(0,Math.min(mh,t)); bar.style.left=l+'px'; bar.style.top=t+'px'; bar.style.right='auto'; bar.style.bottom='auto'; bar.style.transform='none'; return [l,t]; };
     if(pos&&matchMedia('(min-width:761px) and (pointer:fine)').matches)requestAnimationFrame(()=>{ if(sk&&sk.bar===bar)place(pos[0],pos[1]); });
     hd.onpointerdown=e=>{ if(e.target.closest('button')||e.button!==0)return; e.preventDefault(); e.stopPropagation(); const z=zf(), sx=e.clientX, sy=e.clientY, l0=bar.offsetLeft, t0=bar.offsetTop; hd.setPointerCapture(e.pointerId); bar.classList.add('drag');
       hd.onpointermove=ev=>{ pos=place(l0+(ev.clientX-sx)/z, t0+(ev.clientY-sy)/z); };
