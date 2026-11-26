@@ -1,0 +1,11 @@
+/* Aviso del curso Capa a Capa */
+#cursoad{position:fixed;right:16px;bottom:44px;z-index:30;width:230px;display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bar);color:var(--tx);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.35);font-size:13px;line-height:1.35;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+#cursoad.on{opacity:1;transform:none}
+#cursoad b{font-size:13.5px;padding-right:18px}
+#cursoad span{opacity:.8}
+#cursoad a{margin-top:4px;align-self:flex-start;color:var(--ac);font-weight:600;text-decoration:none}
+#cursoad a:hover{text-decoration:underline}
+#cursoad .cx{position:absolute;top:4px;right:4px;width:24px;height:24px;padding:0;border:0;background:transparent;opacity:.6;font-size:12px}
+#cursoad .cx:hover{opacity:1}
+@media (prefers-reduced-motion:reduce){#cursoad{transition:none}}
+@media (max-width:760px){#cursoad{display:none}}
