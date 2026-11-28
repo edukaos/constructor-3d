@@ -13,10 +13,11 @@ function stlBuf(geo){const g=geo.index?geo.toNonIndexed():geo; const p=g.attribu
 await page.click('#pnew'); await page.waitForTimeout(200);
 await page.keyboard.press('1'); await page.waitForTimeout(150); await set('px',0); await set('pz',0); await blur();
 await clickObj(page,[0,12.5,0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
-const h=await screenOf(page,[12.5,25,12.5]);
-await page.mouse.move(h.x,h.y); await page.mouse.down(); await page.mouse.move(h.x+40,h.y-40,{steps:6}); await page.mouse.move(h.x+90,h.y-90,{steps:6}); await page.mouse.up(); await page.waitForTimeout(300);
+// esquina de abajo con Shift: crece parejo (como en Tinkercad)
+const h=await screenOf(page,[12.5,0,12.5]), h2=await screenOf(page,[30,0,30]);
+await page.keyboard.down('Shift'); await page.mouse.move(h.x,h.y); await page.mouse.down(); await page.mouse.move((h.x+h2.x)/2,(h.y+h2.y)/2,{steps:6}); await page.mouse.move(h2.x,h2.y,{steps:6}); await page.mouse.up(); await page.keyboard.up('Shift'); await page.waitForTimeout(300);
 const d=[await page.inputValue('#dx'),await page.inputValue('#dy'),await page.inputValue('#dz')].map(Number);
-check('Escalar por esquina: crece (>35 con 127 px de arrastre)',d[0]>35,'dims='+d.join(' x '));
+check('Escalar por esquina con Shift: crece (>35)',d[0]>35,'dims='+d.join(' x '));
 check('Escalar por esquina: proporcional',near(d[0],d[1],0.5)&&near(d[1],d[2],0.5),'dims='+d.join(' x '));
 let pr=(await saveProj(page)).objs[0];
 check('Escalar: el cubo se regenera (p.w = medida)',pr.p&&near(pr.p.w,d[0],0.2),JSON.stringify(pr.p));

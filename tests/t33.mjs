@@ -49,5 +49,9 @@ H=await scr(hp); T=await scr([hp[0],hp[1]+15,hp[2]]); await drag(H,T);
 const s2=await size();
 check('Punto de arriba: cambia solo la altura',Math.abs(s2[1]-s1[1]-15)<1&&s2[0]===s1[0]&&s2[2]===s1[2],JSON.stringify([s1,s2]));
 check('La pieza sigue apoyada en la cama',await page.evaluate(()=>Math.abs(bbox(objs[1]).min.y)<0.01));
+// número de versión en la barra de abajo, igual al del caché del service worker
+{ const fs=await import('fs'); const sw=fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8').match(/c3d-v(\d+)/)[1];
+  const v=await page.evaluate(()=>{const e=document.getElementById('stVer'); return [String(window.C3D_VERSION), e&&e.textContent];});
+  check('Versión en la barra de abajo y igual a la del caché (sw.js)',v[0]===sw&&v[1]==='v'+sw,JSON.stringify(v)+' sw='+sw); }
 check('Sin errores',errs.length===0,errs.join(' | '));
 console.log(results.every(r=>r.ok)?results.length+'/'+results.length+' OK':'FALLAN'); await browser.close();

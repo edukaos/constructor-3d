@@ -472,7 +472,7 @@ function updateScaleUI(){
     h.scale.setScalar(camK(h.position)*0.016);
   });
   sh.forEach((h,i)=>{hvArr[i*3]=h.position.x; hvArr[i*3+1]=h.position.y; hvArr[i*3+2]=h.position.z;}); hvAttr.needsUpdate=true; hvBack.visible=hvFront.visible=true;
-  if(sdrag)showCotas(sgF.cota,mn,mx,{x:!!sdrag.ax.x||!!sdrag.F&&sdrag.F.x!==1,y:!!sdrag.ax.y||!!sdrag.F&&sdrag.F.y!==1,z:!!sdrag.ax.z||!!sdrag.F&&sdrag.F.z!==1}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
+  if(sdrag)showCotas(sgF.cota,mn,mx,{x:!!sdrag.ax.x||!!sdrag.uni,y:!!sdrag.ax.y||!!sdrag.uni,z:!!sdrag.ax.z||!!sdrag.uni}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
 }
 const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
 const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
@@ -483,6 +483,8 @@ canvas.addEventListener('pointerdown',e=>{
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
   const s=hit.object.userData.s, ax=hit.object.userData.ax, g=sgF, c=g.mn.clone().add(g.mx).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
   ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.mx[k]:s[k]<0?g.mn[k]:c[k]; a[k]=s[k]>0?g.mn[k]:s[k]<0?g.mx[k]:c[k];});
+  // en los ejes que el punto no estira (que solo cambian con Shift), el punto fijo es la base (crece hacia arriba) y el centro en X/Z
+  ['x','y','z'].forEach(k=>{ if(!ax[k])a[k]=k==='y'?g.mn.y:c[k]; });
   // marco de la caja al empezar (se copia: con una sola pieza, su posición cambia mientras se arrastra)
   const fp=g.p.clone(), fq=g.q.clone(), fs=g.s.clone(), W=v=>v.clone().multiply(fs).applyQuaternion(fq).add(fp);
   const hw=W(h), A=W(a), Ac=W(c), grp=g.grp;
@@ -517,7 +519,7 @@ canvas.addEventListener('pointermove',e=>{
     const u=x>=1?2*Math.exp((x-1)/2):x>=-0.5?1+x:0.5*Math.exp((x+0.5)/0.5); ks.forEach(k=>{f[k]=u;});
   }
   ks.forEach(k=>{f[k]=Math.max(0.01,f[k]);});
-  const uni=e.shiftKey;
+  const uni=e.shiftKey; sdrag.uni=uni;
   if(uni){ const u=ks.length===1?f[ks[0]]:Math.max(...ks.map(k=>f[k])); f={x:u,y:u,z:u}; }
   if($('#snap').classList.contains('on')){
     // la medida final queda en múltiplos del paso del imán

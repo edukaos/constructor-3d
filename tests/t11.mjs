@@ -3,11 +3,11 @@ const {browser,page,errs}=await open();
 async function reset(){ await page.click('#pnew'); await page.waitForTimeout(300); const d=await page.$('#dgo'); if(d&&await d.isVisible())await d.click(); await page.waitForTimeout(200);}
 for(const kind of ['box','sphere','cylinder']){
  await reset(); await clk(page,'[data-add='+kind+']'); await page.waitForTimeout(400);
- const b=await exportStl(page); await page.keyboard.press('Escape');
+ const b=await exportStl(page);
  await page.click('#fuzzbtn'); await page.waitForTimeout(200);
  const t0=Date.now(); await page.click('#fuzzgo'); await page.waitForFunction(()=>document.querySelector('#busy').hidden,null,{timeout:90000}); await page.waitForTimeout(300);
  console.log(kind,(Date.now()-t0)+'ms',await msg(page));
- const a=await exportStl(page); await page.keyboard.press('Escape');
+ const a=await exportStl(page);
  console.log(' antes',b.tris,b.mn.map(v=>+v.toFixed(2)),b.mx.map(v=>+v.toFixed(2)),'despues',a.tris,a.mn.map(v=>+v.toFixed(2)),a.mx.map(v=>+v.toFixed(2)),'abiertas',a.openEdges,'vol',b.vol.toFixed(0),a.vol.toFixed(0));
  check(kind+': muchos más triángulos',a.tris>Math.max(b.tris*10,10000),a.tris);
  check(kind+': cerrado (sin bordes abiertos)',a.openEdges===0,a.openEdges);

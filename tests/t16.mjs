@@ -9,7 +9,7 @@ check('Cambiar grosor actualiza la vista',true);
 await page.fill('#shellt','30'); await page.waitForTimeout(800); const bad=await page.textContent('#shellinfo'); check('Grosor excesivo avisa en el panel',/demasiado grande|No se pudo/.test(bad),bad);
 await page.fill('#shellt','3'); await page.waitForTimeout(800);
 await page.click('#shellp [data-close]'); await page.waitForTimeout(400);
-let st=await exportStl(page); check('Cerrar sin aplicar deja la pieza maciza',Math.abs(st.vol-15625)<50,st.vol); await page.keyboard.press('Escape');
+let st=await exportStl(page); check('Cerrar sin aplicar deja la pieza maciza',Math.abs(st.vol-15625)<50,st.vol);
 await page.click('#shellbtn'); await page.waitForFunction(()=>/Ahorrás/.test(document.querySelector('#shellinfo').textContent),null,{timeout:20000});
 await page.click('#shellgo'); await page.waitForTimeout(1200);
 st=await exportStl(page); check('Aplicar deja la pieza hueca',st.vol<9000&&st.vol>3000&&st.openEdges===0,st.vol+' '+st.openEdges);

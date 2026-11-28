@@ -20,6 +20,8 @@ export function summary(){const f=results.filter(r=>!r.ok); console.log(`\n${res
 export async function exportStl(page){
   await page.click('#stl'); await page.waitForTimeout(150);
   const [dl]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.click('#ex1')]);
+  // cierra el panel de exportar si quedó abierto (Esc ahora también suelta la selección, así que no se usa para esto)
+  await page.evaluate(()=>{const p=document.getElementById('expp'); if(p&&!p.hidden)p.hidden=true;});
   const buf=fs.readFileSync(await dl.path()); const n=buf.readUInt32LE(80); const tris=[];
   for(let i=0;i<n;i++){const o=84+i*50+12; const t=[]; for(let k=0;k<3;k++)t.push([buf.readFloatLE(o+k*12),buf.readFloatLE(o+k*12+4),buf.readFloatLE(o+k*12+8)]); tris.push(t);}
   let vol=0; const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];

@@ -1,8 +1,8 @@
 // Service worker: guarda la app y las librerías para que funcione sin conexión.
-const CACHE = 'c3d-v15';
+const CACHE = 'c3d-v15';   // igual que C3D_VERSION en js/version.js
 const CORE = ['./', 'index.html', 'vendor/three/three.module.js', 'vendor/three/bvh.module.js', 'vendor/three/bvh-csg.module.js', 'vendor/manifold/manifold.js', 'vendor/manifold/manifold.wasm', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png',
   'css/app.css', 'css/marca.css', 'css/curso.css',
-  'js/aviso-version.js', 'js/libs.js', 'js/nucleo.js', 'js/operaciones.js', 'js/interfaz.js', 'js/exportar.js',
+  'js/version.js', 'js/aviso-version.js', 'js/libs.js', 'js/nucleo.js', 'js/operaciones.js', 'js/interfaz.js', 'js/exportar.js',
   'js/formas.js', 'js/sketch.js', 'js/acabados.js', 'js/grupos.js', 'js/seleccion.js', 'js/plano.js', 'js/roscas.js', 'js/distancias.js', 'js/menu.js', 'js/layout.js', 'js/mudanza.js', 'js/marca.js', 'js/curso.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
