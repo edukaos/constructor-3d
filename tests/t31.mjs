@@ -61,7 +61,7 @@ const w1=await page.evaluate(()=>groupBox().getSize(new THREE.Vector3()).x);
 check('Escalar el conjunto con la manija X',w1>w0+5&&await page.evaluate(()=>sel.length)===2,w0.toFixed(1)+' → '+w1.toFixed(1));
 await page.keyboard.press('Control+z'); await page.waitForTimeout(150); await page.keyboard.press('Control+a');
 // rotar el conjunto con la flecha curva
-const r=await page.evaluate(()=>{updateScaleUI(); return frRot[0].position.toArray();}); const R=await scr(r);
+const r=await page.evaluate(()=>{updateScaleUI(); return frRot.find(r=>r.userData.ax==='y').position.toArray();}); const R=await scr(r);
 const q0=await page.evaluate(()=>objs.map(o=>o.position.toArray()));
 await page.mouse.move(R.x,R.y); await page.mouse.down(); await page.mouse.move(R.x+80,R.y+40,{steps:8}); await page.mouse.up();
 const q1=await page.evaluate(()=>objs.map(o=>o.position.toArray()));

@@ -444,9 +444,12 @@ function updateFreeUI(o,on){
   frArrow.visible=on; frRot.forEach(r=>{r.visible=on; r.userData.pk.visible=on;}); if(!on)return;
   const bb=multiSel()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
   frArrow.position.set(c.x,bb.max.y+k*0.07,c.z); frArrow.scale.setScalar(k*0.007);
-  // X y Z van sobre las aristas de arriba que miran a la cámara; Y (vertical) en el piso, afuera de la esquina más cercana a la cámara
-  const sz=cam.position.z>=c.z?1:-1, sx=cam.position.x>=c.x?1:-1, zs=sz>0?bb.max.z+k*0.045:bb.min.z-k*0.045, xs=sx>0?bb.max.x+k*0.045:bb.min.x-k*0.045;
-  const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.045,zs),new THREE.Vector3((sx>0?bb.max.x:bb.min.x)+sx*k*0.06,bb.min.y,(sz>0?bb.max.z:bb.min.z)+sz*k*0.06),new THREE.Vector3(xs,bb.max.y+k*0.045,c.z)];
+  // X y Z van sobre las aristas de arriba que miran a la cámara; Y (vertical) debajo del centro
+  const zs=cam.position.z>=c.z?bb.max.z+k*0.045:bb.min.z-k*0.045, xs=cam.position.x>=c.x?bb.max.x+k*0.045:bb.min.x-k*0.045;
+  const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.045,zs),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z),new THREE.Vector3(xs,bb.max.y+k*0.045,c.z)];
+  // si la flecha Y cae encima de un punto de escalar (pasa con la esquina de adelante), se baja un poco más
+  { const cr=canvas.getBoundingClientRect(), S=v=>{const p=v.clone().project(cam); return [(p.x+1)/2*cr.width,(1-p.y)/2*cr.height];}, [yx,yy]=S(ps[1]);
+    if(sh.some(h=>{const [hx,hy]=S(h.position); return Math.hypot(hx-yx,hy-yy)<22;}))ps[1].y-=k*0.07; }
   frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.018);});
   // si una flecha curva queda debajo de un botón o panel, se esconde
   if(!fdrag){ const cr=canvas.getBoundingClientRect(), cov=frRot.map(r=>{const v=r.position.clone().project(cam), x=cr.left+(v.x+1)/2*cr.width, y=cr.top+(1-v.y)/2*cr.height, el=document.elementFromPoint(x,y); return !!el&&el!==canvas;});
