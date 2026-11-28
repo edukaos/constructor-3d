@@ -5,7 +5,7 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 ## Qué hace
 - **Formas:** cubo, esfera, cilindro, cono, toroide, tubo, media esfera, pirámide, prisma hexagonal y cuña (25 mm por defecto). Aparecen en el centro de la cama.
 - **Texto 3D:** 7 tipografías con ñ y acentos, acostado o parado, alto de letra y espesor en mm. Se puede editar después.
-- **Mover, rotar y escalar** (escalado con caja exterior y cotas en mm), con snap opcional.
+- **Mover, rotar y escalar** como en Tinkercad: arrastrar la pieza (se apoya sola sobre otras), puntos de escalar (esquinas: ancho y fondo, lados: un eje, arriba: altura; Shift parejo, Alt desde el centro), flechas curvas para girar en X, Y y Z (de a 22,5°, o de a 1° lejos del anillo) e imán de 1 mm prendido de entrada (0,1 a 10 mm). Varias piezas elegidas se manejan como un conjunto.
 - **Unir, restar, intersectar y dividir** con el motor Manifold: los resultados salen siempre cerrados. Unir e Intersectar aceptan varias piezas a la vez.
 - **Hueco**, como en Tinkercad: una pieza marcada como hueco se resta al unirla con otras.
 - **Lista de piezas:** elegir, renombrar, ocultar y bloquear.
@@ -34,7 +34,7 @@ Abrir `index.html` en un servidor web (https recomendado). No necesita build ni 
 - `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
 - `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/seleccion.js` (selección múltiple como en Tinkercad: mover, girar, escalar y duplicar el conjunto, flechas, Ctrl+A), `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
 - `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
-- `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE` y subir el número de `CACHE`.
+- `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE`. En cada publicación, subir el número de `CACHE` y el mismo número en `js/version.js` (es el que se ve en la barra de abajo, al lado del logo).
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg) y las tipografías vienen en `vendor/` (del propio sitio, sin jsDelivr). No hace falta conexión después de la primera carga.
 
 ## Instalar como app

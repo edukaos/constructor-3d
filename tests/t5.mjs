@@ -22,22 +22,22 @@ await page.fill('#px','0'); await page.fill('#pz','0'); await page.fill('#dx','2
 await page.keyboard.press('Enter'); await page.waitForTimeout(200);
 let o=(await saveProj(page)).objs[0]; console.log('  cubito:',JSON.stringify(o.p&&[o.p.w,o.p.h,o.p.d]),o.pos.map(n=>+n.toFixed(1)));
 await clickObj(page,[0,o.pos[1],0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
-let h=await screenOf(page,[o.pos[0]+1,o.pos[1]+1,o.pos[2]+1]);
-await drag(h,300,-250);
+let h=await screenOf(page,[o.pos[0]+1,o.pos[1]-1,o.pos[2]+1]), ht=await screenOf(page,[o.pos[0]+25,o.pos[1]-1,o.pos[2]+25]);
+await page.keyboard.down('Shift'); await drag(h,ht.x-h.x,ht.y-h.y); await page.keyboard.up('Shift');
 let d=await dims(); check('Cubito 2 mm → grande: crece mucho sin voltearse',d[0]>15&&d[0]===d[1],'dims='+d.join(' x '));
 // seguir arrastrando de vuelta hacia adentro hasta casi cero no debe invertir ni romper
 o=(await saveProj(page)).objs[0];
-h=await screenOf(page,[o.pos[0]+o.p.w/2,o.pos[1]+o.p.h/2,o.pos[2]+o.p.d/2]);
-await drag(h,-600,500,16);
+h=await screenOf(page,[o.pos[0]+o.p.w/2,o.pos[1]-o.p.h/2,o.pos[2]+o.p.d/2]);
+await drag(h,-600,-300,16);
 d=await dims(); check('Arrastrar hacia adentro: nunca invierte (>0)',d[0]>0&&d[1]>0&&d[2]>0,'dims='+d.join(' x '));
 
 // Cara (un solo eje)
 await page.click('#pnew'); await page.waitForTimeout(200);
 await page.keyboard.press('1'); await page.waitForTimeout(150); await page.fill('#px','0'); await page.fill('#pz','0'); await page.keyboard.press('Enter'); await page.waitForTimeout(150);
 await clickObj(page,[0,12.5,0]); await page.keyboard.press('s'); await page.waitForTimeout(300);
-h=await screenOf(page,[12.5,12.5,0]);   // cara +X
-await drag(h,90,10);
-d=await dims(); check('Punto de cara: cambia un solo eje',d[0]>30&&near(d[1],25,0.01)&&near(d[2],25,0.01),'dims='+d.join(' x '));
+h=await screenOf(page,[12.5,0,0]); const hx=await screenOf(page,[35,0,0]);   // punto del medio del lado +X, abajo
+await drag(h,hx.x-h.x,hx.y-h.y);
+d=await dims(); check('Punto de lado: cambia un solo eje',d[0]>30&&near(d[1],25,0.01)&&near(d[2],25,0.01),'dims='+d.join(' x '));
 
 // Rendimiento con malla pesada (esfera ~ 200k triángulos importada, luego dividir)
 const sg=new THREE.SphereGeometry(30,360,280); const g=sg.toNonIndexed(); const p=g.attributes.position.array; const n=p.length/9;

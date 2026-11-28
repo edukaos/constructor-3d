@@ -136,3 +136,14 @@ addEventListener('blur',()=>{ if(arrowMoved){arrowMoved=false; commit();} });
     $('#r'+k).value=0;
   });
 });
+
+// ===== Esc suelta la selección (si no hay nada abierto que Esc deba cerrar primero) =====
+let escBusy=false;
+addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  escBusy=typing(e.target)||!!(tool||splitting||placing||(typeof sk!=='undefined'&&sk)||fdrag||sdrag||rsel||tc.dragging)
+    ||(typeof tourI!=='undefined'&&tourI>=0)||document.body.classList.contains('addopen')
+    ||!!document.querySelector('#plusmenu:not([hidden]),#cmdk.open,#ctxm:not([hidden]),#help:not([hidden]),#dlg:not([hidden])')
+    ||PANELS.some(p=>{const el=$(p); return el&&!el.hidden;});
+},true);
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&!escBusy&&sel.length){ select([]); } });

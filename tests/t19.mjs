@@ -14,7 +14,7 @@ await page.selectOption('#rndk','chamfer'); await page.waitForTimeout(500); awai
 await page.selectOption('#rndk','round');
 await setv('#rndr',4); await page.waitForTimeout(600); await waitDone();
 await page.click('#rndgo'); await page.waitForTimeout(1500);
-const st=await exportStl(page); console.log(st.vol,st.tris,st.openEdges); check('Aplicado: sólido cerrado con volumen menor',st.openEdges===0&&st.vol<15625&&st.vol>14000,st.vol+' '+st.openEdges); await page.keyboard.press('Escape');
+const st=await exportStl(page); console.log(st.vol,st.tris,st.openEdges); check('Aplicado: sólido cerrado con volumen menor',st.openEdges===0&&st.vol<15625&&st.vol>14000,st.vol+' '+st.openEdges);
 // interiores sobre una L
 await reset(); await clk(page,'#shpbtn'); await page.click('#shpgrid button[data-id=lper]'); await page.waitForTimeout(300); await page.click('#shpp [data-close]');
 await page.click('#rndbtn'); await page.selectOption('#rndw','in'); await setv('#rndr',2); await page.waitForTimeout(500); await waitDone(); console.log('L interior',await info());

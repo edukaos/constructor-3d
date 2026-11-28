@@ -5,7 +5,7 @@ const r1=v=>Math.round(v*100)/100;
 await page.click('#pnew'); await page.waitForTimeout(200);
 await page.click('#shpbtn'); await page.waitForSelector('#shpgrid button[data-id=bolt]');
 await page.click('#shpgrid button[data-id=bolt]'); await page.waitForTimeout(400);
-let st=await exportStl(page); await page.keyboard.press('Escape');
+let st=await exportStl(page);
 const sz=[0,1,2].map(k=>r1(st.mx[k]-st.mn[k]));
 check('Tornillo M8×20: alto = cabeza 5,3 + 20',Math.abs(sz[2]-25.3)<0.05,sz.join(' x '));
 check('Tornillo M8: cabeza hexagonal de 13 mm entre caras',Math.abs(Math.min(sz[0],sz[1])-13)<0.1,sz.join(' x '));
@@ -29,7 +29,7 @@ check('Deshacer vuelve a la cabeza hexagonal',await page.evaluate(()=>objs[objs.
 await page.click('#pnew'); await page.waitForTimeout(200); const dg=await page.$('#dgo'); if(dg&&await dg.isVisible())await dg.click();
 await page.click('#shpbtn'); await page.waitForSelector('#shpgrid button[data-id=nutt]');
 await page.click('#shpgrid button[data-id=nutt]'); await page.waitForTimeout(400);
-st=await exportStl(page); await page.keyboard.press('Escape');
+st=await exportStl(page);
 check('Tuerca roscada M8: malla cerrada',st.openEdges===0,String(st.openEdges));
 check('Tuerca roscada M8: 6,5 mm de alto',Math.abs((st.mx[2]-st.mn[2])-6.5)<0.05);
 const ir=await page.evaluate(()=>{const o=objs[objs.length-1], p=o.geometry.attributes.position; let mn=1e9; for(let i=0;i<p.count;i++)mn=Math.min(mn,Math.hypot(p.getX(i),p.getZ(i))); return mn;});

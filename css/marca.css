@@ -10,3 +10,4 @@
 #help .qfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(159,185,229,.18);font-size:13px;color:var(--tx-2)}
 #help .qfoot .qbrand-svg{height:18px;width:auto;display:block}
 #help .qfoot a{color:var(--tx-2)}
+#status #stVer{opacity:.7;font-size:11px}

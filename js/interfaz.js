@@ -194,7 +194,7 @@ function finishPlace(){
   placeMark.visible=false; placeBar.hidden=true; canvas.style.cursor='';
   select([m]); updateDims(); commit();
   const sb=document.querySelector('[data-mode=free]'); if(sb)sb.click();
-  msg('Pieza apoyada. Arrastrala para moverla, usá los puntos para escalar, las flechas curvas para rotar (un clic en ellas abre los 3 anillos) y la flecha amarilla para subirla. Clic en una cota para escribir la medida.');
+  msg('Pieza apoyada. Arrastrala para moverla, usá los puntos para escalar, las flechas curvas para girar (X roja, Y verde, Z azul) y la flecha amarilla para subirla. Clic en una cota para escribir la medida.');
 }
 function cancelPlace(silent){
   if(!placing)return; const m=placing.m; placing=null;
@@ -230,7 +230,7 @@ function freePick(e){
   setRay(e); const o=sel[sel.length-1], ok=!!o&&!sel.some(q=>M_(q).l);
   if(ok){
     const hr=ray2.intersectObjects([frArrow,...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
-    if(hr)return {k:hr.object===frArrow?'lift':'rot',o};
+    if(hr)return hr.object===frArrow?{k:'lift',o}:{k:'rot',o,ax:hr.object.userData.ax||'y'};
   }
   const hp=ray2.intersectObjects(pickable(),false)[0]; if(hp)return {k:'body',o:hp.object,point:hp.point.clone()};
   return null;
@@ -243,9 +243,19 @@ canvas.addEventListener('pointerdown',e=>{
   if(h.k==='body'){ if(!sel.includes(o))select([o]);
     // Alt + arrastrar: arrastra una copia y deja el original en su lugar (como en Tinkercad)
     if(e.altKey){ const i=sel.indexOf(o), cp=dupObjs(sel); select(cp); d.o=sel[i]||sel[sel.length-1]; d.dup=true; }
-    d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone()); }
-  else if(h.k==='rot'){ const grp=multiSel(), bb=grp?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone(); d.grp=grp?sel.map(q=>({o:q,p:q.position.clone(),q:q.quaternion.clone()})):null;
-    const r=0.5*Math.hypot(bb.max.x-bb.min.x,bb.max.z-bb.min.z)+14; rotFx.position.set(c.x,bb.min.y+0.15,c.z); rotFx.scale.setScalar(r); rotWedge(d.a0,0); rotFx.visible=true; }
+    d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone());
+    // apoyar al arrastrar (Tinkercad): se guarda la altura de partida y con qué piezas puede chocar
+    const b0=multiSel()?groupBox():bbox(d.o); d.minY0=b0.min.y; d.others=pickable().filter(q=>!sel.includes(q)&&!M_(q).k);
+    // si al empezar estaba apoyada sobre otra pieza, al sacarla de encima vuelve a la cama; si flotaba, conserva su altura
+    d.restY=d.others.some(q=>{const b=bbox(q); return Math.abs(b.max.y-b0.min.y)<0.05&&b.max.x>b0.min.x&&b.min.x<b0.max.x&&b.max.z>b0.min.z&&b.min.z<b0.max.z;})?0:d.minY0; }
+  else if(h.k==='rot'){
+    // girar alrededor de un eje (X, Y o Z del mundo) que pasa por el centro de la selección; el anillo se dibuja en el plano de giro
+    const grp=multiSel(), bb=grp?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), ax=h.ax, sz=bb.getSize(new THREE.Vector3());
+    d.ax=ax; d.axis=new THREE.Vector3(ax==='x'?1:0,ax==='y'?1:0,ax==='z'?1:0); d.c=c; d.pl=new THREE.Plane(d.axis,-d.axis.dot(c));
+    d.qf=new THREE.Quaternion().setFromUnitVectors(fUp,d.axis); d.qfi=d.qf.clone().invert();
+    const P=fPlane(e,d.pl)||c, L=P.clone().sub(c).applyQuaternion(d.qfi); d.a0=Math.atan2(-L.z,L.x); d.q0=o.quaternion.clone(); d.grp=grp?sel.map(q=>({o:q,p:q.position.clone(),q:q.quaternion.clone()})):null;
+    d.r=0.5*(ax==='x'?Math.hypot(sz.y,sz.z):ax==='y'?Math.hypot(sz.x,sz.z):Math.hypot(sz.x,sz.y))+14;
+    rotFx.position.copy(c); if(ax==='y')rotFx.position.y=bb.min.y+0.15; rotFx.quaternion.copy(d.qf); rotFx.scale.setScalar(d.r); rotWedge(d.a0,0); rotFx.visible=true; }
   else { const bb=multiSel()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), n=new THREE.Vector3(cam.position.x-c.x,0,cam.position.z-c.z); if(n.lengthSq()<1e-6)n.set(0,0,1); n.normalize(); d.pl=new THREE.Plane(n,-n.dot(c)); const P=fPlane(e,d.pl)||c; d.y0=P.y; d.p0=o.position.y; d.ys=sel.map(q=>q.position.y); }
   fdrag=d;
 },true);
@@ -256,24 +266,32 @@ canvas.addEventListener('pointermove',e=>{
   const d=fdrag, o=d.o; if(!d.moved){ if(Math.hypot(e.clientX-d.x0,e.clientY-d.y0)<3)return; d.moved=true; }
   const snapOn=$('#snap').classList.contains('on'), st=snapStep();
   if(d.k==='body'){
-    const P=fPlane(e,d.pl); if(!P)return; let dx=P.x-d.P0.x, dz=P.z-d.P0.z;
+    // apoyar al arrastrar (Tinkercad): si bajo el mouse hay la cara de arriba de otra pieza, el punto agarrado va a ese lugar de la cara
+    // y la selección se apoya ahí; si no, se mueve a su altura de siempre (o vuelve a la cama si estaba apoyada sobre otra)
+    setRay(e); const hp=ray2.intersectObjects(d.others,false).find(hh=>hh.face&&hh.face.normal.clone().transformDirection(hh.object.matrixWorld).y>0.7);
+    const dy=(hp?hp.point.y:d.restY)-d.minY0; d.on=hp?hp.object:null;
+    let P; if(hp)P=hp.point.clone(); else { d.pl.constant=-(d.P0.y+dy); P=fPlane(e,d.pl); } if(!P)return; let dx=P.x-d.P0.x, dz=P.z-d.P0.z;
     if(snapOn){ const b0=d.base[sel.indexOf(o)]||d.base[0]; dx=Math.round((b0.x+dx)/st)*st-b0.x; dz=Math.round((b0.z+dz)/st)*st-b0.z; }
-    sel.forEach((q,i)=>{q.position.x=d.base[i].x+dx; q.position.z=d.base[i].z+dz;});
-    flabShow(e,'X '+(Math.round(o.position.x*10)/10)+' · Z '+(Math.round(o.position.z*10)/10)+'\n'+distLabel(o)); updateDims();
+    sel.forEach((q,i)=>{q.position.x=d.base[i].x+dx; q.position.z=d.base[i].z+dz; q.position.y=d.base[i].y+dy;});
+    flabShow(e,'X '+(Math.round(o.position.x*10)/10)+' · Z '+(Math.round(o.position.z*10)/10)+(d.on?' · sobre '+M_(d.on).n:'')+'\n'+distLabel(o)); updateDims();
   } else if(d.k==='rot'){
-    const P=fPlane(e,d.pl); if(!P)return; let dl=Math.atan2(-(P.z-d.c.z),P.x-d.c.x)-d.a0;
-    if(e.shiftKey){const s45=Math.PI/4; dl=Math.round(dl/s45)*s45;} else if(snapOn){const s15=Math.PI/12; dl=Math.round(dl/s15)*s15;}
+    const P=fPlane(e,d.pl); if(!P)return; const L=P.clone().sub(d.c).applyQuaternion(d.qfi); let dl=Math.atan2(-L.z,L.x)-d.a0;
+    dl=((dl+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
+    // como en Tinkercad: dentro del anillo va de a 22,5° (con el imán prendido), afuera del anillo de a 1°; Shift, de a 45°
+    const out=Math.hypot(L.x,L.z)>d.r, stp=e.shiftKey?45:out?1:snapOn?22.5:0;
+    if(stp){const s=stp*Math.PI/180; dl=Math.round(dl/s)*s;}
     rotWedge(d.a0,dl);
-    if(d.grp){ const R=new THREE.Quaternion().setFromAxisAngle(fUp,dl); d.grp.forEach(g=>{g.o.position.copy(g.p).sub(d.c).applyQuaternion(R).add(d.c); g.o.quaternion.copy(R).multiply(g.q);}); }
-    else o.quaternion.copy(new THREE.Quaternion().setFromAxisAngle(fUp,dl).multiply(d.q0));
-    let deg=Math.round(dl*180/Math.PI); deg=((deg+180)%360+360)%360-180; flabShow(e,(deg>0?'+':'')+deg+'°'); updateDims();
+    const R=new THREE.Quaternion().setFromAxisAngle(d.axis,dl);
+    if(d.grp){ d.grp.forEach(g=>{g.o.position.copy(g.p).sub(d.c).applyQuaternion(R).add(d.c); g.o.quaternion.copy(R).multiply(g.q);}); }
+    else o.quaternion.copy(R).multiply(d.q0);
+    const deg=Math.round(dl*180/Math.PI*10)/10; flabShow(e,d.ax.toUpperCase()+' '+(deg>0?'+':'')+deg+'°'+(out?' (de a 1°)':'')); updateDims();
   } else {
     const P=fPlane(e,d.pl); if(!P)return; let y=d.p0+(P.y-d.y0); if(snapOn)y=Math.round(y/st)*st;
     const dy=y-d.p0; sel.forEach((q,i)=>{q.position.y=d.ys[i]+dy;}); const bx=()=>multiSel()?groupBox():bbox(o), m0=bx().min.y; if(m0<0)sel.forEach(q=>{q.position.y-=m0;});
     flabShow(e,'Altura del piso: '+(Math.round(bx().min.y*10)/10)+' mm'); updateDims();
   }
 });
-const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved||d.dup){updateDims(); commit(); if(d.dup)msg(sel.length===1?'Copia creada.':sel.length+' copias creadas.');} else if(d.k==='rot'){ const rb=document.querySelector('[data-mode=rotate]'); if(rb){rb.click(); msg('Rotar: arrastrá un anillo de color (X rojo, Y verde, Z azul). Para volver, tocá Manipular.');} } };
+const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved||d.dup){updateDims(); commit(); if(d.dup)msg(sel.length===1?'Copia creada.':sel.length+' copias creadas.');} else if(d.k==='rot'){ msg('Arrastrá la flecha curva para girar: X roja, Y verde, Z azul. Lejos del anillo va de a 1°.'); } };
 canvas.addEventListener('pointerup',endFree); canvas.addEventListener('pointercancel',endFree);
 
 // ===== Selección bien marcada: contorno brillante + cartel con la cantidad =====

@@ -11,7 +11,7 @@ await page.selectOption('#shpcats select','Todas');
 for(const id of ids){
   await reset(); if(await page.evaluate(()=>document.querySelector('#shpp').hidden))await clk(page,'#shpbtn'); await page.waitForSelector('#shpgrid button[data-id='+id+']');
   await page.click('#shpgrid button[data-id='+id+']'); await page.waitForTimeout(200);
-  let st; try{st=await exportStl(page);}catch(e){check(id+' exporta',false,String(e).slice(0,100)); continue;} await page.keyboard.press('Escape');
+  let st; try{st=await exportStl(page);}catch(e){check(id+' exporta',false,String(e).slice(0,100)); continue;}
   const sz=[0,1,2].map(k=>+(st.mx[k]-st.mn[k]).toFixed(1));
   check(id+': sólido cerrado, base en cama, vol>0',st.openEdges===0&&Math.abs(st.mn[2])<0.01&&st.vol>50&&st.tris>=8,JSON.stringify({sz,tris:st.tris,open:st.openEdges,vol:Math.round(st.vol),minz:st.mn[2]}));
 }

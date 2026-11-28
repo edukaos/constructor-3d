@@ -4,7 +4,7 @@ var SVG='<svg class="qbrand-svg" xmlns="http://www.w3.org/2000/svg" viewBox="160
 function link(){var a=document.createElement('a');a.className='qbrand';a.href=URL;a.target='_blank';a.rel='noopener';a.title='Quirón · más apps';a.innerHTML=SVG;return a;}
 var tries=0;(function put(){
   var st=document.getElementById('status'),help=document.querySelector('#help .box');
-  if(st&&!st.querySelector('.qbrand')){var s=document.createElement('span');s.className='qsep';s.setAttribute('aria-hidden','true');st.appendChild(s);st.appendChild(link());}
+  if(st&&!st.querySelector('.qbrand')){var v=document.createElement('span');v.id='stVer';v.className='mono';v.title='Versión de Constructor 3D';v.textContent='v'+(window.C3D_VERSION||'?');st.appendChild(v);var s=document.createElement('span');s.className='qsep';s.setAttribute('aria-hidden','true');st.appendChild(s);st.appendChild(link());}
   if(help&&!help.querySelector('.qfoot')){var f=document.createElement('div');f.className='qfoot';f.innerHTML='<span>Constructor 3D es una app de</span>';f.appendChild(link());var m=document.createElement('a');m.href=URL;m.target='_blank';m.rel='noopener';m.textContent='Ver más apps';var d=document.createElement('span');d.textContent='·';f.appendChild(d);f.appendChild(m);help.appendChild(f);}
   var lg=document.querySelector('#topbar .logo');if(lg&&!lg.querySelector('.qtop')){var t=link();t.className='qbrand qtop';lg.style.position='relative';lg.appendChild(t);}
   if((!st||!help)&&tries++<40)setTimeout(put,250);
