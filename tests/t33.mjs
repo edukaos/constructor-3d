@@ -53,5 +53,11 @@ check('La pieza sigue apoyada en la cama',await page.evaluate(()=>Math.abs(bbox(
 { const fs=await import('fs'); const sw=fs.readFileSync(new URL('../sw.js',import.meta.url),'utf8').match(/c3d-v(\d+)/)[1];
   const v=await page.evaluate(()=>{const e=document.getElementById('stVer'); return [String(window.C3D_VERSION), e&&e.textContent];});
   check('Versión en la barra de abajo y igual a la del caché (sw.js)',v[0]===sw&&v[1]==='v'+sw,JSON.stringify(v)+' sw='+sw); }
+// después de actualizar: cartel con el número nuevo y las novedades desde la versión anterior (una sola vez)
+await page.evaluate(()=>localStorage.setItem('c3d_ver','15')); await page.reload(); await page.waitForTimeout(1500);
+const up=await page.evaluate(()=>{const d=document.getElementById('updver'); return d&&[d.querySelector('b').textContent, d.querySelectorAll('p').length, localStorage.getItem('c3d_ver')];});
+check('Al actualizar aparece "Actualizado a vN" con las novedades',!!up&&up[0]==='Actualizado a v'+(await page.evaluate(()=>C3D_VERSION))&&up[1]>=2&&up[2]===String(await page.evaluate(()=>C3D_VERSION)),JSON.stringify(up));
+await page.reload(); await page.waitForTimeout(1500);
+check('El cartel de novedades sale una sola vez',await page.evaluate(()=>!document.getElementById('updver')));
 check('Sin errores',errs.length===0,errs.join(' | '));
 console.log(results.every(r=>r.ok)?results.length+'/'+results.length+' OK':'FALLAN'); await browser.close();
