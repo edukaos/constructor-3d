@@ -19,6 +19,8 @@ const dl=new THREE.DirectionalLight(0xffffff,1.4); dl.position.set(5,10,7); scen
 const grid=new THREE.GridHelper(20,20,0x7fa6d8,0x4f6f9e); grid.material.transparent=true; grid.material.opacity=0.25; grid.material.depthWrite=false; grid.scale.setScalar(10); scene.add(grid);
 
 const orbit=new OrbitControls(cam,canvas); orbit.enableDamping=true;
+// mouse como en Tinkercad: botón derecho gira, botón del medio (o Shift + derecho) desplaza, rueda acerca. El izquierdo elige y arrastra piezas.
+orbit.mouseButtons={LEFT:-1,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.ROTATE};
 const tc=new TransformControls(cam,canvas); scene.add(tc);
 tc.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);
 // Imán de rotación: se pega a múltiplos de 45° (0, 45, 90…) cerca de ellos. Shift lo desactiva.
@@ -417,13 +419,13 @@ function showMoveDims(o){
 }
 function updateFreeUI(o,on){
   frArrow.visible=on; frRot.forEach(r=>{r.visible=on; r.userData.pk.visible=on;}); if(!on)return;
-  const bb=selGroup()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
+  const bb=multiSel()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
   frArrow.position.set(c.x,bb.max.y+k*0.07,c.z); frArrow.scale.setScalar(k*0.007);
   const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.19,c.z),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z)];
   frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.018);});
 }
 function updateScaleUI(){
-  const o=sel[sel.length-1], grp=!!(freeUI&&selGroup()), on=!!(scaleUI&&o&&!splitting&&!M_(o).l&&!placing&&(!freeUI||sel.length===1||grp));
+  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!sel.some(q=>M_(q).l)&&!placing);
   if(!o){updateFreeUI(null,false);}
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
@@ -431,7 +433,7 @@ function updateScaleUI(){
   if(!on){hideCotas(); mvLines.visible=false; hvBack.visible=hvFront.visible=false; sgF=null; return;}
   if(sgCache.g!==o.geometry){o.geometry.computeBoundingBox(); sgCache.g=o.geometry; sgCache.min=o.geometry.boundingBox.min.clone(); sgCache.max=o.geometry.boundingBox.max.clone();}
   // con un grupo elegido, la caja es la del conjunto entero (coordenadas del mundo); si no, la de la pieza
-  if(selGroup()){const b=groupBox(); sgF={grp:[...sel], mn:b.min.clone(), mx:b.max.clone(), p:new THREE.Vector3(), q:new THREE.Quaternion(), s:new THREE.Vector3(1,1,1), cota:IDF};}
+  if(multiSel()){const b=groupBox(); sgF={grp:[...sel], mn:b.min.clone(), mx:b.max.clone(), p:new THREE.Vector3(), q:new THREE.Quaternion(), s:new THREE.Vector3(1,1,1), cota:IDF};}
   else sgF={grp:null, mn:sgCache.min, mx:sgCache.max, p:o.position, q:o.quaternion, s:o.scale, cota:o};
   const {mn,mx,p:fp,q:fq,s:fs}=sgF, c=mn.clone().add(mx).multiplyScalar(0.5);
   sg.position.copy(fp); sg.quaternion.copy(fq); sg.scale.copy(fs);
@@ -459,28 +461,30 @@ canvas.addEventListener('pointerdown',e=>{
   const v0=scr(hw).sub(scr(A)); let len=v0.length();
   if(len<80){ if(len>1e-3)v0.multiplyScalar(80/len); else v0.set(56,-56); len=80; }
   const grp=g.grp;
-  sdrag={o,s,h,a,A,s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
+  const Ac=c.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
+  sdrag={o,s,h,a,A,c,Ac,s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
     P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len,
     grp, init:grp?new Map(grp.map(m=>[m,{p:m.position.clone(),s:m.scale.clone()}])):null};
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!sdrag)return;
-  const {o,s,h,a,A,s0,q}=sdrag;
+  // como en Tinkercad: Shift mantiene las proporciones, Alt escala desde el centro
+  const {o,s,h,s0,q}=sdrag, alt=e.altKey, a=alt?sdrag.c:sdrag.a, A=alt?sdrag.Ac:sdrag.A;
   const w0=k=>s0[k]*(h[k]-a[k]);
-  const ks=['x','y','z'].filter(k=>s[k]!==0&&Math.abs(w0(k))>1e-9);
+  let ks=['x','y','z'].filter(k=>s[k]!==0&&Math.abs(sdrag.s0[k]*(h[k]-sdrag.a[k]))>1e-9);
   if(!ks.length)return;
   // el factor sale del movimiento del mouse en pantalla, a lo largo de la línea punto fijo → punto agarrado:
   // así se siente igual desde cualquier ángulo de cámara
   // curva: lineal cerca del punto de partida (el punto sigue al mouse) y progresiva hacia los extremos,
   // para que un objeto muy chico pueda hacerse muy grande sin arrastres enormes, y nunca llegue a 0 ni se invierta
-  const x=new THREE.Vector2(e.clientX,e.clientY).sub(sdrag.P0).dot(sdrag.dir)/Math.max(40,sdrag.len);
+  const x=new THREE.Vector2(e.clientX,e.clientY).sub(sdrag.P0).dot(sdrag.dir)/Math.max(alt?20:40,alt?sdrag.len/2:sdrag.len);
   const u=x>=1?2*Math.exp((x-1)/2):x>=-0.5?1+x:0.5*Math.exp((x+0.5)/0.5);
   let f={x:1,y:1,z:1};
-  if(ks.length===1){f[ks[0]]=u;} else {f={x:u,y:u,z:u};}
+  if(ks.length===1&&!e.shiftKey){f[ks[0]]=u;} else {f={x:u,y:u,z:u};}
   if($('#snap').classList.contains('on')){
     const k=ks.reduce((m,kk)=>Math.abs(w0(kk))>Math.abs(w0(m))?kk:m,ks[0]);
     const size0=Math.abs(w0(k)), r=Math.max(snapStep(),Math.round(size0*Math.max(0.001,f[k])/snapStep())*snapStep())/size0;
-    if(ks.length===1)f[k]=r; else f={x:r,y:r,z:r};
+    if(ks.length===1&&!e.shiftKey)f[k]=r; else f={x:r,y:r,z:r};
   }
   ['x','y','z'].forEach(k=>{f[k]=Math.max(0.001,f[k]);});
   const sn=new THREE.Vector3(s0.x*f.x,s0.y*f.y,s0.z*f.z);

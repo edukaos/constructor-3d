@@ -227,9 +227,9 @@ const fUp=new THREE.Vector3(0,1,0);
 function flabShow(e,t){const r=$('#wrap').getBoundingClientRect(), z=zf(); flab.textContent=t; flab.hidden=false; flab.style.left=((e.clientX-r.left)/z+46)+'px'; flab.style.top=((e.clientY-r.top)/z-8)+'px';}
 function freeOk(e){return freeUI&&!placing&&!splitting&&!tool&&!sk&&!(e.shiftKey||e.ctrlKey||e.metaKey||multi);}
 function freePick(e){
-  setRay(e); const o=sel[sel.length-1], single=sel.length===1&&o&&!M_(o).l, grp=!!(o&&!M_(o).l&&selGroup());
-  if(single||grp){
-    const hr=ray2.intersectObjects([...(single?[frArrow]:[]),...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
+  setRay(e); const o=sel[sel.length-1], ok=!!o&&!sel.some(q=>M_(q).l);
+  if(ok){
+    const hr=ray2.intersectObjects([frArrow,...frRot.map(r=>r.userData.pk)].filter(h=>h.visible),false)[0];
     if(hr)return {k:hr.object===frArrow?'lift':'rot',o};
   }
   const hp=ray2.intersectObjects(pickable(),false)[0]; if(hp)return {k:'body',o:hp.object,point:hp.point.clone()};
@@ -240,10 +240,13 @@ canvas.addEventListener('pointerdown',e=>{
   if(e.button!==0||!freeOk(e))return; const h=freePick(e); if(!h)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
   const o=h.o; let d={k:h.k,o,moved:false,x0:e.clientX,y0:e.clientY};
-  if(h.k==='body'){ if(!sel.includes(o))select([o]); d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone()); }
-  else if(h.k==='rot'){ const grp=!!selGroup(), bb=grp?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone(); d.grp=grp?sel.map(q=>({o:q,p:q.position.clone(),q:q.quaternion.clone()})):null;
+  if(h.k==='body'){ if(!sel.includes(o))select([o]);
+    // Alt + arrastrar: arrastra una copia y deja el original en su lugar (como en Tinkercad)
+    if(e.altKey){ const i=sel.indexOf(o), cp=dupObjs(sel); select(cp); d.o=sel[i]||sel[sel.length-1]; d.dup=true; }
+    d.pl=new THREE.Plane(fUp,-h.point.y); d.P0=h.point.clone(); d.base=sel.map(q=>q.position.clone()); }
+  else if(h.k==='rot'){ const grp=multiSel(), bb=grp?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()); d.c=c; d.pl=new THREE.Plane(fUp,-c.y); const P=fPlane(e,d.pl)||c; d.a0=Math.atan2(-(P.z-c.z),P.x-c.x); d.q0=o.quaternion.clone(); d.grp=grp?sel.map(q=>({o:q,p:q.position.clone(),q:q.quaternion.clone()})):null;
     const r=0.5*Math.hypot(bb.max.x-bb.min.x,bb.max.z-bb.min.z)+14; rotFx.position.set(c.x,bb.min.y+0.15,c.z); rotFx.scale.setScalar(r); rotWedge(d.a0,0); rotFx.visible=true; }
-  else { const bb=bbox(o), c=bb.getCenter(new THREE.Vector3()), n=new THREE.Vector3(cam.position.x-c.x,0,cam.position.z-c.z); if(n.lengthSq()<1e-6)n.set(0,0,1); n.normalize(); d.pl=new THREE.Plane(n,-n.dot(c)); const P=fPlane(e,d.pl)||c; d.y0=P.y; d.p0=o.position.y; }
+  else { const bb=multiSel()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), n=new THREE.Vector3(cam.position.x-c.x,0,cam.position.z-c.z); if(n.lengthSq()<1e-6)n.set(0,0,1); n.normalize(); d.pl=new THREE.Plane(n,-n.dot(c)); const P=fPlane(e,d.pl)||c; d.y0=P.y; d.p0=o.position.y; d.ys=sel.map(q=>q.position.y); }
   fdrag=d;
 },true);
 canvas.addEventListener('pointermove',e=>{
@@ -266,11 +269,11 @@ canvas.addEventListener('pointermove',e=>{
     let deg=Math.round(dl*180/Math.PI); deg=((deg+180)%360+360)%360-180; flabShow(e,(deg>0?'+':'')+deg+'°'); updateDims();
   } else {
     const P=fPlane(e,d.pl); if(!P)return; let y=d.p0+(P.y-d.y0); if(snapOn)y=Math.round(y/st)*st;
-    o.position.y=y; const m0=bbox(o).min.y; if(m0<0)o.position.y-=m0;
-    flabShow(e,'Altura del piso: '+(Math.round(bbox(o).min.y*10)/10)+' mm'); updateDims();
+    const dy=y-d.p0; sel.forEach((q,i)=>{q.position.y=d.ys[i]+dy;}); const bx=()=>multiSel()?groupBox():bbox(o), m0=bx().min.y; if(m0<0)sel.forEach(q=>{q.position.y-=m0;});
+    flabShow(e,'Altura del piso: '+(Math.round(bx().min.y*10)/10)+' mm'); updateDims();
   }
 });
-const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved){updateDims(); commit();} else if(d.k==='rot'){ const rb=document.querySelector('[data-mode=rotate]'); if(rb){rb.click(); msg('Rotar: arrastrá un anillo de color (X rojo, Y verde, Z azul). Para volver, tocá Manipular.');} } };
+const endFree=()=>{ if(!fdrag)return; const d=fdrag; fdrag=null; flab.hidden=true; rotFx.visible=false; mvLines.visible=false; orbit.enabled=true; if(d.moved||d.dup){updateDims(); commit(); if(d.dup)msg(sel.length===1?'Copia creada.':sel.length+' copias creadas.');} else if(d.k==='rot'){ const rb=document.querySelector('[data-mode=rotate]'); if(rb){rb.click(); msg('Rotar: arrastrá un anillo de color (X rojo, Y verde, Z azul). Para volver, tocá Manipular.');} } };
 canvas.addEventListener('pointerup',endFree); canvas.addEventListener('pointercancel',endFree);
 
 // ===== Selección bien marcada: contorno brillante + cartel con la cantidad =====
@@ -312,20 +315,25 @@ function updateSelFx(){
 
 // ===== Selección con rectángulo (Shift + arrastrar en vacío, o en modo Multi) =====
 let rsel=null;
+// Como en Tinkercad: con el mouse, arrastrar desde un espacio vacío dibuja el rectángulo (la cámara gira con el botón derecho).
+// Shift/Ctrl/Multi suman a lo que ya estaba elegido; si no, el rectángulo reemplaza la selección. En pantallas táctiles, solo con Multi.
 canvas.addEventListener('pointerdown',e=>{
-  if(e.button!==0||!(e.shiftKey||multi)||splitting||tool||tc.axis)return;
+  const add=e.shiftKey||e.ctrlKey||e.metaKey||multi;
+  if(e.button!==0||!(add||e.pointerType==='mouse')||splitting||tool||sk||placing||tc.axis)return;
   setRay(e); if(ray2.intersectObjects(pickable(),false).length)return;
+  if(typeof secOn!=='undefined'&&secOn&&secKnob.visible&&ray2.intersectObject(secKnob,false).length)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; canvas.setPointerCapture(e.pointerId);
-  rsel={x0:e.clientX,y0:e.clientY,r:wrap.getBoundingClientRect(),base:sel.slice()};
+  rsel={x0:e.clientX,y0:e.clientY,r:wrap.getBoundingClientRect(),base:add?sel.slice():[],add};
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!rsel)return; const {x0,y0,r}=rsel, el=$('#rect'), w=Math.abs(e.clientX-x0), h=Math.abs(e.clientY-y0);
   const z=zf(); Object.assign(el.style,{left:(Math.min(x0,e.clientX)-r.left)/z+'px',top:(Math.min(y0,e.clientY)-r.top)/z+'px',width:w/z+'px',height:h/z+'px'}); el.hidden=w<3&&h<3;
 });
 canvas.addEventListener('pointerup',e=>{
-  if(!rsel)return; const {x0,y0,base}=rsel; rsel=null; $('#rect').hidden=true;
+  if(!rsel)return; const {x0,y0,base,add}=rsel; rsel=null; $('#rect').hidden=true;
   const x1=Math.min(x0,e.clientX), x2=Math.max(x0,e.clientX), y1=Math.min(y0,e.clientY), y2=Math.max(y0,e.clientY);
-  if(x2-x1<4&&y2-y1<4)return;
+  // clic en un espacio vacío (sin arrastrar): suelta la selección
+  if(x2-x1<4&&y2-y1<4){ if(!add)select([]); return; }
   const cr=canvas.getBoundingClientRect(), v=new THREE.Vector3();
   const inside=pickable().filter(o=>{bbox(o).getCenter(v).project(cam); const sx=cr.left+(v.x+1)/2*cr.width, sy=cr.top+(1-v.y)/2*cr.height; return v.z<1&&sx>=x1&&sx<=x2&&sy>=y1&&sy<=y2;});
   select([...new Set([...base,...inside])]);
