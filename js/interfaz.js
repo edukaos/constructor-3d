@@ -225,7 +225,7 @@ addEventListener('keydown',e=>{ if(placing&&e.key==='Escape'){e.stopImmediatePro
 const flab=document.createElement('div'); flab.id='flab'; flab.className='dimlbl'; flab.hidden=true; $('#wrap').appendChild(flab);
 const fUp=new THREE.Vector3(0,1,0);
 function flabShow(e,t){const r=$('#wrap').getBoundingClientRect(), z=zf(); flab.textContent=t; flab.hidden=false; flab.style.left=((e.clientX-r.left)/z+46)+'px'; flab.style.top=((e.clientY-r.top)/z-8)+'px';}
-function freeOk(e){return freeUI&&!placing&&!splitting&&!tool&&!sk&&!(e.shiftKey||e.ctrlKey||e.metaKey||multi);}
+function freeOk(e){return freeUI&&!placing&&!splitting&&!tool&&!sk&&!alMode&&!(e.shiftKey||e.ctrlKey||e.metaKey||multi);}
 function freePick(e){
   setRay(e); const o=sel[sel.length-1], ok=!!o&&!sel.some(q=>M_(q).l);
   if(ok){
@@ -337,7 +337,7 @@ let rsel=null;
 // Shift/Ctrl/Multi suman a lo que ya estaba elegido; si no, el rectángulo reemplaza la selección. En pantallas táctiles, solo con Multi.
 canvas.addEventListener('pointerdown',e=>{
   const add=e.shiftKey||e.ctrlKey||e.metaKey||multi;
-  if(e.button!==0||!(add||e.pointerType==='mouse')||splitting||tool||sk||placing||tc.axis)return;
+  if(e.button!==0||!(add||e.pointerType==='mouse')||splitting||tool||sk||placing||alMode||tc.axis)return;
   setRay(e); if(ray2.intersectObjects(pickable(),false).length)return;
   if(typeof secOn!=='undefined'&&secOn&&secKnob.visible&&ray2.intersectObject(secKnob,false).length)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; canvas.setPointerCapture(e.pointerId);

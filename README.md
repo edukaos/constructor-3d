@@ -13,7 +13,7 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 - **Patrón:** copias en línea, en grilla o en círculo.
 - **Medir** la distancia entre dos puntos.
 - Medidas, posición, rotación y color editables; bordes redondeados o chaflán en cubo y cilindro.
-- Alinear, centrar, espejo, duplicar, copiar y pegar.
+- **Alinear** como en Tinkercad: con 2 o más piezas aparecen puntos sobre el conjunto (vista previa al pasar el mouse, clic para alinear, una pieza puede ser la referencia). Centrar, espejo, duplicar, copiar y pegar.
 - **Encuadrar** con F y vistas de cámara desde el menú Cámara.
 - Cama de impresión configurable, con aviso si una pieza sobresale.
 - **Revisar malla:** detecta huecos, caras dadas vuelta, caras repetidas y uniones de espesor cero, muestra los bordes abiertos y calcula volumen y peso aproximado en PLA. Reparar tapa huecos, da vuelta las caras y borra las sobrantes.
@@ -32,7 +32,7 @@ Abrir `index.html` en un servidor web (https recomendado). No necesita build ni 
 - `index.html`: la estructura de la pantalla (botones, paneles) y el orden en que se cargan los scripts.
 - `css/app.css` (estilos de la app) y `css/marca.css` (marca Quirón).
 - `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
-- `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/seleccion.js` (selección múltiple como en Tinkercad: mover, girar, escalar y duplicar el conjunto, flechas, Ctrl+A), `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
+- `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/seleccion.js` (selección múltiple como en Tinkercad: mover, girar, escalar y duplicar el conjunto, flechas, Ctrl+A), `js/alinear.js` (alinear con puntos en el visor), `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
 - `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
 - `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE`. En cada publicación, subir el número de `CACHE` y el mismo número en `js/version.js` (es el que se ve en la barra de abajo, al lado del logo).
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg) y las tipografías vienen en `vendor/` (del propio sitio, sin jsDelivr). No hace falta conexión después de la primera carga.

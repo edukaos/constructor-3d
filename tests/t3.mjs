@@ -61,7 +61,7 @@ check('Supr borra el seleccionado → 2',await cnt()===2);
 // --- Espejo / Alinear
 await fresh(); await addAt('1',-30,0); await addAt('3',30,30); await blur();
 await sel([-30,12.5,0]); await sel([30,12.5,30],true);
-await page.click('#alinear'); await page.click('[data-al="x:mid"]'); await page.waitForTimeout(200);
+await page.click('#alinear'); await page.click('#almore'); await page.click('[data-al="x:mid"]'); await page.waitForTimeout(200);
 p=(await saveProj(page)).objs; check('Alinear X centro: mismo X',near(p[0].pos[0],p[1].pos[0],0.01),p.map(o=>o.pos[0].toFixed(1)).join(' / '));
 
 await page.click('[data-mir="x"]'); await page.waitForTimeout(200);
