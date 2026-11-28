@@ -22,7 +22,7 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 - Disposición en pantalla ancha (rediseño): barra superior fina con archivo, historial, buscador de acciones (Ctrl K) y Exportar; riel izquierdo de íconos con tooltips y el botón Agregar (A) que abre el menú de formas; inspector a la derecha con la lista de Piezas y las Propiedades; barra de acciones sobre el visor al elegir piezas (Unir, Restar, Intersectar, Duplicar, Alinear, Apoyar, Hueco, Borrar); barra de vista abajo (Transparente, Cama, Aspecto, Frente/Arriba/Lado/3D, Encuadrar) y pie de estado con medidas, triángulos y cama. En pantallas chicas y celulares se mantiene la disposición anterior con menús.
 
 ## Atajos
-1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Ctrl+G agrupar · Ctrl+Shift+G desagrupar · Supr · Shift/Ctrl + clic para sumar
+Flechas mover (Shift ×10, Ctrl+↑/↓ subir y bajar) · Alt + arrastrar copia · Ctrl+A todo · 1–5 formas · A agregar · Ctrl K buscador de acciones · T texto · M mover · R rotar · S escalar · F encuadrar · O cámara ortográfica · L lista de piezas · H hueco · G apoyar · Ctrl+Z / Ctrl+Y · Ctrl+S · Ctrl+D · Ctrl+C / Ctrl+V · Ctrl+G agrupar · Ctrl+Shift+G desagrupar · Supr · Shift/Ctrl + clic para sumar
 
 ## Uso
 Abrir `index.html` en un servidor web (https recomendado). No necesita build ni backend. Desde una copia local: `python3 -m http.server` en la carpeta y abrir http://localhost:8000 (abriendo el archivo con doble clic no carga, porque usa módulos).
@@ -32,7 +32,7 @@ Abrir `index.html` en un servidor web (https recomendado). No necesita build ni 
 - `index.html`: la estructura de la pantalla (botones, paneles) y el orden en que se cargan los scripts.
 - `css/app.css` (estilos de la app) y `css/marca.css` (marca Quirón).
 - `js/libs.js` importa Three.js, Manifold y las demás librerías. Después se cargan en orden y comparten el ámbito global: `nucleo.js` (escena, piezas, historial, formas, alinear), `operaciones.js` (unir/restar con Manifold, revisión de mallas), `interfaz.js` (paneles, lista, vistas, selección, herramientas, texto, patrón), `exportar.js`, `formas.js` (SVG, vaciar, biblioteca de formas, redondear, historial editable), `sketch.js`, `acabados.js` (textura, dividir para la cama, importar, aspecto, acomodar, sección, estimar) y `layout.js` (cinta, inspector, buscador, ayuda).
-- `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
+- `js/distancias.js` (distancias al mover), `js/grupos.js`, `js/seleccion.js` (selección múltiple como en Tinkercad: mover, girar, escalar y duplicar el conjunto, flechas, Ctrl+A), `js/plano.js` (plano de trabajo), `js/roscas.js` (tornillos y tuercas con rosca).
 - `js/aviso-version.js` (service worker y aviso de versión nueva), `js/mudanza.js` y `js/marca.js`.
 - `sw.js`: si se agrega un archivo nuevo a css/ o js/, sumarlo a la lista `CORE` y subir el número de `CACHE`.
 Las librerías (Three.js, Manifold, three-mesh-bvh y three-bvh-csg) y las tipografías vienen en `vendor/` (del propio sitio, sin jsDelivr). No hace falta conexión después de la primera carga.

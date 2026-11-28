@@ -222,9 +222,6 @@ $('#cfix').onclick=runRepair;
 $('#cshow').onclick=()=>openLinesOn?clearOpenLines():showOpenLines();
 $('#cclose').onclick=()=>{$('#chkp').hidden=true; clearOpenLines();};
 
-$('#dup').onclick=()=>{ if(!sel.length)return; const o=sel[sel.length-1];
-  const m=addMesh(o.geometry.clone(),o.material.clone(),M_(o).n+' (copia)'); m.userData.m.k=!!M_(o).k; if(M_(o).tx)m.userData.m.tx={...M_(o).tx};
-  m.position.copy(o.position).add(new THREE.Vector3(10,0,10)); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale); if(o.userData.p)m.userData.p={...o.userData.p}; if(o.userData.fx)m.userData.fx=o.userData.fx; updateDims(); commit();};
 $('#del').onclick=()=>{ sel.forEach(o=>{scene.remove(o);objs.splice(objs.indexOf(o),1);}); sel=[]; tc.detach(); updateDims(); commit(); };
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||splitting)return;
@@ -270,7 +267,7 @@ $('#stl').onclick=()=>{ if(!objs.length){msg('No hay nada para exportar.');retur
 
 // selección por clic (ignora arrastres)
 const ray=new THREE.Raycaster(), p=new THREE.Vector2(); let down=null; let multi=false;
-$('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi); msg(multi?'Selección múltiple activada: cada clic suma o saca un objeto. Arrastrar en un espacio vacío dibuja un rectángulo; para orbitar usá el cubo de vistas o apagá esta opción.':'Selección múltiple desactivada.');};
+$('#multi').onclick=()=>{multi=!multi; $('#multi').classList.toggle('on',multi); msg(multi?'Selección múltiple activada: cada clic suma o saca un objeto, y el rectángulo suma a lo elegido.':'Selección múltiple desactivada.');};
 canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
 canvas.addEventListener('pointerup',e=>{
   // el botón derecho no cambia la selección: lo usa el menú contextual

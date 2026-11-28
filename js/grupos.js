@@ -77,23 +77,7 @@ addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='g'){e.preventDefault(); e.shiftKey?ungroupSel():groupSel();}
 });
 
-// Duplicar con un grupo elegido copia el grupo entero, como un grupo nuevo
-{
-  const dupBase=$('#dup').onclick;
-  $('#dup').onclick=()=>{
-    if(!sel.some(grpOf))return dupBase();
-    const remap={}, made=[];
-    sel.forEach(o=>{
-      const m=new THREE.Mesh(o.geometry.clone(),o.material.clone()); m.userData.m=JSON.parse(JSON.stringify(M_(o)));
-      m.userData.m.n=M_(o).n+' (copia)'; m.userData.m.h=false; m.userData.m.l=false;
-      const g=grpOf(o); if(g)m.userData.m.g=remap[g]||(remap[g]=newGroupId());
-      m.position.copy(o.position).add(new THREE.Vector3(10,0,10)); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale);
-      if(o.userData.p)m.userData.p={...o.userData.p}; if(o.userData.fx)m.userData.fx=o.userData.fx;
-      scene.add(m); objs.push(m); made.push(m);
-    });
-    select(made); updateDims(); commit(); msg('Grupo duplicado.');
-  };
-}
+// Duplicar (con o sin grupos) está en seleccion.js
 // Pegar: las piezas pegadas forman grupos nuevos (no se suman al grupo original)
 {
   const pasteBase=pasteSel;

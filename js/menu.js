@@ -52,16 +52,25 @@ function ctxOpen(x,y){
   ctxm.style.top=Math.max(4,Math.min(y,H-h-8))+'px';
 }
 canvas.addEventListener('pointerdown',e=>{ ctxDown=e.button===2?{x:e.clientX,y:e.clientY}:null; },true);
-canvas.addEventListener('contextmenu',e=>{
-  e.preventDefault();
-  // si el botón derecho se usó para girar la cámara, no abre el menú
-  if(ctxDown&&Math.hypot(e.clientX-ctxDown.x,e.clientY-ctxDown.y)>5)return;
+function ctxAt(e){
   if(tool||splitting||placing)return;
   setRay(e);
   const hit=ray2.intersectObjects(objs.filter(o=>o.visible),false)[0];
   if(hit&&!sel.includes(hit.object))select([hit.object]);
   ctxOpen(e.clientX,e.clientY);
+}
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  // en Linux/Mac el evento llega al apretar el botón: se espera a soltarlo, porque arrastrar con el derecho gira la cámara
+  if(ctxDown&&(e.buttons&2)){ctxDown.wait=true; return;}
+  // si el botón derecho se usó para girar la cámara, no abre el menú
+  if(ctxDown&&Math.hypot(e.clientX-ctxDown.x,e.clientY-ctxDown.y)>5)return;
+  ctxAt(e);
 });
+addEventListener('pointerup',e=>{
+  if(e.button!==2||!ctxDown||!ctxDown.wait)return; const d=ctxDown; ctxDown=null;
+  if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<=5)ctxAt(e);
+},true);
 addEventListener('pointerdown',e=>{ if(!ctxm.hidden&&!ctxm.contains(e.target))ctxClose(); },true);
 addEventListener('keydown',e=>{ if(e.key==='Escape')ctxClose(); });
 addEventListener('wheel',ctxClose,{passive:true});
