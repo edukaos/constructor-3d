@@ -68,7 +68,7 @@ await page.click('[data-mir="x"]'); await page.waitForTimeout(200);
 check('Espejo X sin errores',errs.length===0,errs.join(';'));
 
 // --- Snap / transparente / multi
-await page.click('#snap'); check('Snap se activa',await page.$eval('#snap',b=>b.classList.contains('on')));
+{const s0=await page.$eval('#snap',b=>b.classList.contains('on')); check('Imán prendido de entrada',s0); await page.click('#snap'); check('Snap se apaga y prende',!(await page.$eval('#snap',b=>b.classList.contains('on')))); await page.click('#snap');}
 await clk(page,'#ghost'); check('Transparente se activa',await page.$eval('#ghost',b=>b.classList.contains('on')));
 await page.click('#multi'); check('Multi se activa',await page.$eval('#multi',b=>b.classList.contains('on')));
 

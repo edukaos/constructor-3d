@@ -230,11 +230,14 @@ function dropDistance(o,others){
   return best;
 }
 const snapStep=()=>parseFloat($('#snapstep').value)||1;
-function applySnap(){const on=$('#snap').classList.contains('on'), st=snapStep(); [tc,tp].forEach(c=>{c.setTranslationSnap(on?st:null); c.setRotationSnap(on?THREE.MathUtils.degToRad(15):null); c.setScaleSnap(on?0.1:null);});}
+// Imán (snap) como en Tinkercad: prendido de entrada en 1 mm; se recuerdan el estado y el paso.
+function applySnap(){const on=$('#snap').classList.contains('on'), st=snapStep(); [tc,tp].forEach(c=>{c.setTranslationSnap(on?st:null); c.setRotationSnap(on?THREE.MathUtils.degToRad(22.5):null); c.setScaleSnap(on?0.1:null);}); try{localStorage.setItem('c3d_snap',JSON.stringify({on,st}));}catch(_){}}
+{let v=null; try{v=JSON.parse(localStorage.getItem('c3d_snap')||'null');}catch(_){} if(v){$('#snap').classList.toggle('on',!!v.on); if([...$('#snapstep').options].some(o=>+o.value===v.st))$('#snapstep').value=String(v.st);}}
 $('#snap').onclick=()=>{
   const on=$('#snap').classList.toggle('on'); applySnap();
-  msg(on?'Snap activado: mover de a '+snapStep()+' mm, rotar de a 15°, escalar de a 0,1. El paso se cambia en Cama.':'Snap desactivado.');
+  msg(on?'Imán prendido: mover y escalar de a '+snapStep()+' mm (el paso se cambia en Cama).':'Imán apagado: todo se mueve libre.');
 };
+applySnap();
 const bbox=o=>{o.updateMatrixWorld(true); return new THREE.Box3().setFromObject(o,true);};
 // Escalar en los ejes de la cama (X, Y, Z del mundo) desde un punto fijo A, sin torcer piezas giradas.
 // init = {p,q,s} el estado de partida. Si la pieza está girada de a 90°, alcanza con repartir el factor en sus ejes.
@@ -400,13 +403,14 @@ let sgF=null; const IDF={matrixWorld:new THREE.Matrix4(),scale:new THREE.Vector3
 const sg=new THREE.Group(); sg.visible=false; scene.add(sg);
 const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0xF5C451,depthTest:false,transparent:true}));
 edges.renderOrder=998; sg.add(edges);
+// Puntos de escalar como en Tinkercad: las 4 esquinas de abajo cambian ancho y fondo (con Shift, todo parejo),
+// los 4 puntos del medio de los lados de abajo cambian un solo eje y el punto de arriba cambia la altura.
 const sh=[];
-[-1,0,1].forEach(x=>[-1,0,1].forEach(y=>[-1,0,1].forEach(z=>{
-  const nz=(x!==0)+(y!==0)+(z!==0); if(nz===0||nz===2)return;
-  const face=nz===1;
+[[-1,-1,-1,'xz'],[1,-1,-1,'xz'],[-1,-1,1,'xz'],[1,-1,1,'xz'],[1,-1,0,'x'],[-1,-1,0,'x'],[0,-1,1,'z'],[0,-1,-1,'z'],[0,1,0,'y']].forEach(([x,y,z,axs])=>{
+  const face=axs.length===1;
   const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:face?0xff8a3d:0xF5C451,depthTest:false,transparent:true}));
-  m.renderOrder=999; m.visible=false; m.material.visible=false; m.userData={s:new THREE.Vector3(x,y,z),face}; scene.add(m); sh.push(m);
-})));
+  m.renderOrder=999; m.visible=false; m.material.visible=false; m.userData={s:new THREE.Vector3(x,y,z),ax:new THREE.Vector3(+axs.includes('x'),+axs.includes('y'),+axs.includes('z')),face}; scene.add(m); sh.push(m);
+});
 const hvArr=new Float32Array(sh.length*3), hvAttr=new THREE.BufferAttribute(hvArr,3);
 const mkHv=(col,size,ro)=>{const g=new THREE.BufferGeometry(); g.setAttribute('position',hvAttr); const p=new THREE.Points(g,new THREE.PointsMaterial({color:col,size,sizeAttenuation:false,depthTest:false,transparent:true})); p.renderOrder=ro; p.frustumCulled=false; p.visible=false; scene.add(p); return p;};
 const hvBack=mkHv(0x10203a,11,998), hvFront=mkHv(0xffffff,7.5,999);
@@ -418,12 +422,13 @@ const rotTex=flip=>{ const c=document.createElement('canvas'); c.width=c.height=
   [['#0b1a33',7],['#ffffff',3]].forEach(([col,w])=>{ g.strokeStyle=col; g.fillStyle=col; g.lineWidth=w; g.beginPath(); g.arc(cx,cy,R,t0,t1); g.stroke(); head(t0,-1); g.lineWidth=w>4?6:2; g.fill(); g.stroke(); head(t1,1); g.fill(); g.stroke(); });
   return new THREE.CanvasTexture(c); };
 const rotTexs=[rotTex(false),rotTex(true)];
-const frRot=[0,1].map(i=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:rotTexs[i],depthTest:false,transparent:true,sizeAttenuation:false})); sp.scale.set(0.05,0.05,1); sp.renderOrder=999; sp.visible=false; scene.add(sp);
-  const pk=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({visible:false})); pk.visible=false; scene.add(pk); sp.userData.pk=pk; return sp;});
+// tres flechas curvas, una por eje como en Tinkercad: X (roja), Y vertical (verde, abajo) y Z (azul)
+const frRot=[['x',0,0xff7b7b],['y',1,0x6ee08f],['z',0,0x6aa8ff]].map(([ax,ti,col])=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:rotTexs[ti],color:col,depthTest:false,transparent:true,sizeAttenuation:false})); sp.scale.set(0.05,0.05,1); sp.renderOrder=999; sp.visible=false; scene.add(sp);
+  const pk=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({visible:false})); pk.visible=false; pk.userData.ax=ax; scene.add(pk); sp.userData.pk=pk; sp.userData.ax=ax; return sp;});
 const rotFx=new THREE.Group(); rotFx.visible=false; scene.add(rotFx);
 { const ring=new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({length:97},(_,i)=>new THREE.Vector3(Math.cos(i/96*Math.PI*2),0,Math.sin(i/96*Math.PI*2)))),new THREE.LineBasicMaterial({color:0x6ad0ff,depthTest:false,transparent:true})); ring.renderOrder=996; rotFx.add(ring);
   const disc=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMaterial({color:0x6ad0ff,transparent:true,opacity:.12,depthTest:false,depthWrite:false,side:THREE.DoubleSide})); disc.rotation.x=-Math.PI/2; disc.renderOrder=995; rotFx.add(disc);
-  const pts=[]; for(let i=0;i<24;i++){const a=i/24*Math.PI*2, r0=i%3===0?0.86:0.93; pts.push(new THREE.Vector3(Math.cos(a)*r0,0,Math.sin(a)*r0),new THREE.Vector3(Math.cos(a),0,Math.sin(a)));}
+  const pts=[]; for(let i=0;i<16;i++){const a=i/16*Math.PI*2, r0=i%4===0?0.84:0.92; pts.push(new THREE.Vector3(Math.cos(a)*r0,0,Math.sin(a)*r0),new THREE.Vector3(Math.cos(a),0,Math.sin(a)));}
   const ticks=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x9fe4ff,depthTest:false,transparent:true})); ticks.renderOrder=996; rotFx.add(ticks);
   const wedge=new THREE.Mesh(new THREE.CircleGeometry(1,2),new THREE.MeshBasicMaterial({color:0xFF9A3D,transparent:true,opacity:.4,depthTest:false,depthWrite:false,side:THREE.DoubleSide})); wedge.rotation.x=-Math.PI/2; wedge.renderOrder=997; rotFx.add(wedge); rotFx.userData.wedge=wedge; }
 function rotWedge(a0,dl){ const w=rotFx.userData.wedge; w.geometry.dispose(); const st=dl>=0?a0:a0+dl, len=Math.max(0.001,Math.abs(dl)); w.geometry=new THREE.CircleGeometry(1,Math.max(2,Math.ceil(len/0.1)),st,len); }
@@ -439,11 +444,13 @@ function updateFreeUI(o,on){
   frArrow.visible=on; frRot.forEach(r=>{r.visible=on; r.userData.pk.visible=on;}); if(!on)return;
   const bb=multiSel()?groupBox():bbox(o), c=bb.getCenter(new THREE.Vector3()), k=camK(new THREE.Vector3(c.x,bb.max.y,c.z));
   frArrow.position.set(c.x,bb.max.y+k*0.07,c.z); frArrow.scale.setScalar(k*0.007);
-  const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.19,c.z),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z)];
+  // X y Z van sobre las aristas de arriba que miran a la cámara; Y (vertical) en el piso, afuera de la esquina más cercana a la cámara
+  const sz=cam.position.z>=c.z?1:-1, sx=cam.position.x>=c.x?1:-1, zs=sz>0?bb.max.z+k*0.045:bb.min.z-k*0.045, xs=sx>0?bb.max.x+k*0.045:bb.min.x-k*0.045;
+  const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.045,zs),new THREE.Vector3((sx>0?bb.max.x:bb.min.x)+sx*k*0.06,bb.min.y,(sz>0?bb.max.z:bb.min.z)+sz*k*0.06),new THREE.Vector3(xs,bb.max.y+k*0.045,c.z)];
   frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.018);});
-  // si una flecha curva queda debajo de un botón o panel, se esconde (la otra hace lo mismo y sigue a mano)
+  // si una flecha curva queda debajo de un botón o panel, se esconde
   if(!fdrag){ const cr=canvas.getBoundingClientRect(), cov=frRot.map(r=>{const v=r.position.clone().project(cam), x=cr.left+(v.x+1)/2*cr.width, y=cr.top+(1-v.y)/2*cr.height, el=document.elementFromPoint(x,y); return !!el&&el!==canvas;});
-    if(!(cov[0]&&cov[1]))frRot.forEach((r,i)=>{if(cov[i]){r.visible=false; r.userData.pk.visible=false;}}); }
+    if(!cov.every(Boolean))frRot.forEach((r,i)=>{if(cov[i]){r.visible=false; r.userData.pk.visible=false;}}); }
 }
 function updateScaleUI(){
   const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!sel.some(q=>M_(q).l)&&!placing);
@@ -465,7 +472,7 @@ function updateScaleUI(){
     h.scale.setScalar(camK(h.position)*0.016);
   });
   sh.forEach((h,i)=>{hvArr[i*3]=h.position.x; hvArr[i*3+1]=h.position.y; hvArr[i*3+2]=h.position.z;}); hvAttr.needsUpdate=true; hvBack.visible=hvFront.visible=true;
-  if(sdrag)showCotas(sgF.cota,mn,mx,{x:sdrag.s.x!==0,y:sdrag.s.y!==0,z:sdrag.s.z!==0}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
+  if(sdrag)showCotas(sgF.cota,mn,mx,{x:!!sdrag.ax.x||!!sdrag.F&&sdrag.F.x!==1,y:!!sdrag.ax.y||!!sdrag.F&&sdrag.F.y!==1,z:!!sdrag.ax.z||!!sdrag.F&&sdrag.F.z!==1}); else if(fdrag&&fdrag.k==='body')showMoveDims(o); else {hideCotas(); mvLines.visible=false;}
 }
 const ray2=new THREE.Raycaster(), pt2=new THREE.Vector2();
 const setRay=e=>{const r=canvas.getBoundingClientRect(); pt2.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray2.setFromCamera(pt2,cam);};
@@ -474,38 +481,49 @@ canvas.addEventListener('pointerdown',e=>{
   setRay(e);
   const hit=ray2.intersectObjects(sh.filter(h=>h.visible),false)[0]; if(!hit)return;
   e.stopImmediatePropagation(); e.preventDefault(); down=null; orbit.enabled=false; canvas.setPointerCapture(e.pointerId);
-  const s=hit.object.userData.s, g=sgF, c=g.mn.clone().add(g.mx).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
+  const s=hit.object.userData.s, ax=hit.object.userData.ax, g=sgF, c=g.mn.clone().add(g.mx).multiplyScalar(0.5), h=new THREE.Vector3(), a=new THREE.Vector3();
   ['x','y','z'].forEach(k=>{h[k]=s[k]>0?g.mx[k]:s[k]<0?g.mn[k]:c[k]; a[k]=s[k]>0?g.mn[k]:s[k]<0?g.mx[k]:c[k];});
-  const hw=h.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
-  const A=a.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
+  // marco de la caja al empezar (se copia: con una sola pieza, su posición cambia mientras se arrastra)
+  const fp=g.p.clone(), fq=g.q.clone(), fs=g.s.clone(), W=v=>v.clone().multiply(fs).applyQuaternion(fq).add(fp);
+  const hw=W(h), A=W(a), Ac=W(c), grp=g.grp;
+  // el punto sigue al mouse sobre un plano: el de la base para los puntos de abajo, uno vertical de frente a la cámara para el de arriba
+  const up=new THREE.Vector3(0,1,0).applyQuaternion(fq);
+  let n=up.clone(); if(ax.y){ n=new THREE.Vector3().subVectors(cam.position,hw); n.addScaledVector(up,-n.dot(up)); if(n.lengthSq()<1e-8)n.set(0,0,1); n.normalize(); }
+  const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(n,hw);
+  const toL=P=>P.clone().sub(fp).applyQuaternion(fq.clone().invert()).divide(fs);
+  const P0=new THREE.Vector3(); const L0=ray2.ray.intersectPlane(pl,P0)?toL(P0):h.clone();
+  // respaldo si el plano queda de canto a la cámara: el factor sale del movimiento del mouse en pantalla
   const r=canvas.getBoundingClientRect(), scr=V=>{const v=V.clone().project(cam); return new THREE.Vector2(r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height);};
-  const v0=scr(hw).sub(scr(A)); let len=v0.length();
-  if(len<80){ if(len>1e-3)v0.multiplyScalar(80/len); else v0.set(56,-56); len=80; }
-  const grp=g.grp;
-  const Ac=c.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
-  sdrag={o,s,h,a,A,c,Ac,s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
+  const v0=scr(hw).sub(scr(A)); let len=v0.length(); if(len<80){ if(len>1e-3)v0.multiplyScalar(80/len); else v0.set(56,-56); len=80; }
+  sdrag={o,s,ax,h,a,A,c,Ac,pl,toL,L0,grazing:Math.abs(ray2.ray.direction.dot(n))<0.12,
+    s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
     P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len,
     grp, init:grp?new Map(grp.map(m=>[m,{p:m.position.clone(),q:m.quaternion.clone(),s:m.scale.clone()}])):null};
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!sdrag)return;
   // como en Tinkercad: Shift mantiene las proporciones, Alt escala desde el centro
-  const {o,s,h,s0,q}=sdrag, alt=e.altKey, a=alt?sdrag.c:sdrag.a, A=alt?sdrag.Ac:sdrag.A;
-  const w0=k=>s0[k]*(h[k]-a[k]);
-  let ks=['x','y','z'].filter(k=>s[k]!==0&&Math.abs(sdrag.s0[k]*(h[k]-sdrag.a[k]))>1e-9);
+  const {o,ax,h,s0,q}=sdrag, alt=e.altKey, a=alt?sdrag.c:sdrag.a, A=alt?sdrag.Ac:sdrag.A;
+  const w0=k=>s0[k]*(h[k]-sdrag.a[k]);
+  const ks=['x','y','z'].filter(k=>ax[k]&&Math.abs(w0(k))>1e-9);
   if(!ks.length)return;
-  // el factor sale del movimiento del mouse en pantalla, a lo largo de la línea punto fijo → punto agarrado:
-  // así se siente igual desde cualquier ángulo de cámara
-  // curva: lineal cerca del punto de partida (el punto sigue al mouse) y progresiva hacia los extremos,
-  // para que un objeto muy chico pueda hacerse muy grande sin arrastres enormes, y nunca llegue a 0 ni se invierta
-  const x=new THREE.Vector2(e.clientX,e.clientY).sub(sdrag.P0).dot(sdrag.dir)/Math.max(alt?20:40,alt?sdrag.len/2:sdrag.len);
-  const u=x>=1?2*Math.exp((x-1)/2):x>=-0.5?1+x:0.5*Math.exp((x+0.5)/0.5);
   let f={x:1,y:1,z:1};
-  if(ks.length===1&&!e.shiftKey){f[ks[0]]=u;} else {f={x:u,y:u,z:u};}
+  setRay(e); const P=new THREE.Vector3();
+  if(!sdrag.grazing&&ray2.ray.intersectPlane(sdrag.pl,P)){
+    // el punto agarrado sigue al mouse: factor = distancia al punto fijo ahora / al empezar
+    const L=sdrag.toL(P); ks.forEach(k=>{const d0=sdrag.L0[k]-a[k]; f[k]=Math.abs(d0)>1e-9?(L[k]-a[k])/d0:1;});
+  } else {
+    const x=new THREE.Vector2(e.clientX,e.clientY).sub(sdrag.P0).dot(sdrag.dir)/Math.max(alt?20:40,alt?sdrag.len/2:sdrag.len);
+    const u=x>=1?2*Math.exp((x-1)/2):x>=-0.5?1+x:0.5*Math.exp((x+0.5)/0.5); ks.forEach(k=>{f[k]=u;});
+  }
+  ks.forEach(k=>{f[k]=Math.max(0.01,f[k]);});
+  const uni=e.shiftKey;
+  if(uni){ const u=ks.length===1?f[ks[0]]:Math.max(...ks.map(k=>f[k])); f={x:u,y:u,z:u}; }
   if($('#snap').classList.contains('on')){
-    const k=ks.reduce((m,kk)=>Math.abs(w0(kk))>Math.abs(w0(m))?kk:m,ks[0]);
-    const size0=Math.abs(w0(k)), r=Math.max(snapStep(),Math.round(size0*Math.max(0.001,f[k])/snapStep())*snapStep())/size0;
-    if(ks.length===1&&!e.shiftKey)f[k]=r; else f={x:r,y:r,z:r};
+    // la medida final queda en múltiplos del paso del imán
+    const st=snapStep(), snapK=k=>{const size0=Math.abs(w0(k)); return Math.max(st,Math.round(size0*f[k]/st)*st)/size0;};
+    if(uni){ const k=ks.reduce((m,kk)=>Math.abs(w0(kk))>Math.abs(w0(m))?kk:m,ks[0]), r=snapK(k); f={x:r,y:r,z:r}; }
+    else ks.forEach(k=>{f[k]=snapK(k);});
   }
   ['x','y','z'].forEach(k=>{f[k]=Math.max(0.001,f[k]);});
   const sn=new THREE.Vector3(s0.x*f.x,s0.y*f.y,s0.z*f.z);

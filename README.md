@@ -5,7 +5,7 @@ App web simple, estilo Microsoft 3D Builder. Dirección oficial: **https://const
 ## Qué hace
 - **Formas:** cubo, esfera, cilindro, cono, toroide, tubo, media esfera, pirámide, prisma hexagonal y cuña (25 mm por defecto). Aparecen en el centro de la cama.
 - **Texto 3D:** 7 tipografías con ñ y acentos, acostado o parado, alto de letra y espesor en mm. Se puede editar después.
-- **Mover, rotar y escalar** (escalado con caja exterior y cotas en mm), con snap opcional.
+- **Mover, rotar y escalar** como en Tinkercad: arrastrar la pieza (se apoya sola sobre otras), puntos de escalar (esquinas: ancho y fondo, lados: un eje, arriba: altura; Shift parejo, Alt desde el centro), flechas curvas para girar en X, Y y Z (de a 22,5°, o de a 1° lejos del anillo) e imán de 1 mm prendido de entrada (0,1 a 10 mm). Varias piezas elegidas se manejan como un conjunto.
 - **Unir, restar, intersectar y dividir** con el motor Manifold: los resultados salen siempre cerrados. Unir e Intersectar aceptan varias piezas a la vez.
 - **Hueco**, como en Tinkercad: una pieza marcada como hueco se resta al unirla con otras.
 - **Lista de piezas:** elegir, renombrar, ocultar y bloquear.
