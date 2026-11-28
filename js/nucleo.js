@@ -236,6 +236,24 @@ $('#snap').onclick=()=>{
   msg(on?'Snap activado: mover de a '+snapStep()+' mm, rotar de a 15°, escalar de a 0,1. El paso se cambia en Cama.':'Snap desactivado.');
 };
 const bbox=o=>{o.updateMatrixWorld(true); return new THREE.Box3().setFromObject(o,true);};
+// Escalar en los ejes de la cama (X, Y, Z del mundo) desde un punto fijo A, sin torcer piezas giradas.
+// init = {p,q,s} el estado de partida. Si la pieza está girada de a 90°, alcanza con repartir el factor en sus ejes.
+// Si está girada en otro ángulo, mientras se arrastra se muestra con una matriz y al final (final=true) el giro
+// y la escala se pasan a la malla: la pieza queda derecha y sin deformar, pero deja de tener medidas editables.
+function scaleWorld(o,init,F,A,final){
+  const uni=Math.abs(F.x-F.y)<1e-9&&Math.abs(F.y-F.z)<1e-9, R=new THREE.Matrix4().makeRotationFromQuaternion(init.q).elements;
+  const map=[0,1,2].map(i=>{for(let j=0;j<3;j++)if(Math.abs(R[i*4+j])>0.9999)return j; return -1;});
+  if(uni||map.every(j=>j>=0)){
+    const Fa=[F.x,F.y,F.z];
+    o.matrixAutoUpdate=true; o.position.copy(init.p).sub(A).multiply(F).add(A); o.quaternion.copy(init.q);
+    o.scale.set(init.s.x*(uni?F.x:Fa[map[0]]),init.s.y*(uni?F.x:Fa[map[1]]),init.s.z*(uni?F.x:Fa[map[2]])); return false;
+  }
+  const T=new THREE.Matrix4().makeTranslation(A.x,A.y,A.z).multiply(new THREE.Matrix4().makeScale(F.x,F.y,F.z)).multiply(new THREE.Matrix4().makeTranslation(-A.x,-A.y,-A.z)).multiply(new THREE.Matrix4().compose(init.p,init.q,init.s));
+  if(!final){ o.matrixAutoUpdate=false; o.matrix.copy(T); o.matrixWorldNeedsUpdate=true; return false; }
+  const t=new THREE.Vector3().setFromMatrixPosition(T), L=T.clone().setPosition(0,0,0), g=o.geometry.clone().applyMatrix4(L);
+  g.computeBoundingBox(); o.geometry=g; o.matrixAutoUpdate=true; o.position.copy(t); o.quaternion.identity(); o.scale.set(1,1,1);
+  delete o.userData.p; delete o.userData.fx; recenter(o); return true;
+}
 $('#alinear').onclick=()=>openPanel('#toolp');
 // ===== Alinear y simetría =====
 const AL_SVG=(g,r)=>'<svg viewBox="0 0 30 20"><path class="g" d="'+g+'"/>'+r.map(q=>'<rect class="r" x="'+q[0]+'" y="'+q[1]+'" width="'+q[2]+'" height="'+q[3]+'"/>').join('')+'</svg>';
@@ -423,6 +441,9 @@ function updateFreeUI(o,on){
   frArrow.position.set(c.x,bb.max.y+k*0.07,c.z); frArrow.scale.setScalar(k*0.007);
   const ps=[new THREE.Vector3(c.x,bb.max.y+k*0.19,c.z),new THREE.Vector3(c.x,bb.min.y-k*0.06,c.z)];
   frRot.forEach((r,i)=>{r.position.copy(ps[i]); r.userData.pk.position.copy(ps[i]); r.userData.pk.scale.setScalar(k*0.018);});
+  // si una flecha curva queda debajo de un botón o panel, se esconde (la otra hace lo mismo y sigue a mano)
+  if(!fdrag){ const cr=canvas.getBoundingClientRect(), cov=frRot.map(r=>{const v=r.position.clone().project(cam), x=cr.left+(v.x+1)/2*cr.width, y=cr.top+(1-v.y)/2*cr.height, el=document.elementFromPoint(x,y); return !!el&&el!==canvas;});
+    if(!(cov[0]&&cov[1]))frRot.forEach((r,i)=>{if(cov[i]){r.visible=false; r.userData.pk.visible=false;}}); }
 }
 function updateScaleUI(){
   const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!sel.some(q=>M_(q).l)&&!placing);
@@ -464,7 +485,7 @@ canvas.addEventListener('pointerdown',e=>{
   const Ac=c.clone().multiply(g.s).applyQuaternion(g.q).add(g.p);
   sdrag={o,s,h,a,A,c,Ac,s0:grp?new THREE.Vector3(1,1,1):o.scale.clone(),q:grp?new THREE.Quaternion():o.quaternion.clone(),p0:o.position.clone(),
     P0:new THREE.Vector2(e.clientX,e.clientY),dir:v0.clone().normalize(),len,
-    grp, init:grp?new Map(grp.map(m=>[m,{p:m.position.clone(),s:m.scale.clone()}])):null};
+    grp, init:grp?new Map(grp.map(m=>[m,{p:m.position.clone(),q:m.quaternion.clone(),s:m.scale.clone()}])):null};
 },true);
 canvas.addEventListener('pointermove',e=>{
   if(!sdrag)return;
@@ -490,8 +511,8 @@ canvas.addEventListener('pointermove',e=>{
   const sn=new THREE.Vector3(s0.x*f.x,s0.y*f.y,s0.z*f.z);
   if(sdrag.grp){
     // grupo: todas las piezas se escalan desde el punto fijo A (la manija opuesta)
-    const F=new THREE.Vector3(f.x,f.y,f.z);
-    sdrag.grp.forEach(m=>{const m0=sdrag.init.get(m); m.scale.copy(m0.s).multiply(F); m.position.copy(m0.p).sub(A).multiply(F).add(A);});
+    const F=new THREE.Vector3(f.x,f.y,f.z); sdrag.F=F; sdrag.Afix=A.clone();
+    sdrag.grp.forEach(m=>scaleWorld(m,sdrag.init.get(m),F,A,false));
   } else {
     o.scale.copy(sn);
     o.position.copy(A).sub(a.clone().multiply(sn).applyQuaternion(q));
@@ -499,7 +520,10 @@ canvas.addEventListener('pointermove',e=>{
   updateDims();
 });
 const endScale=()=>{
-  if(!sdrag)return; const members=sdrag.grp||[sdrag.o]; sdrag=null; orbit.enabled=true;
+  if(!sdrag)return; const members=sdrag.grp||[sdrag.o], d=sdrag; sdrag=null; orbit.enabled=true;
+  // piezas giradas en ángulo: el giro y la escala pasan a la malla para que no queden torcidas
+  let baked=0; if(d.grp&&d.F)d.grp.forEach(m=>{ if(scaleWorld(m,d.init.get(m),d.F,d.Afix,true))baked++; });
+  if(baked)msg(baked===1?'La pieza girada se escaló sin deformarse (ahora sus medidas se editan como una malla).':baked+' piezas giradas se escalaron sin deformarse (ahora sus medidas se editan como mallas).');
   members.forEach(m=>{if(m.userData.p)rebuild(m);});
   updateDims(); commit(); if(members.length>1)groupPanelInfo();
 };
@@ -734,14 +758,16 @@ function updateDims(){
   box.hidden=false;
   o.geometry.computeBoundingBox();
   const s=new THREE.Vector3(); o.geometry.boundingBox.getSize(s); s.multiply(o.scale);
+  // con varias piezas, las medidas y la posición son las del conjunto, y la rotación se escribe como un giro a sumar (arranca en 0)
+  const ms=multiSel(), gb=ms?groupBox():null, pos=ms?gb.getCenter(new THREE.Vector3()):o.position; if(ms)gb.getSize(s);
   ['x','y','z'].forEach(k=>{const inp=$('#d'+k); if(document.activeElement!==inp) inp.value=+s[k].toFixed(3);});
-  ['x','y','z'].forEach(k=>{const inp=$('#p'+k); if(document.activeElement!==inp) inp.value=+o.position[k].toFixed(3);});
-  ['x','y','z'].forEach(k=>{const inp=$('#r'+k); if(document.activeElement!==inp) inp.value=+THREE.MathUtils.radToDeg(o.rotation[k]).toFixed(2);});
+  ['x','y','z'].forEach(k=>{const inp=$('#p'+k); if(document.activeElement!==inp) inp.value=+pos[k].toFixed(3);});
+  ['x','y','z'].forEach(k=>{const inp=$('#r'+k); if(document.activeElement!==inp) inp.value=ms?0:+THREE.MathUtils.radToDeg(o.rotation[k]).toFixed(2);});
   const rp=o.userData.p, rnd=!!rp&&(rp.t==='box'||rp.t==='cyl'); $('#rrow').hidden=!rnd;
   if(rnd){ if(document.activeElement!==$('#rad')) $('#rad').value=+rp.r.toFixed(3); $('#rtype').value=rp.soft?'soft':'chamfer'; }
   syncParam(rp); renderFx(o);
   if(document.activeElement!==$('#col')) $('#col').value='#'+o.material.color.getHexString();
-  const lk=M_(o).l; box.querySelectorAll('input,select').forEach(i=>{if(i.id!=='col')i.disabled=lk;});
+  const lk=sel.some(q=>M_(q).l); box.querySelectorAll('input,select').forEach(i=>{if(i.id!=='col')i.disabled=lk;});
 }
 ['x','y','z'].forEach(k=>$('#d'+k).addEventListener('input',e=>{
   const o=sel[sel.length-1], v=parseFloat(e.target.value);

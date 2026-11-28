@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Corre todas las pruebas y falla si alguna no termina bien o tiene un FAIL.
 cd "$(dirname "$0")" || exit 1
-TESTS="t2 t3 t4 t5 t7 t8 t9 t10 t11 t12 t15 t16 t18 t19 t20 t21 t22 t24 t25 t26 t27 t28 t30"
+TESTS="t2 t3 t4 t5 t7 t8 t9 t10 t11 t12 t15 t16 t18 t19 t20 t21 t22 t24 t25 t26 t27 t28 t30 t31 t32"
 bad=0
 for t in $TESTS; do
   out=$(timeout 420 node "$t.mjs" 2>&1); code=$?

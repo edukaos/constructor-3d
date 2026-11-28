@@ -113,3 +113,26 @@ addEventListener('keydown',e=>{
 // una sola entrada en el historial por cada tanda de flechas
 addEventListener('keyup',e=>{ if(arrowMoved&&e.key.startsWith('Arrow')){ arrowMoved=false; commit(); } });
 addEventListener('blur',()=>{ if(arrowMoved){arrowMoved=false; commit();} });
+
+// ===== Panel de propiedades con varias piezas: trabaja sobre el conjunto =====
+// Medidas y Posición son las de la caja del conjunto. Rotación: el número escrito se suma como giro alrededor del centro.
+// Se aplica al confirmar (Enter o salir del campo), así un número a medio escribir no mueve nada.
+['x','y','z'].forEach(k=>{
+  const cap=(id,fn)=>{ const el=$(id);
+    el.addEventListener('input',e=>{ if(multiSel())e.stopImmediatePropagation(); },true);
+    el.addEventListener('change',e=>{ if(!multiSel())return; const v=parseFloat(e.target.value); if(isNaN(v)){updateDims();return;} fn(v); updateDims(); },true);
+  };
+  cap('#d'+k,v=>{
+    if(!(v>0))return; const b=groupBox(), sz=b.getSize(new THREE.Vector3()); if(sz[k]<1e-9)return;
+    const r=v/sz[k], F=$('#dlock').checked?new THREE.Vector3(r,r,r):new THREE.Vector3(k==='x'?r:1,k==='y'?r:1,k==='z'?r:1);
+    const A=b.getCenter(new THREE.Vector3()); A.y=b.min.y; // crece desde el centro y sin despegarse de donde está apoyado
+    let baked=0; sel.forEach(o=>{ if(scaleWorld(o,{p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()},F,A,true))baked++; else if(o.userData.p)rebuild(o); });
+    if(baked)msg(baked===1?'La pieza girada se escaló sin deformarse.':baked+' piezas giradas se escalaron sin deformarse.');
+  });
+  cap('#p'+k,v=>{ const c=groupBox().getCenter(new THREE.Vector3()), d=v-c[k]; sel.forEach(o=>{o.position[k]+=d;}); });
+  cap('#r'+k,v=>{
+    if(!v)return; const c=groupBox().getCenter(new THREE.Vector3()), ax=new THREE.Vector3(k==='x'?1:0,k==='y'?1:0,k==='z'?1:0), q=new THREE.Quaternion().setFromAxisAngle(ax,THREE.MathUtils.degToRad(v));
+    sel.forEach(o=>{o.position.sub(c).applyQuaternion(q).add(c); o.quaternion.premultiply(q);});
+    $('#r'+k).value=0;
+  });
+});
