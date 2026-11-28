@@ -852,3 +852,7 @@ html body #ribbon .rtabs,html body #ribbon .rbody{margin-left:calc(16px + var(--
 .shleg span{display:inline-flex;align-items:center;gap:6px}
 .shleg i{width:12px;height:12px;border-radius:4px;flex:0 0 12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .shleg i.cut{background:repeating-linear-gradient(135deg,#fff4dc 0 3px,#e9c98a 3px 5px)}
+#updver{position:fixed;left:50%;bottom:160px;transform:translateX(-50%);z-index:90;display:flex;align-items:flex-start;gap:14px;max-width:min(560px,calc(100vw - 32px));box-sizing:border-box;background:#101d33;color:#f3f6fb;border:1px solid #F5C451;border-radius:14px;padding:14px 18px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#updver b{color:#F5D36B;font-size:16px}
+#updver p{margin:6px 0 0;line-height:1.4;opacity:.9}
+#updver button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid #27395a;background:transparent;color:inherit;padding:4px 10px}
