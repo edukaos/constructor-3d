@@ -397,6 +397,7 @@ function recenter(m){
 
 // al tocar el visor se suelta el campo numérico que tenía el foco, así el panel de medidas siempre se actualiza
 canvas.addEventListener('pointerdown',()=>{const a=document.activeElement; if(a&&a!==document.body&&a.closest&&a.closest('#dims'))a.blur();},true);
+let alMode=null; // modo Alinear en el visor (alinear.js)
 let scaleUI=true, freeUI=true, sdrag=null, placing=null, placeSkip=false, fdrag=null; const sgCache={g:null,min:null,max:null};
 // marco de la caja de escalar: la pieza, o el grupo entero (en coordenadas del mundo, con grp = sus piezas)
 let sgF=null; const IDF={matrixWorld:new THREE.Matrix4(),scale:new THREE.Vector3(1,1,1),updateMatrixWorld(){}};
@@ -456,7 +457,7 @@ function updateFreeUI(o,on){
     if(!cov.every(Boolean))frRot.forEach((r,i)=>{if(cov[i]){r.visible=false; r.userData.pk.visible=false;}}); }
 }
 function updateScaleUI(){
-  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!sel.some(q=>M_(q).l)&&!placing);
+  const o=sel[sel.length-1], on=!!(scaleUI&&o&&!splitting&&!sel.some(q=>M_(q).l)&&!placing&&!alMode);
   if(!o){updateFreeUI(null,false);}
   sg.visible=on; sh.forEach(h=>h.visible=on);
   if(scaleUI)tc.visible=false; else if(tc.object)tc.visible=true;
